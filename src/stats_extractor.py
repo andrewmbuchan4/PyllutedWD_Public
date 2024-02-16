@@ -5,7 +5,12 @@ import csv
 import numpy as np
 import os
 
+import pymultinest as pn
+
+import manager as mn
 import model_parameters as mp
+
+from argparse import Namespace
 
 whitelist = [
     'SDSSJ0002+3209',
@@ -309,11 +314,11 @@ whitelist = [
     #'MarsFcf0.8',
     #'MarsFcf0.9',
     #'MarsFcf0.99',
-    #'GaiaJ0510+2315',  # Can be included once published
-    #'GaiaJ0644-0352',  # Can be included once published
-    #'SDSSJ0006+2858',  # Can be included once published
+    #'GaiaJ0510+2315',
+    #'GaiaJ0644-0352',
+    #'SDSSJ0006+2858',
     #'WD0611-6931',
-    #'WD0611-6931Full',  # Can be included once published
+    #'WD0611-6931Full',
     #'GALEX1931+0117Melis',
     #'SynthEarthfcf0',
     #'SynthEarthfcf0.1',
@@ -364,7 +369,7 @@ whitelist = [
     #'GALEX1931+0117MCorr',
     'SDSSJ2047-1259Corr',
     'WD1551+175Corr',
-    #'PG1015+161Corr', exclude  because this was based on Gaensicke data
+    #'PG1015+161Corr',
     'GD362Corr',
     'GD40Corr',
     'G241-6Corr',
@@ -435,7 +440,156 @@ whitelist = [
     #'WD1226+110',
     #'PG1018+411',
     #'WD1341+036',
-    #'PG0010+280'
+    #'PG0010+280',
+    'GaiaJ2100+2122',
+    'GaiaJ0347+1624',
+    'WD1622+587',
+    #'WD0611-6931Bounds',
+    #'SDSSJ0006+2858Bounds',
+    'NLTT25792',
+    'G74-7',
+    'WD1455+298',
+    'WD0354+463',
+    'WD1257+278',
+    #'GaiaJ0510+2315Photo',
+    #'GaiaJ0510+2315Spec',
+    #'GaiaJ0347+1624Photo',
+    #'GaiaJ0347+1624Spec',
+    #'WD1622+587Photo',
+    #'WD1622+587Spec',
+    #'GaiaJ2100+2122Photo',
+    #'GaiaJ2100+2122Spec',
+    #'SDSSJ0006+2858Photo',
+    #'SDSSJ0006+2858Spec',
+    #'GaiaJ0644-0352Photo',
+    #'GaiaJ0644-0352Spec',
+    #'WD0611-6931Spec',
+    #'GaiaJ0347+1624SpecSolarMg',
+    #'GaiaJ0510+2315SpecBounds',
+    #'GaiaJ0347+1624SpecBounds',
+    #'WD1622+587SpecBounds',
+    #'GaiaJ2100+2122SpecBounds',
+    #'SDSSJ0006+2858SpecBounds',
+    #'GaiaJ0644-0352SpecBounds',
+    #'WD0611-6931SpecBounds',
+    #'SDSSJ0006+2858SpecBoundsNoO',
+    #'GaiaJ2100+2122SpecBoundsNoO',
+    #'WD0611-6931SpecBoundsNoFe',
+    'SDSSJ0956+5912H21',
+    'SDSSJ1038-0036H21',
+    'SDSSJ1535+1247H21',
+    #'GaiaJ0510+2315SpecMarch',
+    #'GaiaJ0347+1624SpecMarch',
+    #'WD1622+587SpecMarch',
+    #'GaiaJ2100+2122SpecMarch',
+    #'SDSSJ0006+2858SpecMarch',
+    #'WD0611-6931SpecMarch',
+    #'WD0611-6931SpecMarchSE',
+    #'WD1145+017Budaj',
+    'WD2058+181',
+    'WD1647+375',
+    'WD1013+256',
+    'WD1953–715',
+    'WD1943+163',
+    'WD0059+257',
+    #'SDSSJ0956+5912H21GTC',
+    #'J539AcapulcoY02',
+    #'WD1232+563CorrNo559',
+    'WDJ2147-4035',
+    'WDJ1922+0233',
+    #'SDSSJ0006+2858PhotoJune',
+    #'GaiaJ0347+1624PhotoJune',
+    #'GaiaJ0644-0352PhotoJune',
+    #'WD1622+587PhotoJune',
+    #'GaiaJ2100+2122PhotoJune',
+    'WDJ0820+2530'
+    #'PG0843+516GCorrUVOnly',
+    #'PG1015+161CorrUVOnly',
+    #'SDSSJ1228+1040CorrUVOnly',
+    #'SynthBayesCompMantleIdeal0',
+    #'SynthBayesCompMantleIdeal0p1',
+    #'SynthBayesCompMantleIdeal0p2',
+    #'SynthBayesCompMantleIdeal0p3',
+    #'SynthBayesCompMantleIdeal0p4',
+    #'SynthBayesCompMantleRealistic0',
+    #'SynthBayesCompMantleRealistic0p1',
+    #'SynthBayesCompMantleRealistic0p2',
+    #'SynthBayesCompMantleRealistic0p3',
+    #'SynthBayesCompMantleRealistic0p4',
+    #'SynthBayesCompCoreIdeal0',
+    #'SynthBayesCompCoreIdeal0p1',
+    #'SynthBayesCompCoreIdeal0p2',
+    #'SynthBayesCompCoreIdeal0p3',
+    #'SynthBayesCompCoreIdeal0p4',
+    #'SynthBayesCompCoreRealistic0',
+    #'SynthBayesCompCoreRealistic0p1',
+    #'SynthBayesCompCoreRealistic0p2',
+    #'SynthBayesCompCoreRealistic0p3',
+    #'SynthBayesCompCoreRealistic0p4',
+    #'SynthEarthDAfcf0'
+]
+
+amy_whitelist = [
+    'G241-6Corr',
+    'G29-38Corr',
+    'GALEXJ2339',
+    'GD362Corr',
+    'GD378',
+    'GD40Corr',
+    'GD424',
+    'GD61Corr',
+    'HS2253+8023Corr',
+    'PG1225-079Corr',
+    'SDSSJ0116+2050',
+    'SDSSJ0512-0505',
+    'SDSSJ0736+4118',
+    'SDSSJ0738+1835Corr',
+    'SDSSJ0741+3146',
+    'SDSSJ0744+4649',
+    'SDSSJ0845+2257Corr',
+    'SDSSJ0901+0752',
+    'SDSSJ0916+2540',
+    'SDSSJ0939+4136',
+    'SDSSJ1024+1014',
+    'SDSSJ1040+2407',
+    'SDSSJ1043+0855Corr',
+    'SDSSJ1043+3516',
+    #'SDSSJ1228+1040OptCorr',
+    'SDSSJ1228+1040Corr',
+    'SDSSJ1229+0743',
+    'SDSSJ1234+5208',
+    'SDSSJ1242+5226Corr',
+    'SDSSJ1321-0237',
+    'SDSSJ1336+3547',
+    'SDSSJ1411+3410',
+    'SDSSJ1430-0151',
+    'SDSSJ1524+4049',
+    #'SDSSJ1535+1247',
+    'SDSSJ2047-1259Corr',
+    'SDSSJ2230+1905',
+    'WD0446-255',
+    'WD0449-259NoNaCorr',
+    'WD1145+017Corr',
+    'WD1232+563Corr',
+    'WD1350-162NoNaCorr',
+    'WD1425+540Corr',
+    'WD1536+520Corr',
+    'WD1551+175Corr',
+    'WD2115-560Corr',
+    'WD2157-574',
+    'WD2207+121Corr',
+    'PG0843+516GCorr', # Need to update in WDMS
+    #'PG0843+516XCorr', #?
+    'GALEX1931+0117GCorr',
+    #'GALEX1931+0117VCorr',
+    #'GALEX1931+0117MCorr',
+    'PG1015+161Corr', # Need to update in WDMS
+    #'PG1015+161Xu',
+    'SDSSJ0956+5912H21', #?
+    'SDSSJ1038-0036H21', #?
+    'SDSSJ1535+1247H21',
+    'LHS2534', #?
+    'NLTT43806Corr' #?
 ]
 
 systems_in_sample_including_dupes = [
@@ -492,7 +646,7 @@ system_categories = {
     'G166-58': 'NED', # No evidence of differentiation
     'G241-6Corr': 'NED',
     'G29-38Corr': 'NED',
-    'GALEX1931+0117MCorr': 'NED',
+    'GALEX1931+0117GCorr': 'NED',
     'GALEXJ2339': 'NED',
     'GD362Corr': 'NED',
     'GD378': 'NED',
@@ -500,26 +654,26 @@ system_categories = {
     'GD424': 'NED', # High pressure mantle
     'GD56': 'NED',
     'GD61Corr': 'HPM',
-    'HE0106-3253': 'Pdegen', # Pressure degenerate
+    'HE0106-3253': 'PD', # Pressure degenerate
     'HS2253+8023Corr': 'NED',
-    'LHS2534': 'Unphysical',
+    'LHS2534': 'U',
     'NLTT43806Corr': 'HPM*',
-    'PG0843+516XCorr': 'Pdegen',
-    'PG1015+161Xu': 'Pdegen', 
+    'PG0843+516XCorr': 'PD',
+    'PG1015+161Xu': 'PD', 
     'PG1225-079Corr': 'NED',
-    'SDSSJ0512-0505': 'Pdegen',
-    'SDSSJ0738+1835Corr': 'Puncon', # Pressure unconstrained
-    'SDSSJ0823+0546': 'Puncon',
-    'SDSSJ0845+2257Corr': 'Puncon',
+    'SDSSJ0512-0505': 'PD',
+    'SDSSJ0738+1835Corr': 'PU', # Pressure unconstrained
+    'SDSSJ0823+0546': 'PU',
+    'SDSSJ0845+2257Corr': 'PU',
     'SDSSJ1043+0855Corr': 'NED',
     'SDSSJ1228+1040Corr': 'NED',
     'SDSSJ1242+5226Corr': 'NED',
     'SDSSJ2047-1259Corr': 'NED',
-    'WD0122-227SiO': 'Puncon',
+    'WD0122-227SiO': 'PU',
     'WD0446-255': 'HPM',
     'WD0449-259NoNaCorr': 'LPC',  # Low pressure core
     'WD1145+017Corr': 'NED',
-    'WD1145+288': 'Puncon',
+    'WD1145+288': 'PU',
     'WD1232+563Corr': 'NED',
     'WD1350-162NoNaCorr': 'LPC$^\dagger$',
     'WD1425+540Corr': 'NED',
@@ -583,6 +737,18 @@ system_sources = {
     'WDJ1814-7354': '\citet{GonzalezEgea2020}'
 }
 
+# Some systems are recorded as having a poor fit in the raw files
+# But this is actually incorrect due to wrong chi squared criterion a
+# the time of running them. So we will manually override:
+good_fit_overrides = [
+    'WD2216-657SiCorr',
+    'GALEX1931+0117GCorr',
+    'GALEX1931+0117VCorr',
+    'GD424',
+    'SDSSJ1043+0855Corr',
+    'WD1232+563Corr'
+]
+
 def extract_obs_number(stats_file):
     obs_number = stats_file.split('obs')[1].split('_')[0]
     return int(obs_number)
@@ -590,7 +756,7 @@ def extract_obs_number(stats_file):
 def find_stats_files(path=None):
     stats_files = list()
     for filename in os.listdir(path):
-        if filename.startswith('stats') and filename.endswith('.csv'):
+        if filename.startswith('stats') and filename.endswith('NEL.csv'):
             stats_files.append(filename)
     stats_files.sort(key=extract_obs_number)
     return stats_files
@@ -602,9 +768,20 @@ def create_empty_variable_dict():
     return toret
 
 def collect_system_stats(path=None):
+    manager = mn.Manager(
+        Namespace(
+            wd_data_filename='WDInputData.csv',
+            stellar_compositions_filename='StellarCompositionsSortFE.csv',
+            n_live_points = 0,
+            pollution_model_names=['Model_24'],
+            enhancement_model='Earthlike'
+        )
+    )
     system_stats_dict = dict()
     na_string = 'N/A'
     volatile_rich_temp = 1000  # Below this temp, we're volatile rich
+    raise # Forcing an error here in order to force reconsideration of the 1000K cutoff - it should almost certainly be lower. Check 0845+2257 for example - looks volatile depleted @ T ~ 500K
+    # Is this even a good system in principle? Looking at excess oxygen seems better
     volatile_poor_temp = 1400 # Above this temp, we're volatile poor (including moderate volatiles) (loosely basing this on Lodders 2003 table 8)
     for stats_file in find_stats_files(path):
         path_to_use = stats_file
@@ -613,6 +790,9 @@ def collect_system_stats(path=None):
         system_name = None
         diff_sigma = None
         pcnf = None
+        fcmf = None
+        fcmf_lowererror = None
+        fcmf_uppererror = None
         temperature = None
         best_model_index = None
         
@@ -625,43 +805,71 @@ def collect_system_stats(path=None):
 
         good_fit_index = None
         good_fit = None
+        current_csv_section = 'Overview'
+        best_model = None
+        bu_percent = None
+        ss_percent = None
+        dec_percent = None
+        print(path_to_use)
         with open(path_to_use, encoding='utf-8') as stats_csv:
             for row in csv.reader(stats_csv):
                 if len(row) > 1:
-                    if row[0] == 'System Name:':
-                        system_name = row[1]
-                        print(system_name)
-                    if row[0] == 'Diff Sigma':
-                        diff_sigma = row[1]
-                    if row[0] == 'Parent Core Number Fraction:':
-                        pcnf = row[1]
-                    if row[0] == 'Temperature /K, +error, -error:':
-                        temperature = row[1]
-                    if row[0] == 'Parameter:':
-                        for variable in variable_indices.keys():
+                    if row[0] == 'Results from model:':
+                        # This logic is new and super important! The code now writes results from multiple models in the same csv underneath each other
+                        # So we need to keep track of which model results we are currently reading, we only care about one of them (for now)
+                        current_csv_section = row[1]
+                    if current_csv_section == 'Overview':
+                        if row[0] == 'System Name:':
+                            system_name = row[1]
+                            print(system_name)
+                        if row[0] == 'Model':
+                            best_model_index = row.index('Best model?')
+                            good_fit_index = row.index('Good fit?')
+                        if best_model_index is not None:
                             try:
-                                variable_indices[variable] = row.index(variable)
-                            except ValueError:
-                                # Then variable was not invoked for this system, ignore
-                                pass
-                    if row[0] == 'Median:':
-                        for variable in medians.keys():
-                            if variable_indices[variable] is not None:
-                                medians[variable] = float(row[variable_indices[variable]])
-                    if row[0] == '16th percentile:':
-                        for variable in percentile_16s.keys():
-                            if variable_indices[variable] is not None:
-                                percentile_16s[variable] = float(row[variable_indices[variable]])
-                    if row[0] == '84th percentile:':
-                        for variable in percentile_84s.keys():
-                            if variable_indices[variable] is not None:
-                                percentile_84s[variable] = float(row[variable_indices[variable]])
-                    if row[0] == 'Model':
-                        best_model_index = row.index('Best model?')
-                        good_fit_index = row.index('Good fit?')
-                    if best_model_index is not None and len(row) > best_model_index + 1:
-                        if row[best_model_index] == 'True':
-                            good_fit = row[good_fit_index]
+                                if row[best_model_index] == 'True': # This should happen precisely once
+                                    good_fit = row[good_fit_index]
+                                    best_model = row[0]
+                            except IndexError:
+                                pass # The row was one of the short ones which we can ignore (we're looking for the row which has a True entry in the Best model? column)
+                        if row[0].startswith('Diff Sigma'):
+                            diff_sigma = row[1]
+                        if row[0] == 'Mg':  # Then this must be the Mg sinking timescale - need this for later!
+                            t_Mg = float(row[1])
+                    if current_csv_section == best_model:
+                        if row[0] == 'Build Up % (sampled):':
+                            bu_percent = row[1]
+                        if row[0] == 'Steady State % (sampled):':
+                            ss_percent = row[1]
+                        if row[0] == 'Declining % (sampled):':
+                            dec_percent = row[1]
+                        if row[0] == 'Parent Core Number Fraction:':
+                            pcnf = row[1]
+                        if row[0].startswith('Fragment core mass fraction'):
+                            fcmf = row[1]
+                            fcmf_uppererror = row[2]
+                            fcmf_lowererror = row[3]
+                        if row[0] == 'Temperature /K, +error, -error:':
+                            temperature = row[1]
+                        if row[0] == 'Parameter:':
+                            for variable in variable_indices.keys():
+                                try:
+                                    variable_indices[variable] = row.index(variable)
+                                except ValueError:
+                                    # Then variable was not invoked for this system, ignore
+                                    pass
+                        if row[0] == 'Median:':
+                            for variable in medians.keys():
+                                if variable_indices[variable] is not None:
+                                    medians[variable] = float(row[variable_indices[variable]])
+                        if row[0] == '16th percentile:':
+                            for variable in percentile_16s.keys():
+                                if variable_indices[variable] is not None:
+                                    percentile_16s[variable] = float(row[variable_indices[variable]])
+                        if row[0] == '84th percentile:':
+                            for variable in percentile_84s.keys():
+                                if variable_indices[variable] is not None:
+                                    percentile_84s[variable] = float(row[variable_indices[variable]])
         
         for variable, median in medians.items():
             if median is not None:
@@ -680,11 +888,28 @@ def collect_system_stats(path=None):
                 diff_sigma = np.inf
             else:
                 diff_sigma = float(diff_sigma)
+
         if good_fit is not None:
             good_fit = good_fit == 'True'
-        
+        if system_name in good_fit_overrides:
+            good_fit = True
         if pcnf is not None:
             pcnf = float(pcnf)
+        if fcmf is not None:
+            try:
+                fcmf = float(fcmf)
+            except ValueError:
+                fcmf = None
+        if fcmf_uppererror is not None:
+            try:
+                fcmf_uppererror = float(fcmf_uppererror)
+            except ValueError:
+                fcmf_uppererror = None
+        if fcmf_lowererror is not None:
+            try:
+                fcmf_lowererror = float(fcmf_lowererror)
+            except ValueError:
+                fcmf_lowererror = None
         fcf = medians['Fragment Core Fraction']
             
         core_rich = fcf > pcnf if fcf is not None else False
@@ -694,6 +919,8 @@ def collect_system_stats(path=None):
         volatile_rich = temperature < volatile_rich_temp
         volatile_depleted = temperature >= volatile_rich_temp and temperature <= volatile_poor_temp
         moderate_volatile_depleted = temperature > volatile_poor_temp
+
+        spectral_type = manager.wd_types[system_name]
 
         system_stats_dict[system_name] = {
             'GoodFit': good_fit,
@@ -706,11 +933,18 @@ def collect_system_stats(path=None):
             'DifferentiationSigma': diff_sigma,
             'Temperature': temperature,
             'ParentCoreNumberFraction': pcnf,
+            'FragmentCoreMassFraction': fcmf,
+            'FragmentCoreMassFractionLowerError': fcmf_lowererror,
+            'FragmentCoreMassFractionUpperError': fcmf_uppererror,
             'Medians': medians,
             'Upper1Sigmas': percentile_84s,
             'Lower1Sigmas': percentile_16s,
             'UpperErrors': upper_errors,
-            'LowerErrors': lower_errors
+            'LowerErrors': lower_errors,
+            'BuildUpPercentage': bu_percent,
+            'SteadyStatePercentage': ss_percent,
+            'DecliningPercentage': dec_percent,
+            'SpectralType': spectral_type
         }
     return system_stats_dict
 
@@ -732,9 +966,14 @@ def strip_system_suffix(system_name):
             obs_data_series_name = obs_data_series_name[:-len_to_strip]
     return obs_data_series_name
 
+def sort_latex_rows(list_of_rows):
+    toret = list_of_rows
+    toret.sort(key=lambda x: (x[0])) # This is stable (i.e. retains original order in case of ties) but could be made more complicated?
+    return toret
+
 def compile_stats_table(system_stats_dict, path=None):
-    path_to_use = 'system_stats.csv'
-    latex_path_to_use = 'results.tex'
+    path_to_use = 'system_stats_071022.csv'
+    latex_path_to_use = 'results_071022.tex'
     if path is not None:
         path_to_use = path + path_to_use
         latex_path_to_use = path + latex_path_to_use
@@ -742,6 +981,7 @@ def compile_stats_table(system_stats_dict, path=None):
         to_write = csv.writer(f)
         to_write.writerow([
             'System',
+            'Type',
             'Stellar metallicity',
             'Stellar metallicity Lower Error',
             'Stellar metallicity Upper Error',
@@ -787,12 +1027,19 @@ def compile_stats_table(system_stats_dict, path=None):
             'Moderate Volatile Depleted?',
             'Temperature',
             'Inferred Parent Core Number Fraction',
+            'Fragment Core Mass Fraction',
+            'Fragment Core Mass Fraction Lower Error',
+            'Fragment Core Mass Fraction Upper Error',
             'Differentiation Sigma',
+            'Build Up %',
+            'Steady State %',
+            'Declining %',
             'Include In Sample?',
         ])
         for sys, vals in system_stats_dict.items():
             to_write.writerow([
                 sys,
+                vals['SpectralType'],
                 vals['Medians']['Stellar metallicity indices'] if vals['Medians']['Stellar metallicity indices'] is not None else 'N/A',
                 vals['LowerErrors']['Stellar metallicity indices'] if vals['LowerErrors']['Stellar metallicity indices'] is not None else 'N/A',
                 vals['UpperErrors']['Stellar metallicity indices'] if vals['UpperErrors']['Stellar metallicity indices'] is not None else 'N/A',
@@ -838,7 +1085,13 @@ def compile_stats_table(system_stats_dict, path=None):
                 vals['ModerateVolatileDepleted'],
                 vals['Temperature'] if vals['Temperature'] != 0 else 'N/A',
                 vals['ParentCoreNumberFraction'] if vals['ParentCoreNumberFraction'] is not None else 'N/A',
+                vals['FragmentCoreMassFraction'] if vals['FragmentCoreMassFraction'] is not None else 'N/A',
+                vals['FragmentCoreMassFractionLowerError'] if vals['FragmentCoreMassFractionLowerError'] is not None else 'N/A',
+                vals['FragmentCoreMassFractionUpperError'] if vals['FragmentCoreMassFractionUpperError'] is not None else 'N/A',
                 vals['DifferentiationSigma'],
+                vals['BuildUpPercentage'],
+                vals['SteadyStatePercentage'],
+                vals['DecliningPercentage'],
                 sys in whitelist
             ])
     with open(latex_path_to_use, 'w', newline='', encoding='utf-8') as f:
@@ -869,8 +1122,8 @@ def compile_stats_table(system_stats_dict, path=None):
         ])
         list_of_all_rows = list()
         for sys, vals in system_stats_dict.items():
-            print(sys)
-            print(vals['DifferentiationSigma'])
+            #print(sys)
+            #print(vals['DifferentiationSigma'])
             if sys in systems_in_sample_including_dupes:
                 list_of_vals = [
                     strip_system_suffix(sys),
@@ -931,14 +1184,15 @@ def compile_stats_table(system_stats_dict, path=None):
                     'Y' if vals['VolatileRich'] else 'N',
                     'Y' if vals['VolatileDepleted'] else 'N',
                     'Y' if vals['ModerateVolatileDepleted'] else 'N',
-                    str(int(vals['Temperature'])) if vals['Temperature'] != 0 else 'N/A',
+                    str(int(round(vals['Temperature']))) if vals['Temperature'] != 0 else 'N/A',
                     str(round(vals['ParentCoreNumberFraction'],2)) if vals['ParentCoreNumberFraction'] is not None else 'N/A',
                     str(round(vals['DifferentiationSigma'], 1)) if vals['DifferentiationSigma'] is not None and vals['DifferentiationSigma'] != 'N/A' else 'N/A',
                     system_categories.get(sys, 'N/A')
                 ]
-                list_of_all_rows.append([' & '.join(list_of_vals) + ' \\\\'])
-        for row in sorted(list_of_all_rows):
-            to_write.writerow(row)
+                #list_of_all_rows.append([' & '.join(list_of_vals) + ' \\\\'])
+                list_of_all_rows.append(list_of_vals)
+        for row in sort_latex_rows(list_of_all_rows):
+            to_write.writerow([' & '.join(row) + ' \\\\'])
     with open(latex_path_to_use + '.mod1', 'w', newline='', encoding='utf-8') as f:
         to_write = csv.writer(f)
         to_write.writerow([
@@ -955,8 +1209,8 @@ def compile_stats_table(system_stats_dict, path=None):
         ])
         list_of_all_rows = list()
         for sys, vals in system_stats_dict.items():
-            print(sys)
-            print(vals['DifferentiationSigma'])
+            #print(sys)
+            #print(vals['DifferentiationSigma'])
             if sys in systems_in_sample_including_dupes:
                 list_of_vals = [
                     strip_system_suffix(sys),
@@ -1010,9 +1264,10 @@ def compile_stats_table(system_stats_dict, path=None):
                         1
                     )
                 ]
-                list_of_all_rows.append([' & '.join(list_of_vals) + ' \\\\'])
-        for row in sorted(list_of_all_rows):
-            to_write.writerow(row)
+                #list_of_all_rows.append([' & '.join(list_of_vals) + ' \\\\'])
+                list_of_all_rows.append(list_of_vals)
+        for row in sort_latex_rows(list_of_all_rows):
+            to_write.writerow([' & '.join(row) + ' \\\\'])
     with open(latex_path_to_use + '.mod2', 'w', newline='', encoding='utf-8') as f:
         to_write = csv.writer(f)
         to_write.writerow([
@@ -1031,8 +1286,8 @@ def compile_stats_table(system_stats_dict, path=None):
         ])
         list_of_all_rows = list()
         for sys, vals in system_stats_dict.items():
-            print(sys)
-            print(vals['DifferentiationSigma'])
+            #print(sys)
+            #print(vals['DifferentiationSigma'])
             if sys in systems_in_sample_including_dupes:
                 list_of_vals = [
                     strip_system_suffix(sys),
@@ -1043,14 +1298,15 @@ def compile_stats_table(system_stats_dict, path=None):
                     'Y' if vals['VolatileRich'] else 'N',
                     'Y' if vals['VolatileDepleted'] else 'N',
                     'Y' if vals['ModerateVolatileDepleted'] else 'N',
-                    str(int(vals['Temperature'])) if vals['Temperature'] != 0 else 'N/A',
+                    str(int(round(vals['Temperature']))) if vals['Temperature'] != 0 else 'N/A',
                     str(round(vals['ParentCoreNumberFraction'],2)) if vals['ParentCoreNumberFraction'] is not None else 'N/A',
                     str(round(vals['DifferentiationSigma'], 1)) if vals['DifferentiationSigma'] is not None and vals['DifferentiationSigma'] != 'N/A' else 'N/A',
                     system_categories.get(sys, 'N/A')
                 ]
-                list_of_all_rows.append([' & '.join(list_of_vals) + ' \\\\'])
-        for row in sorted(list_of_all_rows):
-            to_write.writerow(row)
+                #list_of_all_rows.append([' & '.join(list_of_vals) + ' \\\\'])
+                list_of_all_rows.append(list_of_vals)
+        for row in sort_latex_rows(list_of_all_rows):
+            to_write.writerow([' & '.join(row) + ' \\\\'])
 
 def compile_stats_summary(system_stats_dict, path=None):
     unclassified = 0
@@ -1100,7 +1356,7 @@ def compile_stats_summary(system_stats_dict, path=None):
                     # Then diff sigma was None or N/A
                     pass
 
-    path_to_use = 'system_stats_summary.csv'
+    path_to_use = 'system_stats_summary_071022.csv'
     if path is not None:
         path_to_use = path + path_to_use
     with open(path_to_use, 'w', newline='', encoding='utf-8') as f:
@@ -1129,11 +1385,96 @@ def compile_stats_summary(system_stats_dict, path=None):
             differentiated
         ])
 
+def read_old_output_files():
+    # This was partially done at the time of abandonment: The only major logic needed was a way to find the model number (17 in this example) from the model params stored in model_params_dict
+    # NB: The model names in the code are named differently from how they are named in the output file, for some reason
+    # Also, just for further confusion, these names are also different from the names ultimately given in John's paper (there are 3 sets of names)
+    import xlrd
+    model_params_dict = {
+        'M1 = (Stellar Index, Time since Accretion, Accretion Event Lifetime, Pollution Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M2 = (M1 + Formation Distance)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M3 = (M1 + Formation Distance + Feeding Zone)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Feeding Zone Size/AU", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M4 = (M1 + Fragment Core Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "Fragment Core Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M5 = (M1 + Fragment Core Fraction + Fragment Crust Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M6 = (M2 + Fragment Core Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Fragment Core Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M7 = (M2 + Fragment Core Fraction + Fragment Crust Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M8 = (M3 + Fragment Core Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Feeding Zone Size/AU", "Fragment Core Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M9 = (M3 + Fragment Core Fraction + Fragment Crust Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Feeding Zone Size/AU", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M10 = (M7 + Parent Core Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Parent Core Fraction", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M11 = (M7 + Parent Crust Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Parent Crust Fraction", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M12 = (M7 + Parent Core Fraction + Parent Crust Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Parent Core Fraction", "Parent Crust Fraction", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M13 = (M9 + Parent Core Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Feeding Zone Size/AU", "Parent Core Fraction", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M14 = (M9 + Parent Crust Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Feeding Zone Size/AU", "Parent Crust Fraction", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"],
+        'M15 = (M9 + Parent Core Fraction + Parent Crust Fraction)': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Formation Distance/AU)", "Feeding Zone Size/AU", "Parent Core Fraction", "Parent Crust Fraction", "Fragment Core Fraction", "Fragment Crust Fraction", "log(Pollution Fraction)", "log(Accretion Event Timescale/Yrs)"]
+    }
+    # For outputs from John's code, need to load up the pymultinest outputs and read them to generate things like bu/ss/dec percentages
+    path = pu.get_path_to_historical_output_dir()
+    for obs_number in [185]:
+        name_of_system = 'SDSSJ2230+1905'
+        xlsx_file = path + name_of_system + 'PWDOutputs.xlsx' # Need to read from a dict
+        num_elements = 4 # Need to read from a dict
+        system = xlsx_file.split('PWDOutputs')[0]
+
+        workbook = xlrd.open_workbook(xlsx_file)
+        sheet = workbook.sheet_by_index(0)
+        
+        model_list = sheet.row_values(0)
+        evidences = sheet.row_values(1)
+        chi_sq_list = sheet.row_values(2)
+
+        highest_evidences = [np.NINF]
+        highest_evidence_indices = [0]
+        
+        for index, evidence in enumerate(evidences):
+            try:
+                if evidence > highest_evidences[0]:
+                    highest_evidences = [evidence]
+                    highest_evidence_indices = [index]
+                elif evidence == highest_evidences[0]:
+                    highest_evidences.append(evidence)
+                    highest_evidence_indices.append(index)
+            except TypeError:
+                # Then it was blank, or otherwise ignorable text
+                pass
+                
+        # If this isn't true then we need to know
+        assert len(highest_evidences) == 1
+        assert len(highest_evidence_indices) == 1
+        
+        best_model = model_list[highest_evidence_indices[0]]
+        chi_sq = chi_sq_list[highest_evidence_indices[0]]
+        chi_sq_per_data_point = chi_sq/num_elements
+        best_model_evidence = highest_evidences[0]
+        best_model_description = model_params_dict[best_model]
+        good_fit = chi_sq_per_data_point < 1
+        
+        print(best_model)
+        print(chi_sq)
+        print(chi_sq_per_data_point)
+        print(best_model_evidence)
+        print(best_model_description)
+        print(good_fit)
+        raise
+        
+        file_prefix = str(obs_number) + 'model17'  # By this point, need to have generated this name from the system's obs number and the favoured model (internal naming convention)
+        number_of_params = len(best_model_description)
+        a = pn.Analyzer(n_params = number_of_params, outputfiles_basename = path + file_prefix)
+        stats = a.get_stats()
+        print(stats)
+        print(a.get_equal_weighted_posterior())
+        weightpost = a.get_equal_weighted_posterior()[:, 0:number_of_params]  # This is basically just excluding the final column of the ...post_equal_weights.dat file
+        best_fit = a.get_best_fit()
+        fcf_samples = weightpost[:,3]
+        print(fcf_samples)
+        raise
+    return stats, weightpost, best_fit['log_likelihood'], best_fit['parameters']
+
 def main():
-    path = '<your_filepath_here>'
+    path = pu.get_path_to_output_statfiles_dir()
     system_stats_dict = collect_system_stats(path)
     compile_stats_table(system_stats_dict, path)
     compile_stats_summary(system_stats_dict, path)
+    #read_old_output_files()
     
 if __name__ == '__main__':
     main()

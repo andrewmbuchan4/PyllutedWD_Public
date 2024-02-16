@@ -131,7 +131,7 @@ def extract_timescales(data, HorHe, Teff, logg):
 
 def load_wd_data():
     toret = collections.OrderedDict()
-    with open('../data/BlouinConglomNewTimescales.csv') as csvfile:
+    with open('../data/WDInputData.csv') as csvfile:
         read = csv.reader(csvfile, delimiter=',')
         i = 0
         for row in read:

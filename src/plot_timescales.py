@@ -26,7 +26,15 @@ def get_Teff_values():
         13000, 13250, 13500, 13750,
         14000, 14250, 14500, 14750,
         15000, 15250, 15500, 15750,
-        16000
+        16000,
+        16250, 16500, 16750,
+        17000, 17250, 17500, 17750,
+        18000, 18250, 18500, 18750,
+        19000, 19250, 19500, 19750,
+        20000, 20250, 20500, 20750,
+        21000, 21250, 21500, 21750,
+        22000, 22250, 20500
+
     ]
     return tlist
 
@@ -44,11 +52,14 @@ def get_variable_vals(variable):
 
 def get_elements_for_2D_plot():
     #return [ci.Element.Ca, ci.Element.Fe, ci.Element.Mg, ci.Element.O]
-    return [ci.Element.Fe, ci.Element.Si]
-    
-def get_elements_for_model_comparison():
-    #return [ci.Element.Ca, ci.Element.Fe]  # needs to be a subset of get_elements_for_2D_plot(). The order matters! Also needs to have Ca and Fe...
-    return [ci.Element.Fe, ci.Element.Si]
+    #return [ci.Element.C, ci.Element.Si]
+    return [ci.Element.Ca, ci.Element.Fe]
+
+def get_elements_for_model_comparison(): # needs to be a subset of get_elements_for_2D_plot().
+    return get_elements_for_2D_plot()
+    #return [ci.Element.Ca, ci.Element.Mg]
+    #return [ci.Element.C, ci.Element.Si]
+    #return [ci.Element.Fe, ci.Element.Ca]
 
 def generate_timescales():
     timescale_interpolator = ti.TimescaleInterpolator()
@@ -249,9 +260,11 @@ def plot_model_comparison(timescale_vals, HorHe, logg, Teff, CaHe):
         print(to_plot_old)
     else:
         print('Old timescales only varied with Teff and logg')
-        return None
+        x_vals_old = None
+        to_plot_old = None
     if HorHe != 'He':
         print('Old timescales only present for He')
+        x_vals_old = None
         to_plot_old = None
     graph_factory = gf.GraphFactory()
     graph_factory.plot_timescale_model_comparison(to_plot_new, to_plot_old, variable, get_variable_vals(variable), x_vals_old, HorHe, logg, Teff, CaHe, get_elements_for_model_comparison())
@@ -259,15 +272,18 @@ def plot_model_comparison(timescale_vals, HorHe, logg, Teff, CaHe):
 def main():
     timescale_vals = generate_timescales()
     print(timescale_vals)
-    plot_2D_timescale(timescale_vals, 'He', None, 8000, -9.5)
-    plot_2D_timescale(timescale_vals, 'He', 8, None, -9.5)
-    plot_2D_timescale(timescale_vals, 'He', 8, 8000, None)
-    plot_2D_timescale(timescale_vals, 'H', None, 8000, -9.5)
-    plot_2D_timescale(timescale_vals, 'H', 8, None, -9.5)
-    
-    plot_model_comparison(timescale_vals, 'He', None, 6250, -9.5) # At the moment, we're limited to Teff == 6250 only  (the only val. I got old model values for)
-    plot_model_comparison(timescale_vals, 'He', 8, None, -9.5)  # At the moment, we're limited to logg == 8 only
-    plot_model_comparison(timescale_vals, 'H', 8, None, -9.5)  # At the moment, we're limited to logg == 8 only
+    #plot_2D_timescale(timescale_vals, 'He', None, 8000, -9.5)
+    #plot_2D_timescale(timescale_vals, 'He', 8, None, -9.5)
+    #plot_2D_timescale(timescale_vals, 'He', 8, 8000, None)
+    #plot_2D_timescale(timescale_vals, 'H', None, 8000, -9.5)
+    #plot_2D_timescale(timescale_vals, 'H', 8, None, -9.5)
+
+    #plot_model_comparison(timescale_vals, 'H', None, 6250, -9.5) # At the moment, we're limited to Teff == 6250 only  (the only val. I got old model values for)
+    #plot_model_comparison(timescale_vals, 'He', None, 6250, -9.5) # At the moment, we're limited to Teff == 6250 only  (the only val. I got old model values for)
+    plot_model_comparison(timescale_vals, 'He', 8, 6500, None)
+    plot_model_comparison(timescale_vals, 'He', 8, None, -9.5)
+    plot_model_comparison(timescale_vals, 'He', None, 6500, -9.5)
+    #plot_model_comparison(timescale_vals, 'H', 8, None, -9.5)  # At the moment, we're limited to logg == 8 only
 
 if __name__ == '__main__':
     main()

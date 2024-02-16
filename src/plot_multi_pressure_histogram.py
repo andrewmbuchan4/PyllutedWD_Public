@@ -3,10 +3,10 @@
 
 import model_analyser as ma
 import graph_factory as gf
+import pwd_utils as pu
 
 def main():
-    path_to_output = '<your_filepath_here>'
-    analyser = ma.ModelAnalyser(path_to_output + '/graphs')
+    analyser = ma.ModelAnalyser(pu.get_path_to_output_graphs_dir())
     graph_fac = gf.GraphFactory()
     
     text_dict_dict = {

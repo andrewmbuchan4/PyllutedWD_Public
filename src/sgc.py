@@ -76,6 +76,7 @@ def standalone_gamma_calc():
         # If we're using either fischer update, certain elements are
         # parametrised assuming loggFe and logg0 are absorbed into a, b, c.
         # logg0 is set to 0 in the input file. loggFe is effectively set to 0 here
+        # TODO: Double check this correction.
         if fischer_update:
             for fu_element in fischer_elements:
                 try:

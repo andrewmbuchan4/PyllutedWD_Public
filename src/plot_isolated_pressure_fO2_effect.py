@@ -80,54 +80,56 @@ fise_run_args = {
     #'GALEX1931+0117MCorr': [353,561.534557730359,0.000702881452596,0.433069991893536,0.070534707971139,None,None,0.314143312681015,None,-3.58125092627202,3.06579389404442,51.5925458254742,-2.73855772669102]
     #'WD2105-820': [248,209.665823846459,9.58421401303261E-05,0.070881042833234,0.05,None,None,0.837580130963948,None,-5.95833726628792,1.53608665508434,18.8654573745211,-1.67716051960656],
     #'WD1232+563Corr': [373,559.52104594338,13.2447022443142,2,0.05,None,None,None,None,-5.10106592894453,7.48555150602173,54,-2]
+    #'WD1622+587SpecMarch': [467, 472.578517269077, 1.67137304450657, -0.245354358888616, 0.09189807274478, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2]
 
     # Systems to include in bow tie:
-    'G166-58': [413,None,None,None,None,None,None,None,None,None,None,None,None],
-    'G241-6Corr': [359,None,None,None,None,None,None,None,None,None,None,None,None],
-    'G29-38Corr': [366,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GALEX1931+0117GCorr': [351,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GALEXJ2339': [260,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GD362Corr': [357,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GD378': [261,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GD40Corr': [358,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GD424': [253,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GD56': [419,None,None,None,None,None,None,None,None,None,None,None,None],
-    'GD61Corr': [360,None,None,None,None,None,None,None,None,None,None,None,None],
-    'HE0106-3253': [421,None,None,None,None,None,None,None,None,None,None,None,None],
-    'HS2253+8023Corr': [362,None,None,None,None,None,None,None,None,None,None,None,None],
-    'LHS2534': [257,None,None,None,None,None,None,None,None,None,None,None,None],
-    'NLTT43806Corr': [361,None,None,None,None,None,None,None,None,None,None,None,None],
-    'PG0843+516XCorr': [350,None,None,None,None,None,None,None,None,None,None,None,None],
-    'PG1015+161Xu': [422,None,None,None,None,None,None,None,None,None,None,None,None],
-    'PG1225-079Corr': [380,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ0512-0505': [249,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ0738+1835Corr': [363,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ0823+0546': [250,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ0845+2257Corr': [368,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ1043+0855Corr': [370,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ1228+1040Corr': [365,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ1242+5226Corr': [367,None,None,None,None,None,None,None,None,None,None,None,None],
-    'SDSSJ2047-1259Corr': [354,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD0122-227SiO': [345,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD0446-255': [347,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD0449-259NoNaCorr': [376,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD1145+017Corr': [375,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD1145+288': [417,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD1232+563Corr': [373,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD1350-162NoNaCorr': [377,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD1425+540Corr': [371,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD1536+520Corr': [369,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD1551+175Corr': [355,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD2105-820': [248,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD2115-560Corr': [372,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD2157-574': [240,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD2207+121Corr': [374,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD2216-657SiCorr': [378,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WD2230-125': [346,None,None,None,None,None,None,None,None,None,None,None,None],
-    'WDJ1814-7354': [348,None,None,None,None,None,None,None,None,None,None,None,None]
+    #'G166-58': [413,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'G241-6Corr': [359,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'G29-38Corr': [366,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GALEX1931+0117GCorr': [351,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GALEXJ2339': [260,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GD362Corr': [357,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GD378': [261,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GD40Corr': [358,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GD424': [253,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GD56': [419,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'GD61Corr': [360,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'HE0106-3253': [421,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'HS2253+8023Corr': [362,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'LHS2534': [257,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'NLTT43806Corr': [361,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'PG0843+516XCorr': [350,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'PG1015+161Xu': [422,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'PG1225-079Corr': [380,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ0512-0505': [249,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ0738+1835Corr': [363,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ0823+0546': [250,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ0845+2257Corr': [368,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ1043+0855Corr': [370,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ1228+1040Corr': [365,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ1242+5226Corr': [367,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'SDSSJ2047-1259Corr': [354,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD0122-227SiO': [345,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD0446-255': [347,None,None,None,None,None,None,None,None,None,None,None,None],
+    'WD0449-259NoNaCorr': [376,584.317287079358,7.13575107616111,-1.02984682534914,0.103643218999854,None,None,0.650489156516216,None,-7.46751601097271,3.97801177739725,19.9277647357864,-1.43721883827228],
+    #'WD1145+017Corr': [375,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD1145+288': [417,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD1232+563Corr': [373,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD1350-162NoNaCorr': [377,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD1425+540Corr': [371,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD1536+520Corr': [369,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD1551+175Corr': [355,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD2105-820': [248,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD2115-560Corr': [372,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD2157-574': [240,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD2207+121Corr': [374,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD2216-657SiCorr': [378,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WD2230-125': [346,None,None,None,None,None,None,None,None,None,None,None,None],
+    #'WDJ1814-7354': [348,None,None,None,None,None,None,None,None,None,None,None,None]
+    'G238-44': [517,None,None,None,None,None,None,None,None,None,None,None,None]
 }
 
-limit_to_sample = True
+limit_to_sample = False
 systems_in_sample = [
     'G166-58', # No evidence of differentiation
     'G241-6Corr',
@@ -220,14 +222,17 @@ system_categories = {
 }
 
 def generate_pressure_vals():
-    return list()
-    print('Warning: using only 2 pressure values!')
-    return [1, 60]
+    #return list()
+    #print('Warning: using only 2 pressure values!')
+    #return [1, 60]
+    return list(range(0, 61, 1))
     return list(range(0, 10, 1)) + list(range(10, 55, 5)) + [54] + list(range(55, 105, 5))
     #return list(range(0, 101, 1))
     
 def generate_fO2_vals():
     return list()
+    print('Warning: using only 2 fO2 values!')
+    return [-3, -1]
     return list(range(-3, 0, 1))
     
 def generate_fcf_vals():
@@ -388,7 +393,7 @@ def run_complete_model(trial_fits, extended_fits):
     }
     manager = mn.Manager(
         Namespace(
-            wd_data_filename='BlouinConglomNewTimescales.csv',
+            wd_data_filename='WDInputData.csv',
             stellar_compositions_filename='StellarCompositionsSortFE.csv',
             n_live_points = 0, # This argument shouldn't matter, in fact we only use the manager to access observational data so nothing else matters
             enhancement_model = 'NonEarthlike',
@@ -432,7 +437,7 @@ def run_complete_model(trial_fits, extended_fits):
                 abundances_dict[arg_name][element] = np.nan
                 errors_dict[arg_name][element] = np.nan
         we_care_about_actual_result = False        
-        we_care_about_extra_fits = False
+        we_care_about_extra_fits = True
         if we_care_about_actual_result:
             print()
             print(arg_set)
@@ -485,7 +490,9 @@ def run_complete_model(trial_fits, extended_fits):
             else:
                 data_dump[arg_name][ef_name] = None
         if we_care_about_actual_result:
+            print('iso491')
             for p in generate_pressure_vals():
+                print('iso493')
                 data_dump[arg_name][(arg_set[7], p, arg_set[12])] = cm.complete_model_calculation(arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], arg_set[9], 10**(arg_set[10]), p, arg_set[12], 'NonEarthlike')[0]
             for fcf in generate_fcf_vals():
                 data_dump[arg_name][(fcf, arg_set[11], arg_set[12])] = cm.complete_model_calculation(arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], fcf, arg_set[8], arg_set[9], 10**(arg_set[10]), arg_set[11], arg_set[12], 'NonEarthlike')[0]
@@ -493,7 +500,8 @@ def run_complete_model(trial_fits, extended_fits):
                     data_dump[arg_name][(fcf, p, arg_set[12])] = cm.complete_model_calculation(arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], fcf, arg_set[8], arg_set[9], 10**(arg_set[10]), p, arg_set[12], 'NonEarthlike')[0]
     
     stellar_data = manager.stellar_compositions
-
+    print('iso501')
+    print(data_dump)
     return data_dump, abundances_dict, errors_dict, stellar_data, abundance_lower_bounds_dict, abundance_upper_bounds_dict
 
 def collect_model_output(system, all_observations, all_model_data, trial_fits):
@@ -531,17 +539,24 @@ def collect_model_output_mk2(system, wd_type, all_model_data, trial_fits, extend
         ci.Element.N
     ]
     #fits = [(1, -3), (60, -3), (100, -3), (1, -1), (60, -1), (100, -1), (54, -2), 'Golden']
-    fits = ['LP run'] + trial_fits.get(system, list()) + [k for k in extended_fits.get(system, dict()).keys()]
-    for f in fits:
-        if all_model_data[system][f] is not None:
+    #fits = ['LP run'] + trial_fits.get(system, list()) + [k for k in extended_fits.get(system, dict()).keys()]
+    
+    #for f in fits:
+    for f, fit in all_model_data[system].items():
+        print('iso537')
+        print(f)
+        print(fit)
+        #print(all_model_data[system][f])
+        #if all_model_data[system][f] is not None:
+        if fit is not None:
             output = list()
             for element in elements:
                 if raw or element != ci.Element.Mg:
                     try:
                         if raw:
-                            output.append(all_model_data[system][f][element] - (ld._geo_model.solar_ratiod_to_H[element] - ld._geo_model.solar_ratiod_to_H[wd_type]))
+                            output.append(fit[element] - (ld._geo_model.solar_ratiod_to_H[element] - ld._geo_model.solar_ratiod_to_H[wd_type]))
                         else:
-                            output.append(all_model_data[system][f][element] - all_model_data[system][f][ci.Element.Mg] - ld._geo_model.solar_abundances[element])
+                            output.append(fit[element] - fit[ci.Element.Mg] - ld._geo_model.solar_abundances[element])
                     except TypeError:
                         output.append(None)
             if keys_as_tuple_hack:
@@ -673,14 +688,14 @@ def collect_best_fit_ratios(all_model_data, abundances_dict, errors_dict, stella
     text_offset_dict = {
         'crfemgfe': collections.OrderedDict({
             'SinkingEffects': (0, 0),  # Having the Sinking/Heating effects and core % here is a bit of a hack
-            'HeatingEffects': (0, 0),
-            '2 core': (0.25, -0.3),
-            '75 core': (0.05, -0.15),
-            '90 core': (0.05, -0.15),
+            'HeatingEffects': (0.1, 0),
+            '2 core': (0.27, -0.32),
+            '75 core': (0.05, -0.17),
+            '90 core': (0.05, -0.17),
             'Local Stars': (-0.25, -0.05),
             'CI chondrites': (-0.05, -0.23),
             'Earth (bulk)': (-0.15, 0.04),
-            'Earth (mantle)': (0.05, 0),
+            'Earth (mantle)': (0.1, 0),
             'Earth (crust)': (0, -0.2),
             'Mars (bulk)': (-0.1, 0.01),
             'Mars (silicate)': (0, 0),
@@ -690,20 +705,20 @@ def collect_best_fit_ratios(all_model_data, abundances_dict, errors_dict, stella
             'SDSSJ1430-0151': (0.43, -0.1),
             'GD61Corr': (-0.15, -0.07),
             'GD424': (0.1, 0),
-            'WD1350-162NoNaCorr': (0.15, -0.25),
+            'WD1350-162NoNaCorr': (0.15, -0.26),
             'WD0446-255': (-0.2, 0.08),
-            'NLTT43806Corr': (0.1, -0.16)
+            'NLTT43806Corr': (0.1, -0.17)
         }),
         'nifemgfe': collections.OrderedDict({
             'SinkingEffects': (0, 0),
             'HeatingEffects': (0, -0.2),
-            '2 core': (-0.17, -0.2),
+            '2 core': (-0.15, -0.25),
             '75 core': (0, 0),
             '90 core': (0, 0),
             'Local Stars': (-0.25, -0.05),
-            'CI chondrites': (0.02, 0.14),
-            'Earth (bulk)': (-0.3, 0.025),
-            'Earth (mantle)': (0.1, -0.2),
+            'CI chondrites': (-0.045, 0.165),
+            'Earth (bulk)': (-0.32, 0.025),
+            'Earth (mantle)': (0.15, -0.2),
             'Earth (crust)': (0, 0.03),
             'Mars (bulk)': (0, -0.22),
             'Mars (silicate)': (-0.25, 0.04),
@@ -712,7 +727,8 @@ def collect_best_fit_ratios(all_model_data, abundances_dict, errors_dict, stella
             'GD424': (0.07, 0.1),
             'SDSSJ1043+0855Corr': (0.2, -0.2),
             'SDSSJ2047-1259': (0.2, 0.05),
-            'WD0446-255': (0, -0.4),
+            'WD0446-255': (0, -0.42),
+            'NLTT43806Corr': (-0.045, 0.02)
         }),
         'crfenife': collections.OrderedDict({
             'SinkingEffects': (0, -0.15),
@@ -749,13 +765,13 @@ def collect_best_fit_ratios(all_model_data, abundances_dict, errors_dict, stella
         'sifemgfe': collections.OrderedDict({
             'SinkingEffects': (0, -0.2),
             'HeatingEffects': (0.2, -0.25),
-            '2 core': (0.25, -0.1),
-            '75 core': (0.1, -0.2),
-            '90 core': (0.1, -0.2),
+            '2 core': (0.27, -0.12),
+            '75 core': (0.1, -0.23),
+            '90 core': (0.1, -0.23),
             'Local Stars': (-0.25, -0.05),
-            'CI chondrites': (-0.31, -0),
+            'CI chondrites': (-0.35, -0),
             'HED chondrites': (-0.3, 0),
-            'Earth (bulk)': (-0.35, -0.05),
+            'Earth (bulk)': (-0.37, -0.05),
             'Earth (mantle)': (0.15, 0.02),
             'Earth (crust)': (-0.22, 0.05),
             'Mars (bulk)': (0, -0.2),
@@ -764,14 +780,14 @@ def collect_best_fit_ratios(all_model_data, abundances_dict, errors_dict, stella
             'WD1929+011': (-0.2, 0),
             'PG0843+516XCorr': (0, 0.2),
             'SDSSJ2047-1259': (-0.2, 0),
-            'WD0449-259NoNaCorr': (0.1, 0.05),
+            'WD0449-259NoNaCorr': (0.1, 0.07),
             'WD1350-162NoNaCorr': (0.35, -0.25),
             'GD424': (0.15, 0),
             'GD61Corr': (0.05, -0.2),
             'SDSSJ1043+0855Corr': (0.2, -0.2),
-            'WD0446-255': (0, 0.07),
-            'WD2105-820': (-0.1, 0),
-            'NLTT43806Corr': (0, -0.26)
+            'WD0446-255': (0.01, 0.04),
+            'WD2105-820': (-0.145, 0.035),
+            'NLTT43806Corr': (0.1, -0.28)
         })
     }
     geo_model = gi.GeologyModel()
@@ -1417,7 +1433,7 @@ def calculate_heating_vectors(y_el_1, y_el_2, x_el_1, x_el_2):
     # and the x axis is log(x_el_1/x_el_2)
     # eg for CrFe_MgFe we have y_el_1 = Cr, y_el_2 = Fe, x_el_1 = Mg, x_el_2 = Fe
     
-    fe_star = 428  # Pick the median value (only matters for oxygen anyway)
+    fe_star = 478  # Pick the median value (only matters for oxygen anyway)
     z_formation = 0  # This might be a bad choice? Also 0.05 is the default! But then we do want to show the effect of heating, not the feeding zone
     t_formation = 1.5        
         
@@ -1565,6 +1581,17 @@ def main():
             '55, -1.2': [375.900885063282, 0.49247702176291, 0.099327565963983, 0.05, None, None, 0.440526840524824, None, -3.78919557507339, 2.38503940644603, 55, -1.2],
             '15, -1.2': [375.900885063282, 0.49247702176291, 0.099327565963983, 0.05, None, None, 0.440526840524824, None, -3.78919557507339, 2.38503940644603, 15, -1.2],
             '33, -2.8': [375.900885063282, 0.49247702176291, 0.099327565963983, 0.05, None, None, 0.440526840524824, None, -3.78919557507339, 2.38503940644603, 33, -2.8],
+        },
+        'WD1622+587SpecMarch': {
+            'original': [472.578517269077, 1.67137304450657, -0.245354358888616, 0.09189807274478, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2],
+            #'nofeed': [472.578517269077, 1.67137304450657, -0.11728185552942, 0.05, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2],
+            'nofeed': [472.578517269077, 1.67137304450657, -0.245354358888616, 0, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2],
+            'maxfeed': [472.578517269077, 1.67137304450657, -0.245354358888616, 0.15, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2],
+            'nofeedh': [472.578517269077, 1.67137304450657, 0, 0, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2],
+            'maxfeedh': [472.578517269077, 1.67137304450657, 0, 0.15, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2],
+        },
+        'G238-44': {
+            'trial': [472.578517269077, 1.67137304450657, -0.245354358888616, 0.09189807274478, None, None, None, None, -6.09387572369393, 5.33468423288722, 45, -2],
         }
     }
     print(trial_fits)
@@ -1585,7 +1612,7 @@ def main():
     
     manager = mn.Manager(
         Namespace(
-            wd_data_filename='BlouinConglomNewTimescales.csv',
+            wd_data_filename='WDInputData.csv',
             stellar_compositions_filename='StellarCompositionsSortFE.csv',
             n_live_points = 0, # This argument shouldn't matter,
             enhancement_model = 'NonEarthlike',
@@ -1613,7 +1640,7 @@ def main():
         else:
             fcf += 0.001
         #fcf += 0.01
-    do_big_loop = True
+    do_big_loop = False
     if do_big_loop:
         for fragment_core_number_fraction in fcf_list:
             example_fcf_lines[fragment_core_number_fraction] = {'CrFe': list(), 'NiFe': list(), 'MgFe': list(), 'CrMg': list(), 'SiFe': list(), 'p': list()}
@@ -1639,27 +1666,35 @@ def main():
                     example_fcf_lines[fragment_core_number_fraction]['SiFe'].append(np.log10(si_abundance/fe_abundance))
                     example_fcf_lines[fragment_core_number_fraction]['p'].append(p)
 
-    cr_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['crfe'], system_obs['mgfe'], system_obs_err['crfe'], system_obs_err['mgfe'], elel_by_system['crfe'], elel_by_system['mgfe'], ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_crfe_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['crfemgfe'], example_fcf_lines, stellar_dict['crfe'], stellar_dict['mgfe'], synth_stellar_dict['crfe'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['crfe'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['crfemgfe'], system_obs_lb['crfe'], system_obs_lb['mgfe'], system_obs_ub['crfe'], system_obs_ub['mgfe'], system_categories)
-    ni_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['nife'], system_obs['mgfe'], system_obs_err['nife'], system_obs_err['mgfe'], elel_by_system['nife'], elel_by_system['mgfe'], ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_nife_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['nifemgfe'], example_fcf_lines, stellar_dict['nife'], stellar_dict['mgfe'], synth_stellar_dict['nife'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['nife'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['nifemgfe'], system_obs_lb['nife'], system_obs_lb['mgfe'], system_obs_ub['nife'], system_obs_ub['mgfe'], system_categories)    
-    si_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['sife'], system_obs['mgfe'], system_obs_err['sife'], system_obs_err['mgfe'], elel_by_system['sife'], elel_by_system['mgfe'], ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_sife_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['sifemgfe'], example_fcf_lines, stellar_dict['sife'], stellar_dict['mgfe'], synth_stellar_dict['sife'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['sife'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['sifemgfe'], system_obs_lb['sife'], system_obs_lb['mgfe'], system_obs_ub['sife'], system_obs_ub['mgfe'], system_categories)
-    graph_fac.multipanelise([cr_plot_dict, ni_plot_dict, si_plot_dict], 3, 1, ['bowtie_multipanel.png', 'bowtie_multipanel.pdf'], 15, 10)
+    #cr_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['crfe'], system_obs['mgfe'], system_obs_err['crfe'], system_obs_err['mgfe'], elel_by_system['crfe'], elel_by_system['mgfe'], ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_crfe_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['crfemgfe'], example_fcf_lines, stellar_dict['crfe'], stellar_dict['mgfe'], synth_stellar_dict['crfe'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['crfe'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['crfemgfe'], system_obs_lb['crfe'], system_obs_lb['mgfe'], system_obs_ub['crfe'], system_obs_ub['mgfe'], system_categories)
+    #ni_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['nife'], system_obs['mgfe'], system_obs_err['nife'], system_obs_err['mgfe'], elel_by_system['nife'], elel_by_system['mgfe'], ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_nife_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['nifemgfe'], example_fcf_lines, stellar_dict['nife'], stellar_dict['mgfe'], synth_stellar_dict['nife'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['nife'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['nifemgfe'], system_obs_lb['nife'], system_obs_lb['mgfe'], system_obs_ub['nife'], system_obs_ub['mgfe'], system_categories)    
+    #si_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['sife'], system_obs['mgfe'], system_obs_err['sife'], system_obs_err['mgfe'], elel_by_system['sife'], elel_by_system['mgfe'], ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_sife_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['sifemgfe'], example_fcf_lines, stellar_dict['sife'], stellar_dict['mgfe'], synth_stellar_dict['sife'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['sife'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['sifemgfe'], system_obs_lb['sife'], system_obs_lb['mgfe'], system_obs_ub['sife'], system_obs_ub['mgfe'], system_categories)
+    #graph_fac.multipanelise([cr_plot_dict, ni_plot_dict, si_plot_dict], 3, 1, ['bowtie_multipanel.png', 'bowtie_multipanel.pdf'], 15, 10)
 
     make_video = False
     if make_video:
-        for system in ['GD61']:
+        for system in ['WD0449-259NoNaCorr']:
+            print('iso1660')
             manager.publish_live_data(fise_run_args[system][0])
-            collected_output = collect_model_output_mk2(system, data, trial_fits, make_video)
+            raw = True
+            collected_output = collect_model_output_mk2(system, manager.wd_types[system], data, trial_fits, extended_fits, make_video, raw)
+            print(collected_output)
             for co_key, co_val in collected_output.items():
+                print('iso1665')
                 if co_key == 'LP run':
                     continue
                 fit_dict = {co_key: co_val}
-                graph_fac.make_composition_plot_mk2(system, system + '_forvid_p' + str(int(100*co_key[1])).zfill(4) + '_', abundances_dict[system], errors_dict[system], fit_dict, None, None, abundance_upper_bounds_dict[system], abundance_lower_bounds_dict[system], make_video)
+                if raw:
+                    print('iso1670')
+                    graph_fac.make_composition_plot_raw(system, manager.wd_types[system], system + '_forvid_p' + str(int(100*co_key[1])).zfill(4) + '_', abundances_dict[system], errors_dict[system], fit_dict, None, None, abundance_upper_bounds_dict[system], abundance_lower_bounds_dict[system], make_video)
+                else:
+                    graph_fac.make_composition_plot_mk2(system, manager.wd_types[system], system + '_forvid_p' + str(int(100*co_key[1])).zfill(4) + '_', abundances_dict[system], errors_dict[system], fit_dict, None, None, abundance_upper_bounds_dict[system], abundance_lower_bounds_dict[system], make_video)
         return
     
-    make_comp_and_elel_plots = False
+    make_comp_and_elel_plots = True
     make_elel_plots = False
     if make_comp_and_elel_plots:
-        for system in ['WD2105-820']:
+        for system in ['G238-44']:
             manager.publish_live_data(fise_run_args[system][0])
             only_pressure_in_legend = False
             collected_output = collect_model_output_mk2(system, manager.wd_types[system], data, trial_fits, extended_fits, only_pressure_in_legend)

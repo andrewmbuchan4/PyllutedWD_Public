@@ -26,7 +26,7 @@ def get_wd_names():
     return namelist
 
 def get_best_fits(path):
-    wdsdcsv = open(path + '/best_fits_hb20.csv')
+    wdsdcsv = open(path + 'best_fits_hb20.csv')
     toret = dict()
     i = 0
     for row in csv.reader(wdsdcsv):
@@ -63,7 +63,7 @@ def find_ewp_files(path, xlsx_files, wd_names, best_fits):
         best_fit = best_fits[wd_name]
         external_model_number = int(best_fit.split(' =')[0].split('M')[1])
         internal_model_number = model_map_dict[external_model_number]
-        ewp_files[wd_name] = path + '/' + str(obs_number) + 'model' + str(internal_model_number) + 'post_equal_weights.dat'
+        ewp_files[wd_name] = path + str(obs_number) + 'model' + str(internal_model_number) + 'post_equal_weights.dat'
     print('Analysing ' + str(len(ewp_files)) + ' systems')
     assert len(ewp_files) == 202  # There are 202 WDs in our sample
     return ewp_files
@@ -83,7 +83,7 @@ def get_binned_temperature_stats(xlsx_files, wd_names, path=None):
         if obs_number == 85:
             continue # This is J1055, the spectroscopic binary
         print(filename)
-        workbook = xlrd.open_workbook(path + '/' + filename)
+        workbook = xlrd.open_workbook(path + filename)
         sheet = workbook.sheet_by_index(0)
         first_bin_value = sheet.cell_value(12, 3) # D13
         if first_bin_value == '':
@@ -251,7 +251,7 @@ def generate_bins_and_bar_centres(min_bin_edge, max_bin_edge, half_bin_size):
     return bins, bar_centres
 
 def main():
-    path = '<your_filepath_here>'
+    path = pu.get_path_to_historical_output_dir()
     wd_names = get_wd_names()
     best_fits = get_best_fits(path)
     xlsx_files = find_xlsx_files(path)

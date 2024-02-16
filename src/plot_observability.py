@@ -108,7 +108,7 @@ def import_MWDD_data(file_name):
 def generate_data(test_args_all):
     manager = mn.Manager(
         Namespace(
-            wd_data_filename='BlouinConglomNewTimescales.csv',
+            wd_data_filename='WDInputData.csv',
             stellar_compositions_filename='StellarCompositionsSortFE.csv',
             n_live_points = 0, # This argument shouldn't matter, in fact we only use the manager to access observational data so nothing else matters
             enhancement_model = 'NonEarthlike',
@@ -148,7 +148,7 @@ def generate_data(test_args_all):
 def generate_contour_data(test_args_all):
     manager = mn.Manager(
         Namespace(
-            wd_data_filename='BlouinConglomNewTimescales.csv',
+            wd_data_filename='WDInputData.csv',
             stellar_compositions_filename='StellarCompositionsSortFE.csv',
             n_live_points = 0, # This argument shouldn't matter, in fact we only use the manager to access observational data so nothing else matters
             enhancement_model = 'NonEarthlike',

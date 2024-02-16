@@ -62,6 +62,9 @@ def get_abundances_for_negative_z(elements, d_formation, t_formation):
             toret.append(Si_c(dm.T_disc(d_formation, t_formation), t_formation))
         elif element == ci.Element.Na:
             toret.append(Na_c(dm.T_disc(d_formation, t_formation), t_formation))
+        elif element == ci.Element.O:
+            # This is filled in later. Ideally would use None, but then jit complains!
+            toret.append(0)
         elif element == ci.Element.C:
             toret.append(C_c(dm.T_disc(d_formation, t_formation), t_formation))
         elif element == ci.Element.N:
@@ -75,53 +78,49 @@ def get_abundances_for_positive_z(elements, d_formation, z_formation, t_formatio
     toret = []
     x = gm.fznd(d_formation, z_formation)
     for element in elements:
-        element_abundance = 0
-        j = d_formation-3
-        for s in x:
-            # This is a bit horrible, but jit doesn't get on with dictionary lookups
-            if element == ci.Element.Al:
-                element_abundance += s*Al_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Ti:
-                element_abundance += s*Ti_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Ca:
-                element_abundance += s*Ca_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Ni:
-                element_abundance += s*Ni_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Fe:
-                element_abundance += s*Fe_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Cr:
-                element_abundance += s*Cr_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Mg:
-                element_abundance += s*Mg_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Si:
-                element_abundance += s*Si_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.Na:
-                element_abundance += s*Na_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.C:
-                element_abundance += s*C_c(dm.T_disc(j, t_formation), t_formation)
-            elif element == ci.Element.N:
-                element_abundance += s*Nz_c(dm.T_disc(j, t_formation), t_formation)
-            else:
-                pass
-            j += 0.01
-        toret.append(element_abundance)
+        if element == ci.Element.O:
+            # This is filled in later. Ideally would use None, but then jit complains!
+            toret.append(0)
+        else:
+            element_abundance = 0
+            j = d_formation-3
+            for s in x:
+                # This is a bit horrible, but jit doesn't get on with dictionary lookups
+                if element == ci.Element.Al:
+                    element_abundance += s*Al_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Ti:
+                    element_abundance += s*Ti_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Ca:
+                    element_abundance += s*Ca_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Ni:
+                    element_abundance += s*Ni_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Fe:
+                    element_abundance += s*Fe_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Cr:
+                    element_abundance += s*Cr_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Mg:
+                    element_abundance += s*Mg_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Si:
+                    element_abundance += s*Si_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.Na:
+                    element_abundance += s*Na_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.C:
+                    element_abundance += s*C_c(dm.T_disc(j, t_formation), t_formation)
+                elif element == ci.Element.N:
+                    element_abundance += s*Nz_c(dm.T_disc(j, t_formation), t_formation)
+                else:
+                    pass
+                j += 0.01
+            toret.append(element_abundance)
     return toret
 
 def get_all_abundances(elements, d_formation, z_formation, t_formation, fe_star=None):  # fe_star only required if Oxygen is one of the elements
-    toret = dict()
-    elements_copy = elements[:]
-    o_present = ci.Element.O in elements_copy
-    if o_present:
-        elements_copy.remove(ci.Element.O)
     if z_formation <= 0:
-        abundances = get_abundances_for_negative_z(elements_copy, d_formation, t_formation)
+        abundances = get_abundances_for_negative_z(elements, d_formation, t_formation)
     else:
-        abundances = get_abundances_for_positive_z(elements_copy, d_formation, z_formation, t_formation)
-    i = 0
-    for e in elements_copy:
-        toret[e] = abundances[i]
-        i += 1
-    if o_present:
+        abundances = get_abundances_for_positive_z(elements, d_formation, z_formation, t_formation)
+    toret = dict(zip(elements, abundances))
+    if ci.Element.O in elements:
         toret[ci.Element.O] = O(
             dm.T_disc(d_formation, t_formation),
             t_formation,

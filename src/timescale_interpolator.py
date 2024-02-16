@@ -9,27 +9,44 @@ import scipy.interpolate as si
 import chemistry_info as ci
 
 class TimescaleInterpolator():
-    
+
     def __init__(self):
-        self.file_dict = {
-            'H': {
-                7.5: 'timescales_H_g750_ov1.csv',
-                8.0: 'timescales_H_g800_ov1.csv',
-                8.5: 'timescales_H_g850_ov1.csv'
-            },
-            'He': {
-                7.5: 'timescales_He_g750_ov1.csv',
-                7.75: 'timescales_He_g775_ov1.csv',
-                8: 'timescales_He_g800_ov1.csv',
-                8.25: 'timescales_He_g825_ov1.csv',
-                8.5: 'timescales_He_g850_ov1.csv'
+        use_overshoot = True
+        if use_overshoot:
+            self.file_dict = {
+                'H': {
+                    7.5: 'timescales_H_g750_ov1.csv',
+                    8.0: 'timescales_H_g800_ov1.csv',
+                    8.5: 'timescales_H_g850_ov1.csv'
+                },
+                'He': {
+                    7.5: 'timescales_He_g750_ov1.csv',
+                    7.75: 'timescales_He_g775_ov1.csv',
+                    8: 'timescales_He_g800_ov1.csv',
+                    8.25: 'timescales_He_g825_ov1.csv',
+                    8.5: 'timescales_He_g850_ov1.csv'
+                }
             }
-        }
+        else:
+            self.file_dict = {
+                'H': {
+                    7.5: 'timescales_H_g750_ov0.csv',
+                    8.0: 'timescales_H_g800_ov0.csv',
+                    8.5: 'timescales_H_g850_ov0.csv'
+                },
+                'He': {
+                    7.5: 'timescales_He_g750_ov0.csv',
+                    7.75: 'timescales_He_g775_ov0.csv',
+                    8: 'timescales_He_g800_ov0.csv',
+                    8.25: 'timescales_He_g825_ov0.csv',
+                    8.5: 'timescales_He_g850_ov0.csv'
+                }
+            }
         self.timescale_data = self.load_data()
         self.wd_data = None
         self.expected_vals = {'H': dict(), 'He': dict()}
         self.set_up_interpolators()
-    
+
     @staticmethod
     def perform_format(input_file_name, output_file_name):
         header_written = False
@@ -81,7 +98,7 @@ class TimescaleInterpolator():
 
     def get_arbitrary_val(self, HorHe, variable):
         return self.expected_vals[HorHe][variable][0]
-    
+
     def get_values_for_variable(self, HorHe, variable):
         if variable == 'g':
             vals = np.array(list(self.timescale_data[HorHe].keys()))
@@ -111,7 +128,7 @@ class TimescaleInterpolator():
                 print(vals)
                 return None
         return vals
-    
+
     def set_up_interpolators(self):
         # This assumes that self.timescale_data has no missing keys anywhere or anything like that
         self.interpolators = dict()
@@ -170,7 +187,7 @@ class TimescaleInterpolator():
                                 else:
                                     element = ci.Element(int(row[0]))
                                     for j in range(1, len(row)):
-                                        toret[HorHe][g][int(T_vals[j-1])][element] = float(row[j]) 
+                                        toret[HorHe][g][int(T_vals[j-1])][element] = float(row[j])
                                 i += 1
                         elif HorHe == 'He':
                             for row in read:
@@ -197,8 +214,8 @@ class TimescaleInterpolator():
                 except (TypeError, FileNotFoundError):
                     print('Warning! Could not open an input file')
         return toret
-        
-    def load_wd_data(self, wd_data_file='BlouinConglomNewTimescales.csv'):
+
+    def load_wd_data(self, wd_data_file='WDInputData.csv'):
         toret = collections.OrderedDict()
         with open('../data/' + wd_data_file) as csvfile:
             read = csv.reader(csvfile, delimiter=',')
@@ -209,15 +226,15 @@ class TimescaleInterpolator():
                 else:
                     wd_name = row[0]
                     wd_type = row[1]
-                    Teff = int(row[3])
+                    Teff = int(row[4])
                     try:
-                        CaHe = float(row[10])
+                        CaHe = float(row[13])
                     except ValueError:
                         CaHe = None # Likely means Ca was an upper bound
                     if CaHe == 0:
                         CaHe = None
                     try:
-                        logg = float(row[4])
+                        logg = float(row[6])
                     except ValueError:
                         # Assume 8 by default
                         logg = 8.0
@@ -225,8 +242,8 @@ class TimescaleInterpolator():
                     toret[wd_name] = {'Type': wd_type, 'Teff': Teff, 'logg': logg, 'CaHe': CaHe}
                 i += 1
         return toret
-        
-    def process_wd_data(self, wd_data_file='BlouinConglomNewTimescales.csv'):
+
+    def process_wd_data(self, wd_data_file='WDInputData.csv'):
         self.wd_data = self.load_wd_data(wd_data_file)
         toret = collections.OrderedDict()
         for wd_name, wd_entry in self.wd_data.items():
@@ -237,9 +254,9 @@ class TimescaleInterpolator():
             timescales = self.extract_timescales(HorHe, logg, Teff, CaHe)
             toret[wd_name] = timescales
         return toret
-    
+
     def extract_timescales(self, HorHe, logg, Teff, CaHe=None):  # CaHe can be None for HorHe == H
-        if HorHe == 'He' and CaHe == 0:
+        if HorHe == 'He' and (CaHe is None or CaHe == 0):
             # We need to careful! CaHe == 0 means that Ca is actually not present and we shouldn't attempt to find timescales
             # This only applies to He though because H doesn't include CaHe as a dimension
             print('This is a He WD but no Ca is present. Therefore interpolation is not possible. Returning None')
@@ -275,21 +292,25 @@ class TimescaleInterpolator():
             return None
         return toret
 
-    def get_wd_timescales(self, HorHe, logg, Teff, CaHe): # TODO: Consider making CaHe=None by default? Also, could HorHe be a ci.Element rather than a str? (Or better yet, a duck type str)
+    def get_wd_timescales(self, HorHe, logg, Teff, CaHe=None, all_timescales=False): # TODO: could HorHe be a ci.Element rather than a str?
         timescales = self.extract_timescales(HorHe, logg, Teff, CaHe)
         if timescales is None:
             return None
-        return self.return_wd_timescales_as_dict(timescales)
+        return self.return_wd_timescales_as_dict(timescales, all_timescales)
 
-    def return_wd_timescales_as_dict(self, wd_entry):
+    def return_wd_timescales_as_dict(self, wd_entry, all_timescales=False):
         toret = dict()
         toret['logq'] = wd_entry['logq']
-        for el in ci.usual_elements:
-            try:
-                entry_to_use = 10**wd_entry[el]
-            except KeyError:
-                entry_to_use = 0.0
-            toret[el] = entry_to_use
+        if not all_timescales: # Could probably simplify this logic! Just iterate over a different set of elements
+            for el in ci.usual_elements:
+                try:
+                    entry_to_use = 10**wd_entry[el]
+                except KeyError:
+                    entry_to_use = 0.0
+                toret[el] = entry_to_use
+        else:
+            for el in wd_entry:
+                toret[el] = 10**wd_entry[el]
         return(toret)
 
     def return_wd_timescales_as_list(self, wd_entry):
@@ -321,15 +342,15 @@ class TimescaleInterpolator():
 def main():
     timescale_interpolator = TimescaleInterpolator()
     HorHe = 'He'
-    logg = 7.93
-    Teff = 15620
-    CaHe = -8.7
+    logg = 7.99
+    Teff = 6115
+    CaHe = -9.9
     print('Example timescales for a ' + HorHe + ' WD with log(g) = ' + str(logg) + ', Teff = ' + str(Teff) + ' and Ca/He = ' + str(CaHe))
     print(timescale_interpolator.get_wd_timescales(HorHe, logg, Teff, CaHe))
     #interpolated_timescales = timescale_interpolator.process_wd_data()
     #print(interpolated_timescales)
     #print('Call timescale_interpolator.dump_wd_timescales(interpolated_timescales) to dump these timescales into a file')
-    
+
     print('Call TimescaleInterpolator.perform_format(detlev_file, output_file) to write files into a machine readable format')
 
 if __name__ == '__main__':

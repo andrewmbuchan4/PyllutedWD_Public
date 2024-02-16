@@ -4,13 +4,14 @@
 from enum import Enum
 import numpy as np
 
+import chemistry_info as ci
 import disc_model as dm
 import live_data as ld
 import model_parameters as mp
 
 class Limit(Enum):
     Lower = 0
-    Upper  = 1
+    Upper = 1
 
 # The order of parameters matters: some have priors which depend on the value of previously assigned parameters
 parameters_to_cycle_through = [
@@ -32,13 +33,13 @@ def get_fragment_crust_frac_upper_limit(cube, parameter_indices):
     return 1 - cube[parameter_indices[mp.ModelParameter.fragment_core_frac]]
 
 def get_pollution_frac_lower_limit(cube, parameter_indices):
-    return np.log10(np.sum(10**(ld._live_non_zero_wd_abundances))) - 1.5
-    
+    return ld._live_white_dwarf.estimate_minimum_pollution_fraction(ci.usual_elements) - 0.5 # you can't be too far below this limit!
+
 def get_pollution_frac_upper_limit(cube, parameter_indices):
-    return np.log10(np.sum(10**(ld._live_non_zero_wd_abundances))) + 1.5
-    
+    return ld._live_white_dwarf.estimate_maximum_pollution_fraction(ci.usual_elements) + 1.5 # The 1.5 is a safety factor: your reference element could happen to be underabundant. need a bigger margin at the top end
+
 def get_t_sinceaccretion_upper_limit(cube, parameter_indices):
-    return ((12*ld._live_t_mg)+(10**(cube[parameter_indices[mp.ModelParameter.accretion_timescale]])))/1000000
+    return ((12*ld._live_t_mg)+(10**(cube[parameter_indices[mp.ModelParameter.accretion_timescale]])))/1000000  # NB the variable we're indexing into here is the accretion timescale, not the time since accretion!
 
 prior_limits_dict = {
     'Default': {
@@ -70,7 +71,7 @@ prior_limits_dict = {
             Limit.Lower: 0,
             Limit.Upper: get_fragment_crust_frac_upper_limit
         },
-        mp.ModelParameter.pollution_frac: {
+        mp.ModelParameter.pollution_frac: { # This should perhaps not be uniform but skewed towards low values (as in the synthetic population code)
             Limit.Lower: get_pollution_frac_lower_limit,
             Limit.Upper: get_pollution_frac_upper_limit
         },
@@ -113,14 +114,20 @@ prior_limits_dict = {
             Limit.Lower: 0,
             Limit.Upper: 15
         }
+    },
+    'NarrowTdisc': {
+        mp.ModelParameter.accretion_timescale: {
+            Limit.Lower: 4,
+            Limit.Upper: 7
+        }
     }
 }
 
 
 def universal_prior(cube):
-    
+
     parameter_indices = mp.parameter_indices(ld._live_model)
-    
+
     for parameter in parameters_to_cycle_through:
         if mp.model_uses_parameter(ld._live_model, parameter):
             try:
@@ -142,5 +149,4 @@ def universal_prior(cube):
                 lower_limit = lower_limit_raw
             scaling_term = upper_limit - lower_limit
             cube[parameter_indices[parameter]] = (scaling_term*cube[parameter_indices[parameter]]) + lower_limit
-    
     return cube

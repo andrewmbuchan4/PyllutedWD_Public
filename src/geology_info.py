@@ -14,10 +14,10 @@ class Layer(Enum):
     core = 1
     mantle = 2
     crust = 3
-    
+
     def __str__(self):
         return self.name
-        
+
     def __hash__(self):
         # For performance purposes:
         # Normally python will try to hash an Enum by hashing its name (which guaranteess uniqueness)
@@ -26,7 +26,7 @@ class Layer(Enum):
         return self.value
 
 class GeologyModel():
-    
+
     # normalise_abundances is only ever set to False for testing purposes.
     def __init__(self, bulk_abundance_overrides=None, normalise_abundances=True):
         self.earth_layer_number_fractions = {
@@ -62,16 +62,18 @@ class GeologyModel():
             ci.Element.Mg: {Layer.bulk: 0.15, Layer.mantle: 0.17, Layer.core: 0},
             ci.Element.Si: {Layer.bulk: 0.14, Layer.mantle: 0.16, Layer.core: 0},
             ci.Element.Na: {Layer.bulk: 0, Layer.mantle: 0, Layer.core: 0},
-            ci.Element.O: {Layer.bulk: 0.53, Layer.mantle: 0.59, Layer.core: 0.11},                
+            ci.Element.O: {Layer.bulk: 0.53, Layer.mantle: 0.59, Layer.core: 0.11},
             ci.Element.C: {Layer.bulk: 0, Layer.mantle: 0, Layer.core: 0},
             ci.Element.N: {Layer.bulk: 0, Layer.mantle: 0, Layer.core: 0}
         }
+        self.core_relative_mass = None
+        self.mantle_relative_mass = None
 
     def reinit(self, bulk_abundance_overrides=None):
         self.apply_bulk_abundances(bulk_abundance_overrides)
         self.normalise_non_mantle_abundances()
         self.fill_in_mantle_abundances()
-    
+
     def initialise_stellar_info_for_graphs(self):
         # Solar info - this could potentially be split into its own class
         local_stellar_abundances = {
@@ -89,7 +91,7 @@ class GeologyModel():
             ci.Element.Fe: -0.047,
             ci.Element.Ni: -1.289
         }
-        # solar_ratiod_to_stellar =  log(  (X/Mg)solar / (X/Mg)stellar  )     = log(X/Mg)solar - log(X/Mg)stellar 
+        # solar_ratiod_to_stellar =  log(  (X/Mg)solar / (X/Mg)stellar  )     = log(X/Mg)solar - log(X/Mg)stellar
         # => solar_abundance = log(X/Mg)solar = solar_ratiod_to_stellar + log(X/Mg)stellar
         solar_ratiod_to_stellar = {
             ci.Element.Al: -0.015854489,
@@ -198,11 +200,13 @@ class GeologyModel():
             self.solar_abundances[element] = local_stellar_abundances[element] + solar_ratiod_to_stellar[element]
             self.upper_ratiod_to_solar[element] = upper_ratiod_to_stellar[element] - solar_ratiod_to_stellar[element]
             self.lower_ratiod_to_solar[element] = lower_ratiod_to_stellar[element] - solar_ratiod_to_stellar[element]
-    
+
     def apply_bulk_abundances(self, bulk_abundance_overrides=None):
         if bulk_abundance_overrides is None:
             self.element_info = {
                 # McDonough 2003
+                # NB: These are not normalised! Use the loaded normalised version for reference
+                # NB: The Fe abundance in Table 5 of McDonough 2003 was written as 0.49 but it should actually be 0.149
                 ci.Element.Al: {Layer.bulk: 0.0153, Layer.crust: 0.0641, Layer.core: 0},
                 ci.Element.Ti: {Layer.bulk: 0.00044, Layer.crust: 0.0042, Layer.core: 0},
                 ci.Element.Ca: {Layer.bulk: 0.011099, Layer.crust: 0.04452, Layer.core: 0},
@@ -212,7 +216,7 @@ class GeologyModel():
                 ci.Element.Mg: {Layer.bulk: 0.16482, Layer.crust: 0.04167, Layer.core: 0},
                 ci.Element.Si: {Layer.bulk: 0.149118, Layer.crust: 0.181509, Layer.core: 0.1071},
                 ci.Element.Na: {Layer.bulk: 0.002037, Layer.crust: 0.01771, Layer.core: 0},
-                ci.Element.O: {Layer.bulk: 0.482879, Layer.crust: 0.6011, Layer.core: 0},                
+                ci.Element.O: {Layer.bulk: 0.482879, Layer.crust: 0.6011, Layer.core: 0},
                 ci.Element.C: {Layer.bulk: 0.001581, Layer.crust: 0, Layer.core: 0.0083482},
                 ci.Element.N: {Layer.bulk: 0.000046429, Layer.crust: 0, Layer.core: 0.0002684}, # NB: This implies a negative mantle abundance! Luckily it doesn't matter in actual runs
                 ci.Element.S: {Layer.bulk: 0.005, Layer.core: 0.03},
@@ -229,6 +233,12 @@ class GeologyModel():
                 ci.Element.W: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.W, 0.00000017)},
                 ci.Element.P: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.P, 0.000715)},
                 ci.Element.Co: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.Co, 0.00088)}
+
+                #ci.Element.Pt: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.Pt, 0.0000019)},
+                #ci.Element.Pd: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.Pd, 0.000001)},
+                #ci.Element.Rh: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.Rh, 0.00000024)},
+                #ci.Element.Re: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.Re, 0.000000075)},
+                #ci.Element.Ru: {Layer.bulk: self.convert_bulk_abundance_mass_to_number(ci.Element.Ru, 0.0000013)},
             }
         else:
             self.element_info = dict()
@@ -238,7 +248,7 @@ class GeologyModel():
         for element, abundances in self.element_info.items():
             if abundances[Layer.bulk] > 0:
                 self.convergence_elements.append(element)
-    
+
     def normalise_non_mantle_abundances(self):
         total_bulk_abundance = 0
         total_core_abundance = 0
@@ -263,58 +273,58 @@ class GeologyModel():
                 self.element_info[element][Layer.crust] /= total_crust_abundance
             except KeyError:
                 pass
-    
+
     def convert_bulk_abundance_mass_to_number(self, element, mass_abundance):
         return (mass_abundance*self.get_earth_mean_molecular_weight())/ci.get_element_mass(element)
-    
+
     def get_earth_differentiation_pressure(self):
         return 54 #GPa
-    
+
     def get_earth_oxygen_fugacity(self):
         return -2 # i.e. 2 log units below IW buffer
-        
+
     def get_mars_differentiation_pressure(self):
         return 13 #GPa. See Rai/van Westrenen 2013
-    
+
     def get_mars_oxygen_fugacity(self):
         return -1 # i.e. 1 log unit below IW buffer. See Rai/van Westrenen 2013 (although they also suggest -1.3, but then just use -1 in their calcs. and conclusion)
-        
+
     def get_earth_mean_molecular_weight(self):
         # Estimate based on Table 5 in McDonough 2003
         # Comparing number to weight abundances gives an estimate of mmw: mass_abundance = (element_mass * number_abundance) / mmw
         return 26
-    
+
     def get_earth_layer_number_fraction(self, layer):
         return self.earth_layer_number_fractions[layer]
-    
+
     def get_bulk_abundance(self, element):
         try:
             return self.element_info[element][Layer.bulk]
         except KeyError:
             # Presumably the element is not present
             return None
-    
+
     def get_core_abundance(self, element):
         try:
             return self.element_info[element][Layer.core]
         except KeyError:
             # Presumably the element is not present
             return None
-        
+
     def get_mantle_abundance(self, element):
         try:
             return self.element_info[element][Layer.mantle]
         except KeyError:
             # Presumably the element is not present
             return None
-        
+
     def get_crust_abundance(self, element):
         try:
             return self.element_info[element][Layer.crust]
         except KeyError:
             # Presumably the element is not present
             return None
-        
+
     def fill_in_mantle_abundances(self):
         for element in self.element_info:
             try:
@@ -322,11 +332,11 @@ class GeologyModel():
             except KeyError as e:
                 # Then I assume we don't have enough information to calculate an observed mantle abundance (eg Hf, U etc)
                 pass
-    
+
     def get_mu(self, element):
         # At some point this function could become an element-dependent function saying what proportion of it gets a chance to react with the metal
         return 1
-        
+
     def find_system_specific_abundances(self, abundances, core_number_fraction):
         # Input: A set of core/mantle abundances and a core_number_fraction
         # Output: The bulk abundances of a body which forms with the specified cnf and core/mantle composition
@@ -335,13 +345,13 @@ class GeologyModel():
         for element, abundance in abundances.items():
             output[element] = core_number_fraction*abundance[Layer.core] + mantle_number_fraction*abundance[Layer.mantle]
         return output
-    
+
     def find_Ds_deviation(self, test_Ds, new_Ds, important_elements):
         tot_err_sq = 0
         for element in important_elements:
             tot_err_sq += ((new_Ds[element] - test_Ds[element])/test_Ds[element])**2
         return tot_err_sq
-    
+
     def grid_method(self, Ds, core_number_fraction, pressure, fO2, abundances, temp, nbot):
         important_elements = [ci.Element.Fe, ci.Element.Si, ci.Element.Ni, ci.Element.O, ci.Element.Cr, ci.Element.C]  # If we do this for every element, it'll take way too long
         grid_points = [0.9, 0.95, 1, 1.05, 1.1]
@@ -377,7 +387,7 @@ class GeologyModel():
                                     solution_cnf = cnf
                                     solution_Ds = test_Ds
         return solution_abundances, solution_cnf, solution_Ds
-    
+
     def calculate_abundances(self, Ds, core_number_fraction, calculate_mantle=False):
         mantle_number_fraction = 1 - core_number_fraction
         abundances = dict()
@@ -404,7 +414,7 @@ class GeologyModel():
                     abundances[element][Layer.mantle] = sil_abundance
         total_mantle_abundance = 0
         total_core_abundance = 0
-        
+
         # Badro/Siebert O
         for e in abundances.keys():
             total_core_abundance += abundances[e][Layer.core]
@@ -435,7 +445,7 @@ class GeologyModel():
         #            abundances[e][Layer.mantle] *= (1 - abundances[ci.Element.O][Layer.mantle])*inv_mantle_abundance
         #total_core_abundance /= (1 - abundances[ci.Element.O][Layer.core])
         return abundances, total_core_abundance
-    
+
     def check_convergence(self, Ds, prev_Ds, tolerance=0.01):
         #important_elements = None # This will check all elements
         important_elements = [el for el in self.convergence_elements if el in Ds]
@@ -456,7 +466,7 @@ class GeologyModel():
                 if rel_diff >= tolerance:
                     return False
         return True
-    
+
     def form_a_planet_iteratively(self, pressure, fO2, temp=None, nbot=None, initial_w_met=None, initial_Ds=None, return_all_Ds=False):  # ..with no crust
         # Setup: Don't touch!
         w_met = initial_w_met if initial_w_met is not None else 0.5
@@ -469,7 +479,7 @@ class GeologyModel():
         all_Ds = list()
         o_increased_last_time = False
         o_cap_set = False
-        
+
         # Internal parameters: Do touch
         nudge_iterations = 1000  # Every so often, nudge the algorithm in the right direction to help convergence
         grid_iterations = 1001 # Invoke grid solution after this many iterations (if O increases 2 times in a row)
@@ -479,9 +489,9 @@ class GeologyModel():
         cap_si = True
         o_cap = 0.3 # Justification: O and Si should never be highly siderophilic (i.e. D much greater than 1) otherwise no silicate is left
         si_cap = 1 #               and the whole exercise loses its meaning! To be conservative, set D_Si <= 1 and D_O <= 1. But actually D_O = 1 is still a bit silly and leads to sudden X_O spikes so I tuned it to 0.3
-        
+
         #NB: if using a parametrisation with direct calculation of X_O rather than D_O, the o_cap should be dropped! (to something in the region of 0.2 ish)
-        
+
         movement_fraction = 1  # Setting this to 0.5 is the same as setting nudge_iterations to 1, in principle
         while not converged:
             # If using the old Oxygen logic: the Ds value for oxygen is NOT actually D_O, it's just skipped straight to abundances[O][Layer.core] and that value is stored in Ds
@@ -570,7 +580,8 @@ class GeologyModel():
                 for element, el_abundances in abundances.items():
                     to_write.writerow([element, el_abundances[Layer.mantle], el_abundances[Layer.core]])
                 to_write.writerow([])
-        
+
+    #Make a @staticmethod?
     def convert_number_abundances_to_mass(self, number_abundance_dict):
         # Take a number abundance dict and return the equivalent mass abundance dict
         mass_abundance_dict = dict()
@@ -590,37 +601,89 @@ class GeologyModel():
                     M_E = ci.get_element_mass(element)
                     mass_abundance_dict[element][layer] = (X_E * M_E)/total_mass
         return mass_abundance_dict
-    
+
+    #Make a @staticmethod?
+    def convert_mass_abundances_to_number(self, mass_abundance_dict):
+        # Take a mass abundance dict and return the equivalent number abundance dict
+        number_abundance_dict = dict()
+        for element in mass_abundance_dict.keys():
+            number_abundance_dict[element] = dict()
+        for layer in Layer:
+            total_number = 0
+            for element in mass_abundance_dict.keys():
+                M_E = mass_abundance_dict[element].get(layer, 0)  # Assume the abundance of any absent element is 0
+                X_E = M_E/ci.get_element_mass(element)
+                total_number += X_E
+            # Now loop through again to build the output dict
+            if total_number > 0:  # If total_number was zero, then just ignore that layer (Layer was probably not present in the input)
+                for element in mass_abundance_dict.keys():
+                    M_E = mass_abundance_dict[element].get(layer, 0)  # Assume the abundance of any absent element is 0
+                    X_E = M_E/ci.get_element_mass(element)
+                    number_abundance_dict[element][layer] = X_E/total_number
+        return number_abundance_dict
+
+    def get_relative_core_mantle_masses(self, composition_override=None):
+        if composition_override is None and self.core_relative_mass is not None and self.mantle_relative_mass is not None:
+            return self.core_relative_mass, self.mantle_relative_mass
+        core_relative_mass = 0
+        mantle_relative_mass = 0
+        for element in ci.usual_elements:  # Only considering major elements for now. Also may need to exclude N, currently its mantle content is negative...
+            if composition_override is None:
+                info = self.element_info[element]
+            else:
+                info = composition_override[element]
+            core_relative_mass += info[Layer.core]*ci.element_masses[element]
+            mantle_relative_mass += info[Layer.mantle]*ci.element_masses[element]
+        if composition_override is None:
+            # Cache the default, non-override case if we get the chance:
+            self.core_relative_mass = core_relative_mass
+            self.mantle_relative_mass = mantle_relative_mass
+        return core_relative_mass, mantle_relative_mass
+
+    def convert_core_number_fraction_to_core_mass_fraction(self, core_number_fraction, composition_override=None):
+        #Need to calculate relative mass of core and mantle like material
+        core_relative_mass, mantle_relative_mass = self.get_relative_core_mantle_masses(composition_override)
+        mantle_number_fraction = 1 - core_number_fraction
+        cmf = (core_number_fraction*core_relative_mass)/((core_number_fraction*core_relative_mass) + (mantle_number_fraction*mantle_relative_mass))
+        return cmf
+
+    def convert_core_mass_fraction_to_core_number_fraction(self, core_mass_fraction, composition_override=None):
+        #Need to calculate relative mass of core and mantle like material
+        core_relative_mass, mantle_relative_mass = self.get_relative_core_mantle_masses(composition_override)
+        cnf = (mantle_relative_mass*core_mass_fraction)/(((mantle_relative_mass*core_mass_fraction) + core_relative_mass) - (core_relative_mass*core_mass_fraction))
+        return cnf
+
     def get_core_fraction_from_abundance_dict(self, abundance_dict):
         # abundance_dict could be by number, or by mass. The output will then be either number or mass accordingly
         # also the mantle frac is then 1 - core_fraction
         # This does require mantle abundances to be provided
-        # At the moment, this just prints the core fraction implied by each element
         tol = 0.00000001
+        implied_cfs = list()
         for element, abundance_by_layer in abundance_dict.items():
-            print(element)
-            trial_cf = 0.5
-            diff = tol + 1
-            increased = False
-            decreased = False
-            step = 0.1
-            while abs(diff) >= tol:
-                implied_bulk_abundance = trial_cf*abundance_by_layer[Layer.core] + (1-trial_cf)*abundance_by_layer[Layer.mantle]
-                diff = implied_bulk_abundance - abundance_by_layer[Layer.bulk]
-                if abs(diff) < tol:
-                    step = 0
-                if (diff > 0 and (abundance_by_layer[Layer.core] > abundance_by_layer[Layer.mantle])) or (diff < 0 and (abundance_by_layer[Layer.core] < abundance_by_layer[Layer.mantle])):
-                    trial_cf -= step
-                    increased = True
-                else:
-                    trial_cf += step
-                    decreased = True
-                if increased and decreased:
-                    step /= 2
-                    increased = False
-                    decreased = False
-            print(trial_cf)
-    
+            if abundance_by_layer[Layer.bulk] > 0:
+                trial_cf = 0.5
+                diff = tol + 1
+                increased = False
+                decreased = False
+                step = 0.1
+                while abs(diff) >= tol:
+                    implied_bulk_abundance = trial_cf*abundance_by_layer[Layer.core] + (1-trial_cf)*abundance_by_layer[Layer.mantle]
+                    diff = implied_bulk_abundance - abundance_by_layer[Layer.bulk]
+                    if abs(diff) < tol:
+                        step = 0
+                    if (diff > 0 and (abundance_by_layer[Layer.core] > abundance_by_layer[Layer.mantle])) or (diff < 0 and (abundance_by_layer[Layer.core] < abundance_by_layer[Layer.mantle])):
+                        trial_cf -= step
+                        increased = True
+                    else:
+                        trial_cf += step
+                        decreased = True
+                    if increased and decreased:
+                        step /= 2
+                        increased = False
+                        decreased = False
+                implied_cfs.append(trial_cf)
+        return np.mean(implied_cfs)
+
     def calculate_pressure_and_mass(self, planet_radius, iron_mass_fraction, lower_limit=False, alpha=1067.44, beta=0.329, gamma=0.31, lmbda=7008.42, mu=18.29, nu=0.313):
         # An implementation of Lena's new parametrisation
         # Planet radius in km, iron mass fraction on a scale from 0 to 1. NB NOT NUMBER FRACTION!
@@ -645,7 +708,7 @@ class GeologyModel():
             depth_midmantle_metres = planet_radius_metres - (0.5*(planet_radius_metres + core_radius_metres))
             pressure_midmantle = (g_uppermantle * density_uppermantle * depth_midmantle_metres)/1000000000 # In GPa
             return pressure_midmantle, planet_mass
-    
+
     def calculate_radius_and_mass(self, pressure_in_GPa, abundance_dict, lower_limit=False):
         if pressure_in_GPa <= 0:
             print('Warning! Pressure was <= 0, returning None, None')
@@ -690,12 +753,13 @@ class GeologyModel():
                 # To prevent infinite loops
                 print('Warning! Radius/Mass calculation exceeded iteration limit (' + str(max_iterations) + '), returning None, None')
                 return None, None
-    
-    def get_earth_mix(self, fragment_core_fraction, abundance_dict=None):
+
+    def get_earth_mix(self, fragment_core_fraction, abundance_dict=None, elements_to_mix=ci.usual_elements):
         # Function to calculate the composition of a body with an Earth-like mantle and Earth-like core, but arbitrary fragment core fraction
         # bulk = fcf*core_abundance + (1-fcf)*mantle_abundance
+        # Abundances can also be overridden
         mix = dict()
-        for element in ci.usual_elements:  # For now we only care about these ones
+        for element in elements_to_mix:  # For now we only care about these ones
             if abundance_dict is None:
                 core_abundance = self.get_core_abundance(element)
                 mantle_abundance = self.get_mantle_abundance(element)
@@ -741,5 +805,26 @@ class GeologyModel():
         except ZeroDivisionError:
             print('Warning: hit a ZeroDivisionError. Returning None.')
             return None
+        return toret
+
+    def convert_log_abundances_to_linear(self, abundance_dict):
+        # Assuming input is a {element: log(X/Hx)} dict, as used in WD data
+        unnormalised = dict()
+        total = 0
+        for el, log_abundance in abundance_dict.items():
+            linear_abundance = 10**log_abundance
+            unnormalised[el] = linear_abundance
+            total += linear_abundance
+        toret = dict()
+        for el, unnormalised_abundance in unnormalised.items():
+            toret[el] = dict()
+            toret[el][Layer.bulk] = unnormalised_abundance/total
+        return toret
+
+    def convert_linear_abundances_to_log(self, abundance_dict, pollution_fraction=-6, layer=Layer.bulk):
+        # Assuming input is a normalised {element: {layer: abundance}} dict, as used elsewhere in geology_info
+        toret = dict()
+        for el, sub_dict in abundance_dict.items():
+            toret[el] = np.log10(sub_dict[layer]) + pollution_fraction
         return toret
 

@@ -193,14 +193,14 @@ experiments = {
             'fO2': geo_model_earth.get_mars_oxygen_fugacity()
         },
         'Earth': {
-            'P': 45,
+            'P': 49.5,
             'T': None,
-            'fO2': -1.3
+            'fO2': -1.4
         },
         'Mars': {
-            'P': 5,
+            'P': 2.5,
             'T': None,
-            'fO2': -1.1
+            'fO2': -1.19
         }
     }
 }

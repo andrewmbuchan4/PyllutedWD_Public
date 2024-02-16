@@ -10,13 +10,15 @@ import geology_info as gi
 # For now, ignore the crust. Treat parent_crust_number_fraction and fragment_crust_number_fraction as if they're always 0
 
 class EnhancementModel():
-    
+
     def __init__(self, model_type):
         self.model_type = model_type
         self.known_models = {
             'Earthlike': self.find_enhancements_earthlike,
             'NonEarthlike': self.find_enhancements_nonearthlike,
-            'MantleOnly': self.find_enhancements_nonearthlike
+            'MantleOnly': self.find_enhancements_nonearthlike,
+            'EarthMantle': self.find_enhancements_nonearthlike,
+            'Meteorite': self.find_enhancements_nonearthlike
         }
         self.model = self.known_models.get(self.model_type)
         if self.model is None:
@@ -25,7 +27,7 @@ class EnhancementModel():
             except:
                 model_str = '[Could not cast model to string]'
             raise ValueError('Unknown EnhancementModel. Input was: ' + model_str + '. Known models: ' + ', '.join(self.known_models.keys()))
-    
+
         self.earthlike_info = {
             ci.Element.C: {'default_e': 0, 'fill_core_first': False},
             ci.Element.N: {'default_e': 0, 'fill_core_first': False},
@@ -40,7 +42,7 @@ class EnhancementModel():
             ci.Element.Fe: {'default_e': 0, 'fill_core_first': True},
             ci.Element.Ni: {'default_e': 0, 'fill_core_first': False}
         }
-    
+
     def find_enhancements(
         self,
         geo_model,
@@ -91,17 +93,17 @@ class EnhancementModel():
             'Ds': Ds
         }
         return enhancements, diagnostics_dict
-    
+
     def find_enhancements_earthlike(self, geo_model_ignore, disc_abundances, elements, parent_core_number_fraction, parent_crust_number_fraction, fragment_core_number_fraction, fragment_crust_number_fraction, pressure, fO2, normalise_abundances=True, extra_output=False):
         if (parent_core_number_fraction is None) or (parent_crust_number_fraction is None) or (fragment_core_number_fraction is None) or (fragment_crust_number_fraction is None):
             # This means no differentiation took place
-            return disc_abundances
+            return disc_abundances, {'ParentCoreNumberFraction': parent_core_number_fraction}
         parent_is_physical = 0.19 >= parent_core_number_fraction >= 0 and parent_crust_number_fraction >= 0 and parent_core_number_fraction + parent_crust_number_fraction <= 1
         fragment_is_physical = fragment_core_number_fraction >= 0 and fragment_crust_number_fraction >= 0 and fragment_core_number_fraction + fragment_crust_number_fraction <= 1
         fragment_is_physical = fragment_is_physical and not (fragment_core_number_fraction > parent_core_number_fraction and fragment_crust_number_fraction > parent_crust_number_fraction)
         fragment_is_physical = fragment_is_physical and not (fragment_core_number_fraction > (parent_core_number_fraction/(1-parent_crust_number_fraction)) and fragment_crust_number_fraction > 0.01)
         fragment_is_physical = fragment_is_physical and not ((parent_core_number_fraction/(1-parent_crust_number_fraction)) >= fragment_core_number_fraction >= parent_core_number_fraction and fragment_core_number_fraction - parent_core_number_fraction > (parent_crust_number_fraction-fragment_crust_number_fraction)*(parent_core_number_fraction/(1-parent_crust_number_fraction)))
-        
+
         enhancements = dict()
         if not (fragment_is_physical and parent_is_physical):
             return None, {'ParentCoreNumberFraction': parent_core_number_fraction}
@@ -115,7 +117,7 @@ class EnhancementModel():
                 parent_crust_abundance = earthlike_geo_model.get_crust_abundance(element)
                 parent_core_abundance = earthlike_geo_model.get_core_abundance(element)
                 parent_mantle_abundance = (parent_bulk_abundance - ((parent_crust_abundance*parent_crust_number_fraction) + (parent_core_abundance*parent_core_number_fraction)))/parent_mantle_number_fraction
-                
+
                 if parent_mantle_abundance >= 0:
                     fragment_mantle_abundance = parent_mantle_abundance
                     fragment_crust_abundance = parent_crust_abundance
@@ -128,12 +130,12 @@ class EnhancementModel():
                     else:
                         fragment_crust_abundance = parent_crust_abundance
                         fragment_core_abundance = (parent_bulk_abundance - (parent_crust_abundance*parent_crust_number_fraction))/parent_core_number_fraction
-                
+
                 fragment_bulk_abundance_term1 = fragment_crust_number_fraction*fragment_crust_abundance
                 fragment_bulk_abundance_term2 = fragment_mantle_number_fraction*fragment_mantle_abundance
                 fragment_bulk_abundance_term3 = fragment_core_number_fraction*fragment_core_abundance
                 fragment_bulk_abundance =  fragment_bulk_abundance_term1 + fragment_bulk_abundance_term2 + fragment_bulk_abundance_term3
-                
+
                 enhancements[element] = disc_abundances[element]*(fragment_bulk_abundance/parent_bulk_abundance)
         diagnostics_dict = {'ParentCoreNumberFraction': parent_core_number_fraction}
         return enhancements, diagnostics_dict

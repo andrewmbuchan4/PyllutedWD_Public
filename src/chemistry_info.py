@@ -4,7 +4,7 @@
 from enum import Enum
 
 class Element(Enum):
-    Placeholder = 0
+    Placeholder = 0  # Can be used as a 'Hx' indicator if necessary!
     H  = 1
     He = 2
     Li = 3
@@ -123,16 +123,161 @@ class Element(Enum):
     Lv = 116
     Ts = 117
     Og = 118
-    
+
     def __str__(self):
         return self.name
-    
+
     def __hash__(self):
         # For performance purposes:
         # Normally python will try to hash an Enum by hashing its name (which guaranteess uniqueness)
         # In this case I know that the values are also unique, and should satisfy properties of a hash
         # So I do this, which is much quicker:
         return self.value
+
+    def __len__(self):
+        return 1
+
+    def __lt__(self, other):
+        return (self.value < other.value)
+
+    def __le__(self, other):
+        return(self.value <= other.value)
+
+    def __gt__(self, other):
+        return(self.value > other.value)
+
+    def __ge__(self, other):
+        return(self.value >= other.value)
+
+    def __eq__(self, other):
+        if not isinstance(other, Element):
+            return False
+        return (self.value == other.value)
+
+    def __ne__(self, other):
+        return not(self.__eq__(other))
+
+
+all_elements = [
+    Element.H,
+    Element.He,
+    Element.Li,
+    Element.Be,
+    Element.B,
+    Element.C,
+    Element.N,
+    Element.O,
+    Element.F,
+    Element.Ne,
+    Element.Na,
+    Element.Mg,
+    Element.Al,
+    Element.Si,
+    Element.P,
+    Element.S,
+    Element.Cl,
+    Element.Ar,
+    Element.K,
+    Element.Ca,
+    Element.Sc,
+    Element.Ti,
+    Element.V,
+    Element.Cr,
+    Element.Mn,
+    Element.Fe,
+    Element.Co,
+    Element.Ni,
+    Element.Cu,
+    Element.Zn,
+    Element.Ga,
+    Element.Ge,
+    Element.As,
+    Element.Se,
+    Element.Br,
+    Element.Kr,
+    Element.Rb,
+    Element.Sr,
+    Element.Y,
+    Element.Zr,
+    Element.Nb,
+    Element.Mo,
+    Element.Tc,
+    Element.Ru,
+    Element.Rh,
+    Element.Pd,
+    Element.Ag,
+    Element.Cd,
+    Element.In,
+    Element.Sn,
+    Element.Sb,
+    Element.Te,
+    Element.I,
+    Element.Xe,
+    Element.Cs,
+    Element.Ba,
+    Element.La,
+    Element.Ce,
+    Element.Pr,
+    Element.Nd,
+    Element.Pm,
+    Element.Sm,
+    Element.Eu,
+    Element.Gd,
+    Element.Tb,
+    Element.Dy,
+    Element.Ho,
+    Element.Er,
+    Element.Tm,
+    Element.Yb,
+    Element.Lu,
+    Element.Hf,
+    Element.Ta,
+    Element.W,
+    Element.Re,
+    Element.Os,
+    Element.Ir,
+    Element.Pt,
+    Element.Au,
+    Element.Hg,
+    Element.Tl,
+    Element.Pb,
+    Element.Bi,
+    Element.Po,
+    Element.At,
+    Element.Rn,
+    Element.Fr,
+    Element.Ra,
+    Element.Ac,
+    Element.Th,
+    Element.Pa,
+    Element.U,
+    Element.Np,
+    Element.Pu,
+    Element.Am,
+    Element.Cm,
+    Element.Bk,
+    Element.Cf,
+    Element.Es,
+    Element.Fm,
+    Element.Md,
+    Element.No,
+    Element.Lr,
+    Element.Rf,
+    Element.Db,
+    Element.Sg,
+    Element.Bh,
+    Element.Hs,
+    Element.Mt,
+    Element.Ds,
+    Element.Rg,
+    Element.Cn,
+    Element.Nh,
+    Element.Fl,
+    Element.Mc,
+    Element.Lv,
+    Element.Ts,
+    Element.Og
+]
 
 element_masses = {
     Element.H: 1.008,
@@ -252,7 +397,7 @@ element_masses = {
     Element.Mc: 290,
     Element.Lv: 293,
     Element.Ts: 294,
-    Element.Og: 294  
+    Element.Og: 294
 }
 
 def get_element_mass(element):
@@ -271,4 +416,9 @@ usual_elements = [
     Element.O,
     Element.C,
     Element.N
+]
+
+atmospheric_types = [
+    Element.H,
+    Element.He
 ]

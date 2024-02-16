@@ -26,6 +26,10 @@
 # Change geology model config name
 # Change o_cap in geology_info
 
+# Li et al 2023 has a parameterisation for the ratio of D_C to D_N - could be useful for future (experiments up 3GPa, fO2 up to IW)
+# Both are siderophilic - also see the references therein, they include higher pressure experiments
+# Huang+ 2020 and Huang+ 2021 have parametrisations for Mo, W, Nb and Ta (helpfully compiled in Gu+ 2023, albeit without interactions)
+
 import csv
 import numpy as np
 
@@ -65,6 +69,13 @@ class PartitionModel:
             ci.Element.O,
             ci.Element.C,
             ci.Element.S
+            
+            # New for Jonny:
+            #ci.Element.Pt,
+            #ci.Element.Pd,
+            #ci.Element.Rh,
+            #ci.Element.Re,
+            #ci.Element.Ru
         ]
         
         self.non_partitioners = [ # We will assume these are all purely lithophilic
@@ -271,6 +282,8 @@ class PartitionModel:
                 elif e == ci.Element.S:
                     # See Boujibar+ 2014 eqs 6 and 11
                     # gammas not needed - but they are used for how other elements interact with S
+                    
+                    # Maybe replace this with Terry-Ann Suer's 2017 paper! (equation 8 of https://www.sciencedirect.com/science/article/pii/S0012821X17301954)
                     
                     if mantle_composition is None:
                         # Use a very rough approximation of Earth. Doesn't matter much - this is just an initial guess

@@ -99,16 +99,81 @@ def print_synthetic_observations(obs_dict):
 
 def plot_mixes(mix_dict):
     graph_fac = gf.GraphFactory()
+    list_of_plot_dicts = list()
     for fcf, mix in mix_dict.items():
         modified_mix_dict = dict()
-        for el in [ci.Element.O, ci.Element.Si, ci.Element.Fe, ci.Element.Ni, ci.Element.Mg]:
+        for el in ci.usual_elements:#[ci.Element.O, ci.Element.Si, ci.Element.Fe, ci.Element.Ni, ci.Element.Mg]:
             if mix[el] > 0.02:
                 modified_mix_dict[el] = mix[el]
         modified_mix_dict[ci.Element.Placeholder] = 1 - sum(x[1] for x in modified_mix_dict.items())
-        graph_fac.plot_mix_pie_chart(fcf, modified_mix_dict)
+        plot_dict = graph_fac.plot_mix_pie_chart(fcf, modified_mix_dict)
+        list_of_plot_dicts.append(plot_dict)
+    graph_fac.multipanelise(list_of_plot_dicts, 2, 2, 'earth_pie_charts.pdf', 15, 15, None, None, False, False)
+
+def reproduce_bulk_core_mantle_crust():
+    test_composition = {
+        'Bulk': {
+            ci.Element.Al: 0.0153,
+            ci.Element.Ti: 0.00044,
+            ci.Element.Ca: 0.011099,
+            ci.Element.Ni: 0.008066,
+            ci.Element.Fe: 0.149057,
+            ci.Element.Cr: 0.002351,
+            ci.Element.Mg: 0.16482,
+            ci.Element.Si: 0.149118,
+            ci.Element.Na: 0.002037,
+            ci.Element.O: 0.482879,
+            ci.Element.C: 0.001581,
+            ci.Element.N: 0.000046429
+        },
+        'Core': {
+            ci.Element.Al: 0, # meant to be 0
+            ci.Element.Ti: 0, # meant to be 0
+            ci.Element.Ca: 0, # meant to be 0
+            ci.Element.Ni: 0.0444,
+            ci.Element.Fe: 0.7676,
+            ci.Element.Cr: 0.00868,
+            ci.Element.Mg: 0, # meant to be 0
+            ci.Element.Si: 0.1071,
+            ci.Element.Na: 0.00001, # meant to be 0
+            ci.Element.O: 0, # meant to be 0
+            ci.Element.C: 0.0083482,
+            ci.Element.N: 0.0002684
+        },
+        'Mantle': {
+            ci.Element.Al: 0.018,
+            ci.Element.Ti: (1200/1000000)/2, #division by 2 is an approximate correction for weight -> number
+            ci.Element.Ca: 0.013,
+            ci.Element.Ni: 0.001,
+            ci.Element.Fe: 0.024,
+            ci.Element.Cr: 0.001,
+            ci.Element.Mg: 0.198,
+            ci.Element.Si: 0.158,
+            ci.Element.Na: 0.002,
+            ci.Element.O: 0.581,
+            ci.Element.C: 0,
+            ci.Element.N: 0.001
+        },
+        'Crust': {
+            ci.Element.Al: 0.0641,
+            ci.Element.Ti: 0.0042,
+            ci.Element.Ca: 0.04452,
+            ci.Element.Ni: 0.0000371,
+            ci.Element.Fe: 0.0314,
+            ci.Element.Cr: 0.000139,
+            ci.Element.Mg: 0.04167,
+            ci.Element.Si: 0.181509,
+            ci.Element.Na: 0.01771,
+            ci.Element.O: 0.6011,
+            ci.Element.C: 0,
+            ci.Element.N: 0
+        }
+    }
+    return test_composition
 
 def main():
-    mix_dict = generate_mixes()
+    #mix_dict = generate_mixes()
+    mix_dict = reproduce_bulk_core_mantle_crust()
     plot_mixes(mix_dict)
     obs_dict = generate_observations(mix_dict, False, False)
     print_synthetic_observations(obs_dict)

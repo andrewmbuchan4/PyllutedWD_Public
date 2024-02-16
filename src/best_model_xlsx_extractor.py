@@ -6,6 +6,8 @@ import numpy as np
 import os
 import xlrd
 
+# This script is designed to be used on xlsx outputs from the old version of the code (in original_codebase) - it's essentially deprecated now and included just for completeness
+
 old_model_params_dict = {
     'M1': ["Stellar metallicity indices", "log(Pollution Fraction)"],
     'M2': ["Stellar metallicity indices", "Time since Accretion/Myrs", "log(Pollution Fraction)","log(Accretion Event Timescale/Yrs)"],
