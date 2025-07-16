@@ -7,6 +7,7 @@ import numpy as np
 
 import chemistry_info as ci
 import partition_model as pam
+import physical_constants as pc
 import pwd_utils as pu
 
 class Layer(Enum):
@@ -49,9 +50,9 @@ class GeologyModel():
             pu.get_path_to_feni() + 'data/e_param_fischer_epsilon_update.dat'
         )
         self.config_name = 'sisi'
-        self.G = 6.67408E-11  # Gravitational constant (SI units)
-        self.M_Earth = 5.9736E24  # Mass of Earth in kg (McDonough 2003)
-        self.M_Sun = 1.9885E30 # Mass of Sun in kg. Maybe solar/stellar info could have its own class
+        self.G = pc.G  # Gravitational constant (SI units)
+        self.M_Earth = pc.M_Earth  # Mass of Earth in kg (McDonough 2003)
+        self.M_Sun = pc.M_Sun # Mass of Sun in kg. Maybe solar/stellar info could have its own class
         self.mars_abundances = { # Taking this from table 10 of Yoshizaki 2020
             ci.Element.Al: {Layer.bulk: 0.013, Layer.mantle: 0.015, Layer.core: 0},
             ci.Element.Ti: {Layer.bulk: 0, Layer.mantle: 0, Layer.core: 0},
@@ -395,7 +396,6 @@ class GeologyModel():
             abundances[element] = dict()
             bulk_abundance_by_number = self.get_bulk_abundance(element)
             if bulk_abundance_by_number is None:
-                # TODO: It's pointless to calculate any Ds for which the bulk abundance is 0. Could be an easy performance gain
                 bulk_abundance_by_number = 0
             abundances[element][Layer.bulk] = bulk_abundance_by_number
             mu = self.get_mu(element)
@@ -581,7 +581,6 @@ class GeologyModel():
                     to_write.writerow([element, el_abundances[Layer.mantle], el_abundances[Layer.core]])
                 to_write.writerow([])
 
-    #Make a @staticmethod?
     def convert_number_abundances_to_mass(self, number_abundance_dict):
         # Take a number abundance dict and return the equivalent mass abundance dict
         mass_abundance_dict = dict()
@@ -602,7 +601,6 @@ class GeologyModel():
                     mass_abundance_dict[element][layer] = (X_E * M_E)/total_mass
         return mass_abundance_dict
 
-    #Make a @staticmethod?
     def convert_mass_abundances_to_number(self, mass_abundance_dict):
         # Take a mass abundance dict and return the equivalent number abundance dict
         number_abundance_dict = dict()
@@ -828,3 +826,20 @@ class GeologyModel():
             toret[el] = np.log10(sub_dict[layer]) + pollution_fraction
         return toret
 
+def main():
+    geo_model = GeologyModel()
+    #print(geo_model.convert_core_mass_fraction_to_core_number_fraction(0.3))
+    #print(geo_model.convert_core_mass_fraction_to_core_number_fraction(0.35))
+    pressure = 30
+    fO2 = -3
+    output = geo_model.form_a_planet_iteratively(pressure, fO2)
+    print(output[0])
+    print()
+    print(output[1])
+    print()
+    print(output[2])
+    print()
+    print(output[3])
+
+if __name__ == '__main__':
+    main()

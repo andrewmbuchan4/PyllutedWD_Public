@@ -15,20 +15,20 @@ import dict_plotter as dp
 
 def generate_data():
     geo_model = gi.GeologyModel()
-    
+
     Pmin = 0.1
     Pmax = 60
-    
+
     Tmin = 2000
     Tmax = 4000
-    
+
     T_dict = {
         'run1': 1400,
         'run2': 2900,
         'run3': 4400,
         'run4': None # ie use the liquidus in PAMELA
     }
-    
+
     p_data = dict()
     cr_data = dict()
     cr_sd_up_data = dict()
@@ -36,20 +36,19 @@ def generate_data():
     ni_data = dict()
     ni_sd_up_data = dict()
     ni_sd_down_data = dict()
-    
-    #TODO: Just have a dict with multiple keys instead of multiple dicts
+
     fe_data = dict()
     c_data = dict()
     o_data = dict()
     si_data = dict()
-    
+
     sf_cr_data = dict()
     sf_cr_sd_up_data = dict()
     sf_cr_sd_down_data = dict()
     sf_ni_data = dict()
     sf_ni_sd_up_data = dict()
     sf_ni_sd_down_data = dict()
-    
+
     p_range = np.linspace(Pmin, Pmax, 200)
     t_range = np.linspace(Tmin, Tmax, 200)
     p_mesh, t_mesh = np.meshgrid(p_range, t_range)
@@ -57,7 +56,7 @@ def generate_data():
     d_ni_array = np.zeros((len(t_range), len(p_range)))
     d_si_array = np.zeros((len(t_range), len(p_range)))
     kd_deviation_ni_array = np.zeros((len(t_range), len(p_range)))
-    
+
     fo2_range = np.linspace(-3, -1, 50)
     d_cr_fo2_array = list()
     d_ni_fo2_array = list()
@@ -65,13 +64,12 @@ def generate_data():
     d_cr_fo2_sd_down_array = list()
     d_ni_fo2_sd_up_array = list()
     d_ni_fo2_sd_down_array = list()
-    
-    #TODO: Just have a dict with multiple keys instead of multiple dicts
+
     d_fe_fo2_array = list()
     d_c_fo2_array = list()
     d_o_fo2_array = list()
     d_si_fo2_array = list()
-    
+
     earth_pressure = geo_model.get_earth_differentiation_pressure()
     earth_fO2 = geo_model.get_earth_oxygen_fugacity()
     abundances_earth, cnf_earth, ds_earth, dummy = geo_model.form_a_planet_iteratively(earth_pressure, earth_fO2)
@@ -79,7 +77,7 @@ def generate_data():
     print(abundances_earth)
     print(ds_earth)
     print(cnf_earth)
-    
+
     for run_name, T in T_dict.items():
         p_data[run_name] = list()
         cr_data[run_name] = list()
@@ -98,7 +96,7 @@ def generate_data():
         c_data[run_name] = list()
         o_data[run_name] = list()
         si_data[run_name] = list()
-        
+
         for P in p_range:
             abundances, cnf, Ds, dummy = geo_model.form_a_planet_iteratively(P, earth_fO2, T)
             p_data[run_name].append(P)
@@ -133,7 +131,7 @@ def generate_data():
             t_index += 1
         p_index += 1
     print(kd_deviation_ni_array)
-    
+
     for fo2 in fo2_range:
         abundances, cnf, Ds, dummy = geo_model.form_a_planet_iteratively(earth_pressure, fo2)
         try:
@@ -168,7 +166,7 @@ def generate_data():
             d_si_fo2_array.append(Ds[ci.Element.Si])
         except TypeError:
             d_si_fo2_array.append(None)
-    
+
     print(d_cr_fo2_array)
     print(d_cr_fo2_sd_up_array)
     print(d_cr_fo2_sd_down_array)
@@ -1465,13 +1463,13 @@ def main():
             }
         }
     }
-    
+
     plotter = dp.DictPlotter(plot_dict)
     plotter.draw()
     plotter.yield_output()
     print(ds_earth[ci.Element.Ni])
     print(ni_data['run4'])
     print([p/ds_earth[ci.Element.Ni] for p in ni_data['run4']])
-    
+
 if __name__ == '__main__':
     main()

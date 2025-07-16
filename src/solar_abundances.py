@@ -97,7 +97,6 @@ for el in solar_ratiod_to_H:
 
 # The 1% and 99% percentiles from https://docs.google.com/spreadsheets/d/1B2WXfFtx3KhP4Ucl2kmJGmhq73ldJqqZiofG8m10n48
 
-# TODO: Calculate data for each reference element dynamically (unless slow?). NB not necessarily going to be the same as just rescaling the raw H abundances due to correlations
 upper_X_ratiod_to_solar = {
     ci.Element.H:{  # This is the reference element
         ci.Element.C: 0.3745,
@@ -211,15 +210,35 @@ def get_solar_relative_abundance(element1, element2):
     except (TypeError, KeyError):
         return None
 
-def scale_abundances_to_solar(abundance_dict, reference_element):
+def scale_abundances_to_solar(abundance_dict, reference_element, normalisation_element=None, descale=False):
+    # The difference between the reference_element and normalisation_element is subtle but important
+    # The reference_element is ultimately going to be the element that appears in the denominator on the y axis of the various composition plots
+    # The problem I ran into is that, when the reference_element is the atmospheric type of the WD (ie Hx)
+    # (ie we're essentially dealing with absolute abundances)
+    # the vertical position can (not always) be meaningless
+    # It's meaningless if, for example, we are plotting the composition of accreted material.
+    # Only the relative abundances have any meaning - the vertical offset is arbitrary
+    # So I just fixed it to match the Mg abundance. BUT
+    # This actually introduced further confusion because the uncertainty remains non-zero
+    # Which makes no sense - if the Mg abundance is always set to a certain value, how could there be any uncertainty?
+    # What I'd done was show the uncertainty on the absolute abundances in a context where we should only care about the relative abundances
+    # The solution is that the scaling to Mg needs to happen at sampling time
+    # So we end up with an (optional) normalisation_element (Mg in this case) to go alongside the reference_element (Hx)
+    # descale is a separate option for if you have a set of abundances that has already been scaled, and you want to undo that scaling!
+    if abundance_dict is None:
+        return None
     scaled_abundances = dict()
+    sign = 1 if descale else -1
     for element, abundance in abundance_dict.items():
         try:
-            scaled_abundances[element] = (abundance - abundance_dict[reference_element]) - get_solar_relative_abundance(element, reference_element)
+            scaled_abundances[element] = (abundance - abundance_dict[reference_element]) + (sign*get_solar_relative_abundance(element, reference_element))
         except KeyError:
             # Assume that this happened because the reference_element wasn't one of the ones we were modelling, so is the one that they were being modelled relative to
             # i.e. abundance doesn't need any scaling apart from the solar scaling
-            scaled_abundances[element] = abundance - get_solar_relative_abundance(element, reference_element)
+            if normalisation_element is None:
+                scaled_abundances[element] = abundance + (sign*get_solar_relative_abundance(element, reference_element))
+            else:
+                scaled_abundances[element] = (abundance - abundance_dict[normalisation_element]) + (sign*get_solar_relative_abundance(element, normalisation_element))
     return scaled_abundances
 
 def main():

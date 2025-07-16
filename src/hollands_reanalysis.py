@@ -16,8 +16,7 @@ import chemistry_info as ci
 import graph_factory as gf
 import hollands_abundances as ha
 import model_analyser as ma
-import white_dwarf_model_new as wdm
-print('Using experimental wdm')
+import white_dwarf_model as wdm
 
 def extract_relevant_ratios(wd_names, relevant_wds, cafe, mgfe):
     wd_index = 0
@@ -85,7 +84,6 @@ def calculate_original_ratio(observed_ratio, t_1, t_2, t_sinceaccretion_myr, t_d
         print(output_ratio)
         error = abs((output_ratio - observed_ratio)/observed_ratio)
         if error < tolerance:
-            print(84)
             print(1/trial_element2)
             return 1/trial_element2
         else:

@@ -41,7 +41,7 @@ def load_detlev_data():
                     else:
                         element = ci.Element(int(row[0]))
                         for j in range(1, len(row)):
-                            toret[HorHe][g][int(T_vals[j-1])][element] = float(row[j]) 
+                            toret[HorHe][g][int(T_vals[j-1])][element] = float(row[j])
                     i += 1
     return toret
 
@@ -100,8 +100,8 @@ def extract_timescales(data, HorHe, Teff, logg):
         g_upper_bound = g_lower_bound
     if g_lower_bound is None:
         g_lower_bound = g_upper_bound
-    
-    # The next section is a copy/paste. TODO: make this into a function
+
+    # The next section is a copy/paste...
     g_value = g_upper_bound if g_lower_bound is None else g_lower_bound  # This doesn't matter, it's just to read the T values which should be the same for all g
     t_lower_bound = None
     current_best_lower_diff = None
@@ -118,7 +118,7 @@ def extract_timescales(data, HorHe, Teff, logg):
             if (current_best_upper_diff is None) or (upper_diff < current_best_upper_diff):
                 current_best_upper_diff = upper_diff
                 t_upper_bound = t_test
-    
+
     if t_upper_bound is None:
         t_upper_bound = t_lower_bound
     if t_lower_bound is None:
@@ -189,7 +189,7 @@ def main():
     wd_data = load_wd_data()
     wd_timescales = process_wd_data(wd_data, timescale_data)
     dump_wd_timescales(wd_timescales)
-    
+
 
 if __name__ == '__main__':
     main()

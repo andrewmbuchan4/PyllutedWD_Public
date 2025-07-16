@@ -18,7 +18,8 @@ def build_wd_data(element, DA=True):
     else:
         wd_data = {'DB': list(), 'DA': None}
         wd_upper_bounds = {'DB': list(), 'DA': None}
-        wd_data['DB'], wd_upper_bounds['DB'] = ha.get_hollands_abundances_for_dt_plot(element)
+        #wd_data['DB'], wd_upper_bounds['DB'] = ha.get_hollands_abundances_for_dt_plot(element)
+        wd_data['DB'], wd_upper_bounds['DB'] = mwdd.get_mwdd_abundances(element, ci.Element.He, True, True)
     return wd_data, wd_upper_bounds
 
 def plot_detection_thresholds(DA=True):
@@ -27,17 +28,8 @@ def plot_detection_thresholds(DA=True):
     if DA:
         detection_threshold_whitelist = ['Default']
     else:
-        detection_threshold_whitelist = ['Hollands']
-    #manager = mn.Manager(  #This is just to load the stellar compositions
-    #    Namespace(
-    #        wd_data_filename='WDMSextract.csv',
-    #        stellar_compositions_filename='StellarCompositionsSortFE.csv',
-    #        n_live_points = 0,
-    #        pollution_model_names=['Model_24'],
-    #        enhancement_model='Earthlike',
-    #        base_dir=pu.get_path_to_data()
-    #    )
-    #)
+        detection_threshold_whitelist = ['Default']
+        #detection_threshold_whitelist = ['Hollands']
     for threshold_set_name, threshold_set in dt.threshold_bank.items():
         if threshold_set_name in detection_threshold_whitelist:
             for spectral_type, threshold_dict in threshold_set.items():
@@ -56,7 +48,8 @@ def plot_detection_thresholds(DA=True):
     else:
         min_teff = 4000
         max_teff = 10000
-        elements_to_plot = [ci.Element.Ca, ci.Element.Fe, ci.Element.Mg, ci.Element.Cr]
+        #elements_to_plot = [ci.Element.Ca, ci.Element.Fe, ci.Element.Mg, ci.Element.Cr]
+        elements_to_plot = [ci.Element.Ca, ci.Element.Fe, ci.Element.Mg, ci.Element.Ni, ci.Element.Ti, ci.Element.Cr, ci.Element.Al, ci.Element.Na, ci.Element.O]
     for i, element in enumerate(elements_to_plot):
         wd_data, wd_upper_bounds = build_wd_data(element, DA)
         new_plot = graph_fac.make_detection_thresholds_plot(to_plot, element, wd_data, wd_upper_bounds, min_teff, max_teff, i == len(elements_to_plot) - 1)
@@ -66,7 +59,7 @@ def plot_detection_thresholds(DA=True):
             list_of_plots,
             5,
             2,
-            ['detection_thresholds.pdf', 'detection_thresholds.png'],
+            ['detection_thresholds_da.pdf', 'detection_thresholds_da.png'],
             13,
             10,
             0.3,
@@ -77,9 +70,9 @@ def plot_detection_thresholds(DA=True):
     else:
         graph_fac.multipanelise(
             list_of_plots,
+            5,
             2,
-            2,
-            ['detection_thresholds_dz.pdf', 'detection_thresholds_dz.png'],
+            ['detection_thresholds_db.pdf', 'detection_thresholds_db.png'],
             7,
             10,
             0.3,

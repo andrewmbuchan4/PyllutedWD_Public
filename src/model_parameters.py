@@ -4,7 +4,7 @@
 from enum import Enum
 import numpy as np
 
-minimum_likelihood = -1.0e90
+minimum_likelihood = -1.0e90 # This kind of stuff should end up in configuration.ini
 
 class ModelParameter(Enum):
     metallicity = 0
@@ -15,7 +15,7 @@ class ModelParameter(Enum):
     parent_crust_frac = 5
     fragment_core_frac = 6
     fragment_crust_frac = 7
-    pollution_frac = 8  # TODO: Rename this to pollution level
+    fragment_mass = 8
     accretion_timescale = 9
     pressure = 10
     oxygen_fugacity = 11
@@ -62,6 +62,8 @@ class WDParameter(Enum):
     mass = 4
     distance = 5
     logq = 6
+    timescale_type = 7
+    consider_thermohaline = 8
 
     def __str__(self):
         return ' '.join([word.capitalize() for word in self.name.split('_')])
@@ -75,7 +77,7 @@ wd_parameter_units = {
     #WDParameter.atmospheric_type: None
 }
 
-wd_parameters_for_synthesis = [  # this pre-dates atmospheric_type!
+wd_synthesis_parameters = [  # this pre-dates atmospheric_type! Really, I should make it able to accept either the spectral or atmospheric type
     WDParameter.spectral_type,
     WDParameter.temperature,
     WDParameter.logg,
@@ -83,17 +85,25 @@ wd_parameters_for_synthesis = [  # this pre-dates atmospheric_type!
     WDParameter.distance
 ]
 
+wd_meta_parameters = [
+    WDParameter.timescale_type,
+    WDParameter.consider_thermohaline
+]
+
+wd_descriptive_parameters = wd_synthesis_parameters + wd_meta_parameters
+
 model_parameter_strings = {
-    ModelParameter.metallicity: "Stellar metallicity indices",
-    ModelParameter.t_sinceaccretion: "Time since Accretion/Myrs",
-    ModelParameter.formation_distance: "log(Formation Distance/AU)",
-    ModelParameter.feeding_zone_size: "Feeding Zone Size/AU",
+    ModelParameter.metallicity: "Stellar Metallicity",
+    ModelParameter.t_sinceaccretion: "Time Since Accretion /Myr",
+    ModelParameter.formation_distance: "log(Formation Distance /AU)",
+    ModelParameter.feeding_zone_size: "Feeding Zone Size /AU",
     ModelParameter.parent_core_frac: "Parent Core Fraction",
     ModelParameter.parent_crust_frac: "Parent Crust Fraction",
     ModelParameter.fragment_core_frac: "Fragment Core Fraction",
     ModelParameter.fragment_crust_frac: "Fragment Crust Fraction",
-    ModelParameter.pollution_frac: "log(Pollution Fraction)",
-    ModelParameter.accretion_timescale: "log(Accretion Event Timescale/Yrs)",
+    #ModelParameter.pollution_frac: "log(Pollution Fraction)",
+    ModelParameter.fragment_mass: "log(Fragment Mass /kg)",
+    ModelParameter.accretion_timescale: "log(Accretion Event Time /yr)",
     ModelParameter.pressure: "Pressure /GPa",  # NB: This used to be log!
     ModelParameter.oxygen_fugacity: "Oxygen Fugacity /ΔIW"
 }
@@ -106,7 +116,7 @@ hierarchy_definitions_dict = {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale
         ],
         1: [
@@ -117,7 +127,7 @@ hierarchy_definitions_dict = {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale
         ],
         1: [
@@ -136,7 +146,7 @@ hierarchy_definitions_dict = {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale,
             ModelParameter.fragment_core_frac,
             ModelParameter.pressure,
@@ -150,7 +160,7 @@ hierarchy_definitions_dict = {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale,
             ModelParameter.formation_distance,
             ModelParameter.feeding_zone_size
@@ -165,7 +175,7 @@ hierarchy_definitions_dict = {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale
         ],
         1: [
@@ -180,7 +190,7 @@ hierarchy_definitions_dict = {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale
         ],
         1: [
@@ -204,7 +214,7 @@ hierarchy_definitions_dict = {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale
         ],
         1: [
@@ -222,7 +232,7 @@ hierarchy_definitions_dict = {
         0: [
             #ModelParameter.metallicity,  # Not used - invoke SolarCompositions.csv to fix initial composition at solar
             ModelParameter.t_sinceaccretion, #In principle these timescale ones could also be removed
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale,
             ModelParameter.formation_distance,
             #ModelParameter.fragment_core_frac, # Not used - we already know this in principle, so use correct default values
@@ -239,7 +249,7 @@ hierarchy_definitions_dict = {
         0: [
             #ModelParameter.metallicity,  # Not used - invoke SolarCompositions.csv to fix initial composition at solar
             ModelParameter.t_sinceaccretion, #In principle these timescale ones could also be removed
-            ModelParameter.pollution_frac,
+            ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale
         ],
         1: [
@@ -251,6 +261,29 @@ hierarchy_definitions_dict = {
         3: [
             ModelParameter.fragment_core_frac,
             ModelParameter.pressure,
+            ModelParameter.oxygen_fugacity
+        ]
+    },
+    'Hierarchy_Revamp': {
+        0: [
+            ModelParameter.metallicity,
+            ModelParameter.t_sinceaccretion,
+            ModelParameter.fragment_mass,
+            ModelParameter.accretion_timescale
+        ],
+        1: [
+            ModelParameter.formation_distance
+        ],
+        2: [
+            ModelParameter.feeding_zone_size
+        ],
+        3: [
+            ModelParameter.fragment_core_frac
+        ],
+        4: [
+            ModelParameter.pressure
+        ],
+        5: [
             ModelParameter.oxygen_fugacity
         ]
     }
@@ -266,7 +299,7 @@ model_definitions_dict = {
         ModelParameter.parent_crust_frac: True,
         ModelParameter.fragment_core_frac: True,
         ModelParameter.fragment_crust_frac: True,
-        ModelParameter.pollution_frac: True,
+        ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: False,
         ModelParameter.oxygen_fugacity: False
@@ -280,7 +313,7 @@ model_definitions_dict = {
         ModelParameter.parent_crust_frac: False,
         ModelParameter.fragment_core_frac: True,
         ModelParameter.fragment_crust_frac: False,
-        ModelParameter.pollution_frac: True,
+        ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
         ModelParameter.oxygen_fugacity: True
@@ -294,7 +327,7 @@ model_definitions_dict = {
         ModelParameter.parent_crust_frac: True,
         ModelParameter.fragment_core_frac: True,
         ModelParameter.fragment_crust_frac: True,
-        ModelParameter.pollution_frac: True,
+        ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
         ModelParameter.oxygen_fugacity: False
@@ -308,7 +341,7 @@ model_definitions_dict = {
         ModelParameter.parent_crust_frac: False,
         ModelParameter.fragment_core_frac: True,
         ModelParameter.fragment_crust_frac: False,
-        ModelParameter.pollution_frac: True,
+        ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
         ModelParameter.oxygen_fugacity: False
@@ -322,7 +355,7 @@ model_definitions_dict = {
         ModelParameter.parent_crust_frac: True,
         ModelParameter.fragment_core_frac: True,
         ModelParameter.fragment_crust_frac: True,
-        ModelParameter.pollution_frac: True,
+        ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
         ModelParameter.oxygen_fugacity: True
@@ -336,7 +369,7 @@ model_definitions_dict = {
         ModelParameter.parent_crust_frac: False,
         ModelParameter.fragment_core_frac: True,
         ModelParameter.fragment_crust_frac: False,
-        ModelParameter.pollution_frac: True,
+        ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
         ModelParameter.oxygen_fugacity: True
@@ -350,7 +383,35 @@ model_definitions_dict = {
         ModelParameter.parent_crust_frac: False,
         ModelParameter.fragment_core_frac: False,
         ModelParameter.fragment_crust_frac: False,
-        ModelParameter.pollution_frac: True,
+        ModelParameter.fragment_mass: True,
+        ModelParameter.accretion_timescale: True,
+        ModelParameter.pressure: True,
+        ModelParameter.oxygen_fugacity: True
+    },
+    'HD012_equiv': {
+        ModelParameter.metallicity: True,
+        ModelParameter.t_sinceaccretion: True,
+        ModelParameter.formation_distance: True,
+        ModelParameter.feeding_zone_size: True,
+        ModelParameter.parent_core_frac: False,
+        ModelParameter.parent_crust_frac: False,
+        ModelParameter.fragment_core_frac: False,
+        ModelParameter.fragment_crust_frac: False,
+        ModelParameter.fragment_mass: True,
+        ModelParameter.accretion_timescale: True,
+        ModelParameter.pressure: False,
+        ModelParameter.oxygen_fugacity: False
+    },
+    'HD0123_equiv': {
+        ModelParameter.metallicity: True,
+        ModelParameter.t_sinceaccretion: True,
+        ModelParameter.formation_distance: True,
+        ModelParameter.feeding_zone_size: True,
+        ModelParameter.parent_core_frac: False,
+        ModelParameter.parent_crust_frac: False,
+        ModelParameter.fragment_core_frac: True,
+        ModelParameter.fragment_crust_frac: False,
+        ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
         ModelParameter.oxygen_fugacity: True
@@ -382,13 +443,13 @@ default_values = {
         ModelParameter.parent_crust_frac: 0.01,
         ModelParameter.fragment_core_frac: None,
         ModelParameter.fragment_crust_frac: 0,
-        ModelParameter.pollution_frac: -6.5, # This is a made-up but not unreasonable value
+        ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
         ModelParameter.oxygen_fugacity: -2
     },
     'Earthlike': {
-        ModelParameter.metallicity: 479, #Assume average Fe/H, i.e. go halfway through the 958 indices
+        ModelParameter.metallicity: 479,
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
         ModelParameter.feeding_zone_size: 0.05,
@@ -396,13 +457,13 @@ default_values = {
         ModelParameter.parent_crust_frac: 0.01,
         ModelParameter.fragment_core_frac: 0.17,
         ModelParameter.fragment_crust_frac: 0,
-        ModelParameter.pollution_frac: -6.5, # This is a made-up but not unreasonable value
+        ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
         ModelParameter.oxygen_fugacity: -2
     },
     'MantleOnly': {  # The same as NEL, but we assume no core (unless this is overridden by the prior)
-        ModelParameter.metallicity: 479, #Assume average Fe/H, i.e. go halfway through the 958 indices
+        ModelParameter.metallicity: 479,
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
         ModelParameter.feeding_zone_size: 0.05,
@@ -410,7 +471,7 @@ default_values = {
         ModelParameter.parent_crust_frac: 0.01,
         ModelParameter.fragment_core_frac: 0,
         ModelParameter.fragment_crust_frac: 0,
-        ModelParameter.pollution_frac: -6.5, # This is a made-up but not unreasonable value
+        ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
         ModelParameter.oxygen_fugacity: -2
@@ -424,7 +485,7 @@ default_values = {
         ModelParameter.parent_crust_frac: 0.01,
         ModelParameter.fragment_core_frac: 0, # If we feed it mantle, we can just tell it it's mantle
         ModelParameter.fragment_crust_frac: 0,
-        ModelParameter.pollution_frac: -6.5, # This is a made-up but not unreasonable value
+        ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
         ModelParameter.oxygen_fugacity: -2
@@ -438,7 +499,21 @@ default_values = {
         ModelParameter.parent_crust_frac: 0.01,
         ModelParameter.fragment_core_frac: 0.17,
         ModelParameter.fragment_crust_frac: 0,
-        ModelParameter.pollution_frac: -6.5, # This is a made-up but not unreasonable value
+        ModelParameter.fragment_mass: np.nan,
+        ModelParameter.accretion_timescale: 5.6,
+        ModelParameter.pressure: 54,
+        ModelParameter.oxygen_fugacity: -2
+    },
+    'NELRevamp': {
+        ModelParameter.metallicity: 479, #Assume average Fe/H, i.e. go halfway through the 958 indices
+        ModelParameter.t_sinceaccretion: 0,
+        ModelParameter.formation_distance: 2,
+        ModelParameter.feeding_zone_size: 0,
+        ModelParameter.parent_core_frac: 0.17,
+        ModelParameter.parent_crust_frac: 0.01,
+        ModelParameter.fragment_core_frac: 0.17,
+        ModelParameter.fragment_crust_frac: 0,
+        ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
         ModelParameter.oxygen_fugacity: -2

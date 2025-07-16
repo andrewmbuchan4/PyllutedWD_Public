@@ -164,7 +164,6 @@ def preprocess_data(data, systems=['Earthfcf', 'Marsfcf']):
     for system, system_data in data.items():
         for test_system in systems:
             print()
-            print(139)
             print(test_system)
             if system.startswith(test_system):
                 # Then this is one we care about
@@ -227,7 +226,7 @@ def plot_retrieved_stats():
             'Synthetic'
         )
         earth_plot['retrieved_variable_plot']['subplots']['subplot1']['y_hide_ticks'] = [0]
-        
+
         mars_plot = graph_fac.plot_retrieved_variable_against_fcf(
             'Mars',
             variable,
@@ -240,7 +239,7 @@ def plot_retrieved_stats():
             'Synthetic'
         )
         mars_plot['retrieved_variable_plot']['subplots']['subplot1']['legend'] = False
-        
+
         graph_fac.multipanelise([earth_plot, mars_plot], 2, 1, 'retrieved_' + variable + '_Synthetic_multipanel.pdf', 15, 10, 0.07, 0)
 
 def main():

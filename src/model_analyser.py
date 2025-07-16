@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import collections as cn
-import corner
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +21,7 @@ import geology_info as gi
 import graph_factory as gf
 import live_data as ld
 import model_parameters as mp
+import physical_constants as pc
 import pollution_model as pm
 import pwd_utils as pu
 import solar_abundances as sa
@@ -98,7 +98,7 @@ class ModelAnalyser:
 
         return ln_Z_M1, ln_Z_M2, Bayes_factor, n_sigma, best_chi_square_M1, best_chi_square_M2
 
-    def compare(self, model_dict, output_dir, observation_number, number_of_data_points):
+    def compare(self, model_dict, observation_number, number_of_data_points):
         # model_dict should be an OrderedDict with the base model in first position. Comparison of base to itself is to get ln_Z
         base_model_name = None
         best_model_so_far_name = None
@@ -109,7 +109,7 @@ class ModelAnalyser:
                 base_model_name = best_model_so_far_name
             base_model = model_dict[base_model_name]
 
-            self.compare_two_models(model, base_model, output_dir, observation_number, number_of_data_points)
+            self.compare_two_models(model, base_model, observation_number, number_of_data_points)
 
             if best_model_so_far_name is None:
                 best_model_so_far_name = base_model_name
@@ -119,15 +119,15 @@ class ModelAnalyser:
                 if ln_Z_model > ln_Z_base:
                     best_model_so_far_name = model_name
 
-    def compare_two_models(self, model, base_model, output_dir, observation_number, number_of_data_points):
+    def compare_two_models(self, model, base_model, observation_number, number_of_data_points):
         print('Comparing result for model ' + str(model.basename) + ' with base_model ' + str(base_model.basename))
         good_fit_threshold = 2
         ln_Z_model, ln_Z_base, Bayes_factor_model_base, n_sigma_model_base, chi_model, chi_base = self.detection_significance(
             ld._live_white_dwarf.get_errors_for_present_elements_as_array(),
             model.get_n_dims(),
             (model.get_n_dims() - base_model.get_n_dims()),
-            model.get_full_prefix(output_dir, observation_number),
-            base_model.get_full_prefix(output_dir, observation_number)
+            model.get_full_prefix(model.actual_output_dir),
+            base_model.get_full_prefix(base_model.actual_output_dir)
         )
         model.comparison[base_model.basename] = {
             'ln_Z_model': ln_Z_model,
@@ -141,7 +141,7 @@ class ModelAnalyser:
             'good_fit': chi_model/number_of_data_points < good_fit_threshold
         }
 
-    def find_best_heated_model(self, models, system, number_of_data_points, stats_file, model_output_dir):
+    def find_best_heated_model(self, models, system, number_of_data_points, stats_file):
         heating_string = mp.model_parameter_strings[mp.ModelParameter.formation_distance]
         best_heated_model_name = None
         best_heated_model_lnZ = None
@@ -150,13 +150,13 @@ class ModelAnalyser:
                 if best_heated_model_name is None:
                     best_heated_model_name = model_name
                     if len(model.comparison.items()) == 0:
-                        self.compare_two_models(model, model, model_output_dir, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
+                        self.compare_two_models(model, model, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
                     assert len(model.comparison.items()) > 0
                     for dummy_name, arbitrary_comparison in model.comparison.items():
                         best_heated_model_lnZ = arbitrary_comparison['ln_Z_model']
                 else:
                     if len(model.comparison.items()) == 0:
-                        self.compare_two_models(model, model, model_output_dir, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
+                        self.compare_two_models(model, model, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
                     assert len(model.comparison.items()) > 0
                     test_model_lnZ = None
                     for dummy_name, arbitrary_comparison in model.comparison.items():
@@ -180,7 +180,7 @@ class ModelAnalyser:
                     best_heated_model_name
                 ])
 
-    def find_parameter_sigma(self, process_name, parameter, models, system, number_of_data_points, stats_file, model_output_dir):
+    def find_parameter_sigma(self, process_name, parameter, models, system, number_of_data_points, stats_file):
         # Find sigma significance of a certain parameter that describes a certain process
         # Do this by identifying the best model without that parameter included,
         # and seeing how much better the best overall model is
@@ -192,13 +192,13 @@ class ModelAnalyser:
                 if best_non_param_model_name is None:
                     best_non_param_model_name = model_name
                     if len(model.comparison.items()) == 0:
-                        self.compare_two_models(model, model, model_output_dir, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
+                        self.compare_two_models(model, model, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
                     assert len(model.comparison.items()) > 0
                     for dummy_name, arbitrary_comparison in model.comparison.items():
                         best_non_param_model_lnZ = arbitrary_comparison['ln_Z_model']
                 else:
                     if len(model.comparison.items()) == 0:
-                        self.compare_two_models(model, model, model_output_dir, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
+                        self.compare_two_models(model, model, system, number_of_data_points)  # Compare model to itself - we just need the ln Z so actual comparison is arbitrary
                     assert len(model.comparison.items()) > 0
                     test_model_lnZ = None
                     for dummy_name, arbitrary_comparison in model.comparison.items():
@@ -222,12 +222,14 @@ class ModelAnalyser:
         # Now compare them if necessary
         if best_model_name != best_non_param_model_name:
             if best_non_param_model_name not in models[best_model_name].comparison:
-                self.compare_two_models(models[best_model_name], models[best_non_param_model_name], model_output_dir, system, number_of_data_points)
+                self.compare_two_models(models[best_model_name], models[best_non_param_model_name], system, number_of_data_points)
                 with open(stats_file, 'a', newline='', encoding='utf-8') as f:
                     to_write = csv.writer(f)
                     to_write.writerow([])
                     to_write.writerow([
                         best_model_name,
+                        'N/A' if models[best_model_name].best_model is None else models[best_model_name].best_model,
+                        models[best_model_name].comparison[best_non_param_model_name]['good_fit'],
                         best_non_param_model_name,
                         models[best_model_name].comparison[best_non_param_model_name]['ln_Z_model'],
                         models[best_model_name].comparison[best_non_param_model_name]['ln_Z_base'],
@@ -237,9 +239,7 @@ class ModelAnalyser:
                         models[best_model_name].comparison[best_non_param_model_name]['chi_base'],
                         models[best_model_name].comparison[best_non_param_model_name]['chi_model_per_data_point'],
                         models[best_model_name].comparison[best_non_param_model_name]['chi_base_per_data_point'],
-                        models[best_model_name].get_model_params(),
-                        'N/A' if models[best_model_name].best_model is None else models[best_model_name].best_model,
-                        models[best_model_name].comparison[best_non_param_model_name]['good_fit']
+                        models[best_model_name].get_model_params()
                     ])
             param_sigma_str = str(models[best_model_name].comparison[best_non_param_model_name]['n_sigma_model_base'])
             bayes_factor_str = str(models[best_model_name].comparison[best_non_param_model_name]['Bayes_factor_model_base'])
@@ -277,6 +277,8 @@ class ModelAnalyser:
             for base_model_name, comp_vals in model.comparison.items():
                 to_write.writerow([
                     model_name,
+                    'N/A' if model.best_model is None else model.best_model,
+                    comp_vals['good_fit'],
                     base_model_name,
                     comp_vals['ln_Z_model'],
                     comp_vals['ln_Z_base'],
@@ -286,40 +288,35 @@ class ModelAnalyser:
                     comp_vals['chi_base'],
                     comp_vals['chi_model_per_data_point'],
                     comp_vals['chi_base_per_data_point'],
-                    model.get_model_params(),
-                    'N/A' if model.best_model is None else model.best_model,
-                    comp_vals['good_fit']
+                    model.get_model_params()
                 ])
 
-    def make_plots_and_dump_fit(self, white_dwarf, N_wd, chains_dir, stats_file, model_name, model, enhancement_model, bonus_fits, bonus_error_lows, bonus_error_highs, suppress_graphical_output=False):
-        temp_stats, mass_stats, comp_fits_and_errors, eo_samples, semisampled_eo_dict, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median = self.make_all_plots(
+    def make_plots_and_dump_fit(self, white_dwarf, N_wd, timescale_type, chains_dir, stats_file, model_name, model, enhancement_model, consider_thermohaline, bonus_fits, bonus_error_lows, bonus_error_highs, suppress_graphical_output=False):
+        temp_stats, mass_stats, accretion_rate_stats, comp_fits_and_errors, eo_samples, semisampled_eo_dict, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median = self.make_all_plots(
             white_dwarf,
+            timescale_type,
             chains_dir,
             model_name,
             model,
             N_wd,
             enhancement_model,
+            consider_thermohaline,
             bonus_fits,
             bonus_error_lows,
             bonus_error_highs,
             suppress_graphical_output
         )
-        #if bonus_plots != []:
-        #    for key, fit in mk2_fits_and_errors[0].items():
-        #        bonus_fits[bonus_plot_names[model_name] + ' ' + key] = fit
-        #    for key, error_lows in mk2_fits_and_errors[1].items():
-        #        bonus_error_lows[bonus_plot_names[model_name] + ' ' + key] = error_lows
-        #    for key, error_highs in mk2_fits_and_errors[2].items():
-        #        bonus_error_highs[bonus_plot_names[model_name] + ' ' + key] = error_highs
         self.dump_model_fit(
             white_dwarf,
             chains_dir,
             model,
             N_wd,
+            timescale_type,
             stats_file,
             comp_fits_and_errors,
             temp_stats,
             mass_stats,
+            accretion_rate_stats,
             model_name,
             eo_samples,
             semisampled_eo_dict,
@@ -332,24 +329,21 @@ class ModelAnalyser:
             suppress_graphical_output
         )
 
-    #def make_all_plots(self, chains_dir, model_name, model, observation_number, all_wd_timescales, wd_name, all_wd_abundances, all_wd_upper_bounds, all_wd_lower_bounds, all_wd_abundance_errors, excluded_wd_abundances, excluded_wd_upper_bounds, excluded_wd_lower_bounds, excluded_wd_abundance_errors, enhancement_model, wd_type, bonus_fits=None, bonus_error_lows=None, bonus_error_highs=None, suppress_graphical_output=False):
-    def make_all_plots(self, white_dwarf, chains_dir, model_name, model, observation_number, enhancement_model, bonus_fits=None, bonus_error_lows=None, bonus_error_highs=None, suppress_graphical_output=False):
-        #TODO put results from each model in a separate subdirectory
-        wd_name = white_dwarf.name
-        #mk2_fits_and_errors = self.make_composition_plot_mk2(chains_dir, model_name, model, observation_number, all_wd_timescales, wd_name, all_wd_abundances, all_wd_upper_bounds, all_wd_lower_bounds, all_wd_abundance_errors, excluded_wd_abundances, excluded_wd_upper_bounds, excluded_wd_lower_bounds, excluded_wd_abundance_errors, enhancement_model, wd_type, bonus_fits, bonus_error_lows, bonus_error_highs, suppress_graphical_output)
-        comp_fits_and_errors, eo_samples, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median = self.make_composition_plot(chains_dir, model_name, model, observation_number, white_dwarf, enhancement_model, bonus_fits, bonus_error_lows, bonus_error_highs, suppress_graphical_output)
-        temp_stats = self.make_temperature_plot(chains_dir, model, model_name, wd_name, observation_number, suppress_graphical_output)
-        mass_stats = self.make_mass_plot(chains_dir, model, model_name, wd_name, observation_number, enhancement_model, suppress_graphical_output)
-        #semisampled_eo_dict = self.make_semisampled_eo_distibution_plot(chains_dir, model_name, model, observation_number, all_wd_timescales, wd_name, all_wd_abundances, all_wd_upper_bounds, all_wd_lower_bounds, all_wd_abundance_errors, suppress_graphical_output)
-        semisampled_eo_dict = self.make_semisampled_eo_distibution_plot(chains_dir, model_name, model, observation_number, white_dwarf, comp_fits_and_errors, suppress_graphical_output)
+    def make_all_plots(self, white_dwarf, timescale_type, chains_dir, model_name, model, observation_number, enhancement_model, consider_thermohaline, bonus_fits=None, bonus_error_lows=None, bonus_error_highs=None, suppress_graphical_output=False):
+        wd_name_tuple = (white_dwarf.full_name(), white_dwarf.system_name)
+        comp_fits_and_errors, eo_samples, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median = self.make_composition_plot(chains_dir, model_name, model, observation_number, white_dwarf, enhancement_model, consider_thermohaline, bonus_fits, bonus_error_lows, bonus_error_highs, suppress_graphical_output)
+        temp_stats = self.make_temperature_plot(chains_dir, model, model_name, wd_name_tuple, observation_number, suppress_graphical_output)
+        mass_stats = self.make_mass_plot(chains_dir, model, model_name, wd_name_tuple, observation_number, enhancement_model, suppress_graphical_output)
+        accretion_rate_stats = self.make_accretion_rate_plot(chains_dir, model, model_name, wd_name_tuple, observation_number, enhancement_model, suppress_graphical_output)
+        semisampled_eo_dict = self.make_semisampled_eo_distibution_plot(chains_dir, model_name, model, observation_number, white_dwarf, timescale_type, comp_fits_and_errors, suppress_graphical_output)
         if not suppress_graphical_output:
-            self.make_corner_plot(model_name, model, observation_number, wd_name, chains_dir)
-            self.make_time_plot(chains_dir, model, model_name, wd_name, observation_number)
-            self.make_scaled_tevent_plot(chains_dir, model, model_name, white_dwarf, observation_number)
-            self.make_p_v_fO2_plot(chains_dir, model, model_name, wd_name, observation_number)
-            self.make_pressure_plot(chains_dir, model, model_name, wd_name, observation_number)
-            self.make_eo_distribution_plot(model, model_name, wd_name, observation_number, eo_samples)
-        return temp_stats, mass_stats, comp_fits_and_errors, eo_samples, semisampled_eo_dict, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median
+            self.make_corner_plot(model, observation_number, wd_name_tuple, chains_dir)
+            self.make_time_plot(chains_dir, model, model_name, wd_name_tuple, observation_number)
+            self.make_scaled_tevent_plot(chains_dir, model, model_name, white_dwarf, timescale_type, observation_number)
+            self.make_p_v_fO2_plot(chains_dir, model, model_name, wd_name_tuple, observation_number)
+            self.make_pressure_plot(chains_dir, model, model_name, wd_name_tuple, observation_number)
+            self.make_eo_distribution_plot(model, model_name, wd_name_tuple, observation_number, eo_samples)
+        return temp_stats, mass_stats, accretion_rate_stats, comp_fits_and_errors, eo_samples, semisampled_eo_dict, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median
 
     def get_eo_sigma(self, eo_samples):
         if eo_samples is None:
@@ -410,7 +404,7 @@ class ModelAnalyser:
             }
         return toret
 
-    def dump_model_fit(self, white_dwarf, chains_dir, model, N_wd, stats_file, fit_data, temp_stats, mass_stats, model_name, eo_sample_stats, semisampled_eo_dict, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median, suppress_graphical_output=False):
+    def dump_model_fit(self, white_dwarf, chains_dir, model, N_wd, timescale_type, stats_file, fit_data, temp_stats, mass_stats, accretion_rate_stats, model_name, eo_sample_stats, semisampled_eo_dict, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median, suppress_graphical_output=False):
         print_all_eo_sample_vals = False # Switch these to False by default!
         print_all_time_sample_vals = False
         stats, weightpost, best_fit_lnz, best_fit_params = self.get_stats_weightpost_and_best_fit(model, N_wd, chains_dir)
@@ -435,6 +429,8 @@ class ModelAnalyser:
             print('Warning! Median model gave None result!')
             elements_list = ci.usual_elements
         elements_results = list()
+        descaled_elements_results_dict = sa.scale_abundances_to_solar(fit_data[white_dwarf.get_atmospheric_type().value]['Model median'][0], white_dwarf.get_atmospheric_type().value, None, True)
+        descaled_elements_results = list()
         disc_comp = list()
         bulk_comp = list()
         core_comp = list()
@@ -443,7 +439,9 @@ class ModelAnalyser:
         ds = list()
         for el in elements_list:
             try:
-                elements_results.append(fit_data[white_dwarf.get_atmospheric_type().value]['Model median'][el])
+                raw_result = fit_data[white_dwarf.get_atmospheric_type().value]['Model median'][0][el]
+                elements_results.append(raw_result) # Note that each entry is a tuple, the 0th element is the median, the others are the 16th and 84th percentiles
+                descaled_elements_results.append(descaled_elements_results_dict[el])
             except TypeError:
                 pass
             try:
@@ -466,26 +464,6 @@ class ModelAnalyser:
                 ds.append(partition_coefficient_medians[el])
             except (TypeError, KeyError):
                 pass
-            #try:
-            #    wd_abundances_list.append(wd_abundances[el])
-            #except (TypeError, KeyError):
-            #    pass
-            #try:
-            #    wd_abundance_upper_bounds_list.append(wd_abundance_upper_bounds[el])
-            #except (TypeError, KeyError):
-            #    pass
-            #try:
-            #    wd_abundance_lower_bounds_list.append(wd_abundance_lower_bounds[el])
-            #except (TypeError, KeyError):
-            #    pass
-            #try:
-            #    wd_errors_list.append(wd_errors[el])
-            #except (TypeError, KeyError):
-            #    pass
-            #wd_excluded_abundances_list.append(excluded_wd_abundances.get(el, ''))
-            #wd_excluded_abundance_upper_bounds_list.append(excluded_wd_upper_bounds.get(el, ''))
-            #wd_excluded_abundance_lower_bounds_list.append(excluded_wd_lower_bounds.get(el, ''))
-            #wd_excluded_errors_list.append(excluded_wd_abundance_errors.get(el, ''))
 
             wd_abundance_els_list, wd_abundances_list, wd_errors_list, wd_lower_errors_list = white_dwarf.get_measurements_as_lists(
                 True,
@@ -544,7 +522,7 @@ class ModelAnalyser:
         cmf_percentile_16 = None
         cmf_percentile_84 = None
         median_composition_dict = self.reconstruct_composition_dict(bulk_composition_medians, core_composition_medians, mantle_composition_medians)
-        if mp.model_parameter_strings[mp.ModelParameter.pressure] in model.get_model_params():
+        if mp.model_parameter_strings[mp.ModelParameter.fragment_core_frac] in model.get_model_params() and mp.model_parameter_strings[mp.ModelParameter.pressure] in model.get_model_params():
             fcf_index = parameter_indices[mp.ModelParameter.fragment_core_frac]
             pressure_index = parameter_indices[mp.ModelParameter.pressure]
             median_fcf = medians[fcf_index]
@@ -579,7 +557,7 @@ class ModelAnalyser:
             mantle_mass = mantle_mass_fraction*mass
             # Temporary hack for Marc's thing! But this should be incorporated properly, it's quite useful. And should really take a white dwarf object as an argument rather than all the little bits
             input_dict = {model_prediction_string: pollutant_composition}
-            eoc_stats = self.extract_and_plot_excess_oxygen(model, N_wd, input_dict, white_dwarf.name, white_dwarf.get_abundance_values_dict(), white_dwarf.get_error_values_dict(), white_dwarf.get_timescale_values_dict(), 1, suppress_graphical_output)
+            eoc_stats = self.extract_and_plot_excess_oxygen(model, N_wd, input_dict, white_dwarf.full_name(), white_dwarf.get_abundance_values_dict(), white_dwarf.get_error_values_dict(), white_dwarf.get_timescale_values_dict(timescale_type), 1, suppress_graphical_output)
         else:
             for el in elements_list:
                 try:
@@ -587,7 +565,11 @@ class ModelAnalyser:
                 except KeyError:
                     pollutant_comp_list.append(None)
             input_dict = {model_prediction_string: disc_abundance_medians}
-            eoc_stats = self.extract_and_plot_excess_oxygen(model, N_wd, input_dict, white_dwarf.name, white_dwarf.get_abundance_values_dict(), white_dwarf.get_error_values_dict(), white_dwarf.get_timescale_values_dict(), 1, suppress_graphical_output)
+            try:
+                eoc_stats = self.extract_and_plot_excess_oxygen(model, N_wd, input_dict, white_dwarf.full_name(), white_dwarf.get_abundance_values_dict(), white_dwarf.get_error_values_dict(), white_dwarf.get_timescale_values_dict(timescale_type), 1, suppress_graphical_output)
+            except KeyError:
+                # Bit of a cheap solution for now - this probably means Mg wasn't in the data so skip this. but really we should just use a different reference element
+                eoc_stats = None
 
         accretion_timescale_extract = 10**(weightpost[:,accretion_timescale_index] - 6)
         t_sinceaccretion_extract = weightpost[:,t_sinceaccretion_index]
@@ -598,7 +580,7 @@ class ModelAnalyser:
         bu_count = 0
         ss_count = 0
         dec_count = 0
-        bu_ss_cutoff = (5*white_dwarf.timescale_dict[ci.Element.Mg])/1000000 #Important to convert to Myr! Physically we're saying it takes 5 Mg sinking times to reach steady state
+        bu_ss_cutoff = (5*white_dwarf.atmosphere_data.atmosphere_data_dict[timescale_type].timescale_dict[ci.Element.Mg])/1000000 #Important to convert to Myr! Physically we're saying it takes 5 Mg sinking times to reach steady state
         for t_acc_t_obs_pair in zip(accretion_timescale_extract, t_sinceaccretion_extract):
             accretion_timescale = t_acc_t_obs_pair[0]
             time_since_accretion = t_acc_t_obs_pair[1]
@@ -617,6 +599,8 @@ class ModelAnalyser:
 
         Mmedian, Merrorplus, Merrorminus = self.extract_median_and_error(mass_stats)
 
+        ARmedian, ARerrorplus, ARerrorminus = self.extract_median_and_error(accretion_rate_stats)
+
         pressure_stats = self.get_untransformed_parameter_stats(chains_dir, model, N_wd, mp.ModelParameter.pressure)
         Pmedian, Perrorplus, Perrorminus = self.extract_median_and_error(pressure_stats)
         P_10_percentile = self.extract_xth_percentile(pressure_stats, 10)
@@ -627,14 +611,15 @@ class ModelAnalyser:
         P_percentile_of_45 = self.extract_percentile_of_x(pressure_stats, 45)
         P_percentile_of_50 = self.extract_percentile_of_x(pressure_stats, 50)
         P_percentile_of_55 = self.extract_percentile_of_x(pressure_stats, 55)
-        oa_elements = dict()
-        oa_assignations = dict()
-        for oa_strat, oa_stats in eoc_stats['Model prediction'].items():
-            oa_elements[oa_strat] = list()
-            oa_assignations[oa_strat] = list()
-            for element, value in oa_stats[2].items():
-                oa_elements[oa_strat].append(element)
-                oa_assignations[oa_strat].append(value)
+        if eoc_stats is not None:
+            oa_elements = dict()
+            oa_assignations = dict()
+            for oa_strat, oa_stats in eoc_stats['Model prediction'].items():
+                oa_elements[oa_strat] = list()
+                oa_assignations[oa_strat] = list()
+                for element, value in oa_stats[2].items():
+                    oa_elements[oa_strat].append(element)
+                    oa_assignations[oa_strat].append(value)
 
         try:
             cmf_error_plus = cmf_percentile_84 - cmf_median
@@ -684,7 +669,8 @@ class ModelAnalyser:
             to_write.writerow(['Core Composition:'] + core_comp)
             to_write.writerow(['Mantle Composition:'] + mantle_comp)
             to_write.writerow(['Pollutant Composition:'] + pollutant_comp_list)
-            to_write.writerow(['Final Result:'] + elements_results)
+            to_write.writerow(['Final result, expressed as [X/Hx]:'] + elements_results)
+            to_write.writerow(['Final result, expressed as (X/Hx):'] + descaled_elements_results)
             #try:
             to_write.writerow(['Parent Core Number Fraction:', pcnf_median])
             #except TypeError:
@@ -700,6 +686,7 @@ class ModelAnalyser:
             to_write.writerow(['Declining % (sampled):', dec_percent])
             to_write.writerow(['Temperature /K, +error, -error:', Tmedian, Terrorplus, Terrorminus])
             to_write.writerow(['log(Mass /kg), +error, -error:', Mmedian, Merrorplus, Merrorminus])
+            to_write.writerow(['log(Accretion rate /gs^-1), +error, -error:', ARmedian, ARerrorplus, ARerrorminus])
             to_write.writerow(['Pressure /GPa, +error, -error:', Pmedian, Perrorplus, Perrorminus])
             to_write.writerow(['90% chance of Pressure above:', P_10_percentile])
             to_write.writerow(['90% chance of Pressure below:', P_90_percentile])
@@ -709,35 +696,36 @@ class ModelAnalyser:
             to_write.writerow(['Percentile of 45 GPa:', P_percentile_of_45])
             to_write.writerow(['Percentile of 50 GPa:', P_percentile_of_50])
             to_write.writerow(['Percentile of 55 GPa:', P_percentile_of_55])
-            for oa_strat, oa_stats in eoc_stats['Model prediction'].items():
-                to_write.writerow(['With Oxidation Strategy:', oa_strat])
-                to_write.writerow(['Using composition of:', oa_stats[9]])
-                to_write.writerow(['Excess Oxygen:', oa_stats[0]])
-                to_write.writerow(['Fractional Excess Oxygen:', oa_stats[1]])
-                to_write.writerow(['Excess O Sigma Significance:', oa_stats[8]])
-                to_write.writerow(['Water Mass:', oa_stats[3]])
-                to_write.writerow(['Water Mass Fraction:', oa_stats[4]])
-                to_write.writerow(['Excess Oxygen Mass:', oa_stats[5]])
-                to_write.writerow(['Oxygen Assignation Elements:'] + oa_elements[oa_strat])
-                to_write.writerow(['Oxygen Assignations:'] + oa_assignations[oa_strat])
-            if eoc_stats.get('Model with O data point') is not None:
-                for oa_strat, oa_stats in eoc_stats['Model prediction, data O'].items():
-                    to_write.writerow(['Excess Oxygen using O data point:', oa_stats[0]])
-            if eoc_stats.get('Model prediction, data (SS)') is not None:
-                for oa_strat, oa_stats in eoc_stats['Model prediction, data (SS)'].items():
-                    list_of_els = list()
-                    list_of_el_abundances = list()
-                    for el, a in oa_stats[6].items():
-                        list_of_els.append(el)
-                        list_of_el_abundances.append(a[gi.Layer.bulk])
-                    to_write.writerow(['Elements using SS corrected data points (oxidation ' + str(oa_strat) + '):'] + list_of_els)
-                    to_write.writerow(['Composition using SS corrected data points (oxidation ' + str(oa_strat) + '):'] + list_of_el_abundances)
-                    to_write.writerow(['Excess Oxygen using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[0]])
-                    to_write.writerow(['Fractional Excess Oxygen using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[1]])
-                    to_write.writerow(['Excess O Sigma Significance using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[8]])
-                    to_write.writerow(['Water Mass using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[3]])
-                    to_write.writerow(['Water Mass Fraction using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[4]])
-                    to_write.writerow(['Excess Oxygen Mass using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[5]])
+            if eoc_stats is not None:
+                for oa_strat, oa_stats in eoc_stats['Model prediction'].items():
+                    to_write.writerow(['With Oxidation Strategy:', oa_strat])
+                    to_write.writerow(['Using composition of:', oa_stats[9]])
+                    to_write.writerow(['Excess Oxygen:', oa_stats[0]])
+                    to_write.writerow(['Fractional Excess Oxygen:', oa_stats[1]])
+                    to_write.writerow(['Excess O Sigma Significance:', oa_stats[8]])
+                    to_write.writerow(['Water Mass:', oa_stats[3]])
+                    to_write.writerow(['Water Mass Fraction:', oa_stats[4]])
+                    to_write.writerow(['Excess Oxygen Mass:', oa_stats[5]])
+                    to_write.writerow(['Oxygen Assignation Elements:'] + oa_elements[oa_strat])
+                    to_write.writerow(['Oxygen Assignations:'] + oa_assignations[oa_strat])
+                if eoc_stats.get('Model with O data point') is not None:
+                    for oa_strat, oa_stats in eoc_stats['Model prediction, data O'].items():
+                        to_write.writerow(['Excess Oxygen using O data point:', oa_stats[0]])
+                if eoc_stats.get('Model prediction, data (SS)') is not None:
+                    for oa_strat, oa_stats in eoc_stats['Model prediction, data (SS)'].items():
+                        list_of_els = list()
+                        list_of_el_abundances = list()
+                        for el, a in oa_stats[6].items():
+                            list_of_els.append(el)
+                            list_of_el_abundances.append(a[gi.Layer.bulk])
+                        to_write.writerow(['Elements using SS corrected data points (oxidation ' + str(oa_strat) + '):'] + list_of_els)
+                        to_write.writerow(['Composition using SS corrected data points (oxidation ' + str(oa_strat) + '):'] + list_of_el_abundances)
+                        to_write.writerow(['Excess Oxygen using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[0]])
+                        to_write.writerow(['Fractional Excess Oxygen using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[1]])
+                        to_write.writerow(['Excess O Sigma Significance using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[8]])
+                        to_write.writerow(['Water Mass using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[3]])
+                        to_write.writerow(['Water Mass Fraction using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[4]])
+                        to_write.writerow(['Excess Oxygen Mass using SS corrected data points (oxidation ' + str(oa_strat) + '):', oa_stats[5]])
             to_write.writerow([])
             to_write.writerow(['Excess Oxygen Sampling results:'])
             for ox_strat, stats in sampled_eo_stats.items():
@@ -801,7 +789,7 @@ class ModelAnalyser:
         return count / len(stats_object)
 
     def get_stats_weightpost_and_best_fit(self, model, observation_number, chains_dir):
-        a = pn.Analyzer(n_params = model.get_n_dims(), outputfiles_basename = model.get_full_prefix(chains_dir, observation_number))
+        a = pn.Analyzer(n_params = model.get_n_dims(), outputfiles_basename = model.get_full_prefix(chains_dir))
         stats = a.get_stats()
         weightpost = a.get_equal_weighted_posterior()[:, 0:model.get_n_dims()]  # This is basically just excluding the final column of the ...post_equal_weights.dat file
         best_fit = a.get_best_fit()
@@ -812,31 +800,39 @@ class ModelAnalyser:
         if not suppress_graphical_output:
             self.graph_fac.make_excess_oxygen_plot(
                 eoc_stats,
-                system_name + '_' + model.get_prefix(observation_number)
+                system_name + '_' + model.get_prefix()
             )
         return eoc_stats
 
-    def make_corner_plot(self, model_name, model, observation_number, wd_name, chains_dir):
+    def make_corner_plot(self, model, observation_number, wd_name_tuple, chains_dir):
         stats, weightpost, best_fit_lnz, best_fit_params = self.get_stats_weightpost_and_best_fit(model, observation_number, chains_dir)
+
+        parameter_indices = mp.parameter_indices(ld._live_model)
+        t_sinceaccretion_index = parameter_indices[mp.ModelParameter.t_sinceaccretion]
+        t_sinceaccretion_scaled = np.log10(weightpost[:,t_sinceaccretion_index]*1000000)
+        weightpost[:,t_sinceaccretion_index] = t_sinceaccretion_scaled
+
         delta_free_params = list()
         for dfp in model.get_model_params():
             if 'Δ' in dfp:
                 # TODO: See if replacing it with r'$\Delta$' solves it
                 delta_free_params.append(dfp.replace('Δ', ''))  # The corner function doesn't handle this character when plt.rcParams['text.usetex'] = 'True' in dict_plotter
             else:
-                delta_free_params.append(dfp)
-        corner.corner(weightpost, labels=delta_free_params, label_kwargs=dict(fontsize=12), levels = (0.39346934,0.86466472,0.988891), smooth=True)
-        prefix = self.graph_dir + wd_name + '_' + model.get_prefix(observation_number)
-        plt.savefig(prefix + 'corner.pdf')  # TODO: do this within DictPlotter
+                if dfp == mp.model_parameter_strings[mp.ModelParameter.t_sinceaccretion]:
+                    delta_free_params.append('log(Time since Accretion/yr)')
+                else:
+                    delta_free_params.append(dfp)
+        self.graph_fac.make_corner_plot(weightpost, delta_free_params, wd_name_tuple[0] + '_' + model.get_prefix())
 
-    def make_composition_plot(self, chains_dir, model_name, model, observation_number, white_dwarf, enhancement_model, bonus_mk2_fits=None, bonus_mk2_error_lows=None, bonus_mk2_error_highs=None, suppress_graphical_output=False):
-        reference_elements = [ci.Element.Mg, white_dwarf.get_atmospheric_type().value]
+    def make_composition_plot(self, chains_dir, model_name, model, observation_number, white_dwarf, enhancement_model, consider_thermohaline, bonus_mk2_fits=None, bonus_mk2_error_lows=None, bonus_mk2_error_highs=None, suppress_graphical_output=False):
+        normalisation_element = ci.Element.Mg
+        reference_elements = [normalisation_element, white_dwarf.get_atmospheric_type().value] # Having both of these is a bit redundant for the Fragment case so that could be improved!
 
-        fixed_pressure_version = True # Set this to true to produce a version of this plot with an extra line corresponding to a certain fixed pressure
+        fixed_pressure_version = False # Set this to true to produce a version of this plot with an extra line corresponding to a certain fixed pressure
         fixed_pressure = 0
         fixed_pressure_name = 'Low Pressure'
 
-        include_best_fit = True
+        include_best_fit = False
 
         stats, weightpost, best_fit_lnz, best_fit_params = self.get_stats_weightpost_and_best_fit(model, observation_number, chains_dir)
 
@@ -847,10 +843,11 @@ class ModelAnalyser:
         len_x_axis = len(ci.usual_elements)
         fit_data = dict()
         model_output = dict()
+        sampled_fragment_compositions = dict()
         for element in reference_elements:
             fit_data[element] = dict()
             model_output[element] = np.zeros(shape=(number_of_samples, len_x_axis))
-        #model_raw_output = np.zeros(shape=(number_of_samples, len_x_axis+1))
+            sampled_fragment_compositions[element] = np.zeros(shape=(number_of_samples, len_x_axis))
         sampled_disc_abundances = np.zeros(shape=(number_of_samples, len_x_axis))
         sampled_bulk_compositions = np.zeros(shape=(number_of_samples, len_x_axis))
         sampled_core_compositions = np.zeros(shape=(number_of_samples, len_x_axis))
@@ -889,10 +886,11 @@ class ModelAnalyser:
             N_o = weightpost[samples[i], parameter_indices[mp.ModelParameter.parent_crust_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.parent_crust_frac) else mp.default_values[enhancement_model][mp.ModelParameter.parent_crust_frac]
             f_c = weightpost[samples[i], parameter_indices[mp.ModelParameter.fragment_core_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_core_frac) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_core_frac]
             f_o = weightpost[samples[i], parameter_indices[mp.ModelParameter.fragment_crust_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_crust_frac) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_crust_frac]
-            pollutionfraction = weightpost[samples[i], parameter_indices[mp.ModelParameter.pollution_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.pollution_frac) else mp.default_values[enhancement_model][mp.ModelParameter.pollution_frac]
+            fragment_mass = weightpost[samples[i], parameter_indices[mp.ModelParameter.fragment_mass]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_mass) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_mass]
             log_t_disc = weightpost[samples[i], parameter_indices[mp.ModelParameter.accretion_timescale]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.accretion_timescale) else mp.default_values[enhancement_model][mp.ModelParameter.accretion_timescale]
             pressure = weightpost[samples[i], parameter_indices[mp.ModelParameter.pressure]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.pressure) else mp.default_values[enhancement_model][mp.ModelParameter.pressure]
             fO2 = weightpost[samples[i], parameter_indices[mp.ModelParameter.oxygen_fugacity]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.oxygen_fugacity) else mp.default_values[enhancement_model][mp.ModelParameter.oxygen_fugacity]
+
             expressions, diagnostics = cm.complete_model_calculation(
                 fe_star,
                 t_sinceaccretion,
@@ -902,11 +900,12 @@ class ModelAnalyser:
                 N_o,
                 f_c,
                 f_o,
-                pollutionfraction,
+                fragment_mass,
                 10**log_t_disc,
                 pressure,
                 fO2,
                 enhancement_model,
+                consider_thermohaline,
                 t_formation
             )
             if fixed_pressure_version:
@@ -919,11 +918,12 @@ class ModelAnalyser:
                     N_o,
                     f_c,
                     f_o,
-                    pollutionfraction,
+                    fragment_mass,
                     10**log_t_disc,
                     fixed_pressure,
                     fO2,
                     enhancement_model,
+                    consider_thermohaline,
                     t_formation
                 )
             if expressions is None or (fixed_pressure_version and fp_expressions is None):
@@ -936,7 +936,7 @@ class ModelAnalyser:
                 print('N_o: ' + str(N_o))
                 print('f_c: ' + str(f_c))
                 print('f_o: ' + str(f_o))
-                print('pollutionfraction: ' + str(pollutionfraction))
+                print('fragment mass: ' + str(fragment_mass))
                 print('log_t_disc: ' + str(log_t_disc))
                 print('pressure: ' + str(pressure))
                 print('fO2: ' + str(fO2))
@@ -966,14 +966,18 @@ class ModelAnalyser:
                 eo_samples[eoc.OxidationStrategy.conservative][self.absolute_string].append(None)
                 eo_samples[eoc.OxidationStrategy.conservative][self.fractional_string].append(None)
             sampled_disc_abundances[i,:] = [diagnostics['DiscAbundances'][element] for element in ci.usual_elements]
-            if 'ParentCoreNumberFraction' in diagnostics['Enhancements']:
+            if diagnostics['Enhancements'] is not None and 'ParentCoreNumberFraction' in diagnostics['Enhancements']:
                 sampled_pcnfs.append(diagnostics['Enhancements']['ParentCoreNumberFraction'])
-            if 'Abundances' in diagnostics['Enhancements']:
+            if diagnostics['Enhancements'] is not None and 'Abundances' in diagnostics['Enhancements']:
                 sampled_bulk_compositions[i,:] = [diagnostics['Enhancements']['Abundances'][element][gi.Layer.bulk] for element in ci.usual_elements]
                 sampled_core_compositions[i,:] = [diagnostics['Enhancements']['Abundances'][element][gi.Layer.core] for element in ci.usual_elements]
                 sampled_mantle_compositions[i,:] = [diagnostics['Enhancements']['Abundances'][element][gi.Layer.mantle] for element in ci.usual_elements]
-            if 'Ds' in diagnostics['Enhancements']:
+            if diagnostics['Enhancements'] is not None and 'Ds' in diagnostics['Enhancements']:
                 sampled_partition_compositions[i,:] = [diagnostics['Enhancements']['Ds'][element] for element in ci.usual_elements]
+            if diagnostics['Enhancements'] is not None and 'FragmentLogAbundances' in diagnostics['Enhancements']:
+                for ref_element in reference_elements:
+                    scaled_fragment_composition = sa.scale_abundances_to_solar(diagnostics['Enhancements']['FragmentLogAbundances'], ref_element, normalisation_element)
+                    sampled_fragment_compositions[ref_element][i,:] = [scaled_fragment_composition[element] for element in ci.usual_elements]
             if fixed_pressure_version:
                 for ref_element in reference_elements:
                     scaled_abundances = sa.scale_abundances_to_solar(fp_expressions, ref_element)
@@ -983,32 +987,16 @@ class ModelAnalyser:
         core_composition_medians = dict(zip(ci.usual_elements, self.confidence_intervals(sampled_core_compositions)[3]))
         mantle_composition_medians = dict(zip(ci.usual_elements, self.confidence_intervals(sampled_mantle_compositions)[3]))
         partition_coefficient_medians = dict(zip(ci.usual_elements, self.confidence_intervals(sampled_partition_compositions)[3]))
-        pcnf_median = np.percentile(sampled_pcnfs, 50)
+        pcnf_median = np.percentile(sampled_pcnfs, 50) if len(sampled_pcnfs) > 0 else None
         for ref_element in reference_elements:
             model_low3, model_low2, model_low1, model_median, model_high1, model_high2, model_high3 = self.confidence_intervals(model_output[ref_element])
             fit_data[ref_element]['Model median'] = (dict(zip(ci.usual_elements, model_median)), dict(zip(ci.usual_elements, model_low1)), dict(zip(ci.usual_elements, model_high1)))
+            model_low3, model_low2, model_low1, model_median, model_high1, model_high2, model_high3 = self.confidence_intervals(sampled_fragment_compositions[ref_element])
+            fit_data[ref_element]['Fragment'] = (dict(zip(ci.usual_elements, model_median)), dict(zip(ci.usual_elements, model_low1)), dict(zip(ci.usual_elements, model_high1)))
 
             if fixed_pressure_version:
                 fp_model_low3, fp_model_low2, fp_model_low1, fp_model_median, fp_model_high1, fp_model_high2, fp_model_high3 = self.confidence_intervals(fp_model_output[ref_element])
                 fit_data[ref_element][fixed_pressure_name] = (dict(zip(ci.usual_elements, fp_model_median)), dict(zip(ci.usual_elements, fp_model_low1)), dict(zip(ci.usual_elements, fp_model_high1)))
-                #if fixed_pressure_version:
-                #    fp_output, fp_ignore = cm.complete_model_calculation(
-                #        fe_star,
-                #        t_sinceaccretion,
-                #        d_formation,
-                #        z_formation,
-                #        N_c,
-                #        N_o,
-                #        f_c,
-                #        f_o,
-                #        pollutionfraction,
-                #        10**log_t_disc,
-                #        fixed_pressure,
-                #        fO2,
-                #        enhancement_model,
-                #        t_formation
-                #    )
-                #    fit_data[ref_element][fixed_pressure_name + ' fit'] = fp_output
             for key, fit in bonus_mk2_fits.items():
                 fit_dict[ref_element][key] = fit
             for key, error_lows in bonus_mk2_error_lows.items():
@@ -1025,7 +1013,7 @@ class ModelAnalyser:
             N_o = best_fit_params[parameter_indices[mp.ModelParameter.parent_crust_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.parent_crust_frac) else mp.default_values[enhancement_model][mp.ModelParameter.parent_crust_frac]
             f_c = best_fit_params[parameter_indices[mp.ModelParameter.fragment_core_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_core_frac) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_core_frac]
             f_o = best_fit_params[parameter_indices[mp.ModelParameter.fragment_crust_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_crust_frac) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_crust_frac]
-            pollutionfraction = best_fit_params[parameter_indices[mp.ModelParameter.pollution_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.pollution_frac) else mp.default_values[enhancement_model][mp.ModelParameter.pollution_frac]
+            fragment_mass = best_fit_params[parameter_indices[mp.ModelParameter.fragment_mass]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_mass) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_mass]
             log_t_disc = best_fit_params[parameter_indices[mp.ModelParameter.accretion_timescale]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.accretion_timescale) else mp.default_values[enhancement_model][mp.ModelParameter.accretion_timescale]
             pressure = best_fit_params[parameter_indices[mp.ModelParameter.pressure]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.pressure) else mp.default_values[enhancement_model][mp.ModelParameter.pressure]
             fO2 = best_fit_params[parameter_indices[mp.ModelParameter.oxygen_fugacity]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.oxygen_fugacity) else mp.default_values[enhancement_model][mp.ModelParameter.oxygen_fugacity]
@@ -1038,25 +1026,31 @@ class ModelAnalyser:
                 N_o,
                 f_c,
                 f_o,
-                pollutionfraction,
+                fragment_mass,
                 10**log_t_disc,
                 pressure,
                 fO2,
                 enhancement_model,
+                consider_thermohaline,
                 t_formation
             )
             for ref_element in reference_elements:
                 scaled_abundances = sa.scale_abundances_to_solar(output, ref_element)
                 fit_data[ref_element]['Best fit'] = (scaled_abundances, None, None)
         if not suppress_graphical_output:
+            print(fit_data[ref_element])
             for ref_element in reference_elements:
-                self.graph_fac.make_composition_plot_mk3(
-                    white_dwarf,
-                    ci.usual_elements,
-                    fit_data[ref_element],
-                    ref_element,
-                    model.get_prefix(observation_number)
-                )
+                try:
+                    self.graph_fac.make_composition_plot_mk3(
+                        white_dwarf,
+                        ci.usual_elements,
+                        fit_data[ref_element],
+                        ref_element,
+                        model.get_prefix()
+                    )
+                except ValueError:
+                    # Probably means the ref element wasn't present - just carry on
+                    pass
         return fit_data, eo_samples, disc_abundance_medians, bulk_composition_medians, core_composition_medians, mantle_composition_medians, partition_coefficient_medians, pcnf_median
 
     def get_untransformed_parameter_stats(self, chains_dir, model, observation_number, model_param):
@@ -1070,7 +1064,7 @@ class ModelAnalyser:
         toret = weightpost[:, param_index]
         return toret
 
-    def make_pressure_plot(self, chains_dir, model, model_name, wd_name, observation_number):
+    def make_pressure_plot(self, chains_dir, model, model_name, wd_name_tuple, observation_number):
         p_stats = self.get_untransformed_parameter_stats(chains_dir, model, observation_number, mp.ModelParameter.pressure)
         if p_stats is None:
             print('Abandoning pressure plot (no pressure stats available)')
@@ -1099,10 +1093,10 @@ class ModelAnalyser:
             'x_tick_labels': mass_vals
             #'x_max': 60
         }
-        self.graph_fac.make_histogram(x_bar_centres, [heights], [wd_name], wd_name + '_' + model.get_prefix(observation_number), half_bin_size*2, 1.1, 'Pressure /GPa', 'pressure_dist', None, None, additional_x_axis_dict)
+        self.graph_fac.make_histogram(x_bar_centres, [heights], [wd_name_tuple[1]], wd_name_tuple[0] + '_' + model.get_prefix(), half_bin_size*2, 1.1, 'Pressure /GPa', 'pressure_dist', None, None, additional_x_axis_dict)
         return p_stats
 
-    def make_eo_distribution_plot(self, model, model_name, wd_name, observation_number, eo_stats):
+    def make_eo_distribution_plot(self, model, model_name, wd_name_tuple, observation_number, eo_stats):
         half_bin_size = 0.025
         for ox_strat, stats in eo_stats.items():
             for abs_or_frac in [self.absolute_string, self.fractional_string]:
@@ -1135,10 +1129,10 @@ class ModelAnalyser:
                     }
                     file_suffix = 'eo_dist_' + str(ox_strat) + '_' + abs_or_frac
                     x_label = 'Excess Oxygen' if abs_or_frac == self.absolute_string else 'Fractional Excess Oxygen'
-                    self.graph_fac.make_histogram(x_bar_centres, [heights], [wd_name], wd_name + '_' + model.get_prefix(observation_number), half_bin_size*2, 1.1, x_label, file_suffix, text_dict, None, None)
+                    self.graph_fac.make_histogram(x_bar_centres, [heights], [wd_name_tuple[1]], wd_name_tuple[0] + '_' + model.get_prefix(), half_bin_size*2, 1.1, x_label, file_suffix, text_dict, None, None)
         return None
 
-    def make_semisampled_eo_distibution_plot(self, chains_dir, model_name, model, observation_number, white_dwarf, resampled_fit_data, suppress_graphical_output=False):
+    def make_semisampled_eo_distibution_plot(self, chains_dir, model_name, model, observation_number, white_dwarf, timescale_type, resampled_fit_data, suppress_graphical_output=False):
         # Adapted from Marc Brouwers' code
         N_O = None
         half_bin_size = 0.025
@@ -1167,12 +1161,14 @@ class ModelAnalyser:
         if ci.Element.O not in els_to_iterate:
             els_to_iterate.append(ci.Element.O)
         abundances_to_use = dict()
+
+        # Really the model name should not be hardcoded as a magic value like this! It basically just needs to be the same name that we saved the resampled median fits to in make_composition_plot
+        descaled_elements_results_dict = sa.scale_abundances_to_solar(resampled_fit_data[white_dwarf.get_atmospheric_type().value]['Model median'][0], white_dwarf.get_atmospheric_type().value, None, True)
         errors_to_use = dict()
         for el in ci.usual_elements:
             relevant_data = white_dwarf.get_abundance(el)
             if relevant_data is None or relevant_data.data_point_type != wd.WhiteDwarfDataPointType.measurement:
-                abundances_to_use[el] = resampled_fit_data[white_dwarf.get_atmospheric_type().value]['Model median'][0][el] # Really the model name should not be hardcoded as a magic value like this! It basically just needs to be the same name that we saved the resampled median fits to in make_composition_plot
-                #abundances_to_use[el] = predicted_median_abundances[el]
+                abundances_to_use[el] = descaled_elements_results_dict[el]
                 errors_to_use[el] = 0.4
             else:
                 abundances_to_use[el] = relevant_data.value
@@ -1191,7 +1187,7 @@ class ModelAnalyser:
             mu = abundances_to_use[el]
             sigma = errors_to_use[el]
             log_el_hx =  np.random.normal(loc=mu, scale=sigma, size=N_samples)
-            t_el = white_dwarf.timescale_dict[el]
+            t_el = white_dwarf.atmosphere_data.atmosphere_data_dict[timescale_type].timescale_dict[el]
             N_el = 10**log_el_hx / (t_el*(np.exp((np.minimum(t_event_data, t_obs_data)-t_obs_data)/t_el) - np.exp(-t_obs_data/t_el)))
             N_el_ss = 10**log_el_hx / t_el
             if el == ci.Element.O:
@@ -1209,7 +1205,7 @@ class ModelAnalyser:
         O_excess_def_ss = (N_O_ss - O_acc_def_ss)/N_O_ss
 
         bins_many, x_bar_centres = self.generate_bins_and_bar_centres(
-            np.floor(min(min(O_excess_def), min(O_excess_cons), min(O_excess_def_ss))), # Possible TODO: This is sometimes unnecessarily (and stupidly) low, but truncating it will change the later maths
+            np.floor(min(min(O_excess_def), min(O_excess_cons), min(O_excess_def_ss))), # This is sometimes unnecessarily (and stupidly) low, but truncating it will change the later maths. Solution is to remove unnecessary bins prior to sending them over to the graph factory
             np.ceil(max(max(O_excess_def), max(O_excess_cons), max(O_excess_def_ss))),
             half_bin_size
         )
@@ -1226,7 +1222,7 @@ class ModelAnalyser:
 
         lower_sigma_def = np.median(O_excess_def) - bins_many[np.where(np.cumsum(heights_default)>0.158*np.sum(heights_default))][0]
         upper_sigma_def = bins_many[np.where(np.cumsum(heights_default)>0.841*np.sum(heights_default))][0] - np.median(O_excess_def)
-        # stat.norm.ppf(x) is the area under the curve of Gaussian(mu=0, sigma=1) between -inf and x
+        # stat.norm.ppf(x) returns y such that the area under the curve of Gaussian(mu=0, sigma=1) between -inf and y is x
         # Satisfies e.g. stat.norm.ppf(0.5) = 0, i.e. the sigma significance of a 50:50 event is 0
         sig_excess_def = abs(stat.norm.ppf(len(O_excess_def[np.where(O_excess_def>0)])/len(O_excess_def)))
         p_excess_def = len(O_excess_def[np.where(O_excess_def>0)])/len(O_excess_def)
@@ -1265,7 +1261,7 @@ class ModelAnalyser:
             },
             'name_text': {
                 'x_pos': 0.02,
-                'text_string': white_dwarf.name,
+                'text_string': white_dwarf.system_name,
                 'horizontalalignment': 'left',
                 'verticalalignment': 'center',
                 'fontsize': 18,
@@ -1279,19 +1275,32 @@ class ModelAnalyser:
                 'x_start': 0
             }
         }
+
+        histogram_x_min = -150
+        histogram_x_max = 100
+        ignorable_x_min = -500
+        filter_out_low_x = True
+        if filter_out_low_x:
+            # Sometimes there are a huge number of bins at absurdly low x values that we will never see on the graph - this logic gets rid of the most egregious cases, which can seriously slow down run time.
+            distances_to_centres = [abs(ignorable_x_min - x) for x in x_bar_centres_percent]
+            min_distance = min(distances_to_centres)
+            min_distance_index = distances_to_centres.index(min_distance)
+            x_bar_centres_percent = x_bar_centres_percent[min_distance_index:]
+            heights_default = heights_default[min_distance_index:]
+
         if not suppress_graphical_output:
             self.graph_fac.make_histogram(
                 x_bar_centres_percent,
                 [heights_default],
-                [white_dwarf.name],
-                white_dwarf.name + '_' + model.get_prefix(observation_number),
+                [white_dwarf.system_name],
+                white_dwarf.full_name() + '_' + model.get_prefix(),
                 half_bin_size*2*plot_scaling_factor,
                 1.2,
                 'Excess Oxygen (\%)',
                 'semisampled_oxygen_excess',
                 text_dict,
                 line_dict,
-                {'supress_second_axis': True, 'x_min': -150, 'x_max': 100},
+                {'supress_second_axis': True, 'x_min': histogram_x_min, 'x_max': histogram_x_max},
                 1.25,
                 dict(),
                 False,
@@ -1301,15 +1310,15 @@ class ModelAnalyser:
             self.graph_fac.make_histogram(
                 x_bar_centres_percent,
                 [heights_default],
-                [white_dwarf.name],
-                white_dwarf.name + '_' + model.get_prefix(observation_number),
+                [white_dwarf.system_name],
+                white_dwarf.full_name() + '_' + model.get_prefix(),
                 half_bin_size*2*plot_scaling_factor,
                 1.2,
                 'Excess Oxygen (\%)',
                 'semisampled_oxygen_excess_thesis',
                 text_dict_thesis,
                 line_dict,
-                {'supress_second_axis': True, 'x_min': -150, 'x_max': 100},
+                {'supress_second_axis': True, 'x_min': histogram_x_min, 'x_max': histogram_x_max},
                 1.25,
                 dict(),
                 False,
@@ -1351,11 +1360,10 @@ class ModelAnalyser:
         mp.model_definitions_dict[model_name] = dict()
         for potential_param in mp.ModelParameter:
             mp.model_definitions_dict[model_name][potential_param] = potential_param in parameters_to_use
-        #TODO: Add a warning when some incompatible parameter combination is entered. e.g. fragment_crust without fragment_core
         ld._live_model = model_name
         return model_name
 
-    def recreate_model(self, observation_number):
+    def recreate_model(self, observation_number, timescale_type):
         # This is hacky! Sorry
         candidate_files = list()
         for filename in os.listdir(self.graph_dir):
@@ -1392,7 +1400,7 @@ class ModelAnalyser:
                     prior_name = name
                 if abbrev == enhancement_model_abbreviation:
                     enhancement_model_name = name
-        return pm.PollutionModel(model_name, enhancement_model_name, prior_name, live_points)
+        return pm.PollutionModel(model_name, timescale_type, enhancement_model_name, prior_name, live_points)
 
     def make_variable_distribution_plot(self, variable_name, variable_values_dict, x_min, x_max, half_bin_size, text_dict=None, file_prefix=None, cumulative=False, text_size_dict=dict(), weights_dict=dict(), comparison_dist_dict=dict()):
         bins, x_bar_centres = self.generate_bins_and_bar_centres(x_min, x_max, half_bin_size)
@@ -1438,11 +1446,11 @@ class ModelAnalyser:
         hist_plot = self.graph_fac.make_histogram(x_bar_centres, all_heights, names, file_prefix, half_bin_size*2, 0.8, xlabel, file_suffix, text_dict, None, None, 1.1, text_size_dict, cumulative)
         return hist_plot
 
-    def make_multisystem_pressure_plot(self, chains_dir, observation_numbers, labels=None, additional_text_dict=None):
+    def make_multisystem_pressure_plot(self, chains_dir, observation_numbers, timescale_type, labels=None, additional_text_dict=None):
         p_stats_list = list()
         used_observation_numbers_list = list()
         for observation_number in observation_numbers:
-            recreated_model = self.recreate_model(observation_number)
+            recreated_model = self.recreate_model(observation_number, timescale_type)
             p_stats = self.get_untransformed_parameter_stats(chains_dir, recreated_model, observation_number, mp.ModelParameter.pressure)
             if p_stats is None:
                 print('Abandoning pressure plot (no pressure stats available)')
@@ -1483,13 +1491,23 @@ class ModelAnalyser:
         return T
 
     def generate_bins_and_bar_centres(self, min_bin_edge, max_bin_edge, half_bin_size):
+        max_num_bins = 1000000 # Otherwise it's just silly (and can easily use ALL your memory!)
+        min_half_bin_size = (max_bin_edge - min_bin_edge)/(2*max_num_bins)
+        half_bin_size = max(half_bin_size, min_half_bin_size)
         bin_size = 2 * half_bin_size
-        bins = np.arange(min_bin_edge, max_bin_edge + bin_size, bin_size)
+        successful_allocation = False
+        while not successful_allocation:
+            try:
+                bins = np.arange(min_bin_edge, max_bin_edge + bin_size, bin_size)
+                successful_allocation = True
+            except np.core._exceptions._ArrayMemoryError:
+                half_bin_size *= 2
+                bin_size = 2 * half_bin_size
         bar_centres = [x + half_bin_size for x in bins]
         bar_centres.pop()
         return bins, bar_centres
 
-    def make_temperature_plot(self, chains_dir, model, model_name, wd_name, observation_number, suppress_graphical_output=False):
+    def make_temperature_plot(self, chains_dir, model, model_name, wd_name_tuple, observation_number, suppress_graphical_output=False):
         temp_stats = self.get_temperature_stats(chains_dir, model, observation_number)
         if temp_stats is None:
             print('Abandoning temperature plot (no temperature stats available)')
@@ -1530,8 +1548,8 @@ class ModelAnalyser:
             self.graph_fac.make_histogram(
                 x_bar_centres,
                 [heights],
-                [wd_name],
-                wd_name + '_' + model.get_prefix(observation_number),
+                [wd_name_tuple[1]],
+                wd_name_tuple[0] + '_' + model.get_prefix(),
                 half_bin_size*2,
                 1.1,
                 'Formation Temperature /K',
@@ -1541,92 +1559,11 @@ class ModelAnalyser:
             )
         return temp_stats
 
-    def get_mass_stats(self, chains_dir, model, observation_number, enhancement_model):
+    def make_mass_plot(self, chains_dir, model, model_name, wd_name_tuple, observation_number, enhancement_model, suppress_graphical_output=False):
         stats, weightpost, best_fit_lnz, best_fit_params = self.get_stats_weightpost_and_best_fit(model, observation_number, chains_dir)
-        number_of_possible_samples = len(weightpost[:,0])
-        max_number_of_samples = 10000
-        number_of_samples = min(max_number_of_samples, number_of_possible_samples)
-        samples = np.random.choice(number_of_possible_samples, number_of_samples, replace=False)
-        massofpollutant = np.zeros(number_of_samples)
-
-        geo_model_for_solar_mass = gi.GeologyModel()
-        solar_mass_in_kg = geo_model_for_solar_mass.M_Sun
-        HorHe = ld._live_type
-        q = ld._live_q
-        M_wd = ld._live_mass
         parameter_indices = mp.parameter_indices(ld._live_model)
-        print('Sampling for mass plot')
-        for j in range(number_of_samples):
-            if (j % 250) == 0:
-                print('Mass plot sample ' + str(j))
-            fe_star = weightpost[samples[j], parameter_indices[mp.ModelParameter.metallicity]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.metallicity) else mp.default_values[enhancement_model][mp.ModelParameter.metallicity]
-            t_sinceaccretion = weightpost[samples[j], parameter_indices[mp.ModelParameter.t_sinceaccretion]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.t_sinceaccretion) else mp.default_values[enhancement_model][mp.ModelParameter.t_sinceaccretion]
-            d_formation = weightpost[samples[j], parameter_indices[mp.ModelParameter.formation_distance]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.formation_distance) else mp.default_values[enhancement_model][mp.ModelParameter.formation_distance]
-            z_formation = weightpost[samples[j], parameter_indices[mp.ModelParameter.feeding_zone_size]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.feeding_zone_size) else mp.default_values[enhancement_model][mp.ModelParameter.feeding_zone_size]
-            N_c = weightpost[samples[j], parameter_indices[mp.ModelParameter.parent_core_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.parent_core_frac) else mp.default_values[enhancement_model][mp.ModelParameter.parent_core_frac]
-            N_o = weightpost[samples[j], parameter_indices[mp.ModelParameter.parent_crust_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.parent_crust_frac) else mp.default_values[enhancement_model][mp.ModelParameter.parent_crust_frac]
-            f_c = weightpost[samples[j], parameter_indices[mp.ModelParameter.fragment_core_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_core_frac) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_core_frac]
-            f_o = weightpost[samples[j], parameter_indices[mp.ModelParameter.fragment_crust_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.fragment_crust_frac) else mp.default_values[enhancement_model][mp.ModelParameter.fragment_crust_frac]
-            pollutionfraction = weightpost[samples[j], parameter_indices[mp.ModelParameter.pollution_frac]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.pollution_frac) else mp.default_values[enhancement_model][mp.ModelParameter.pollution_frac]
-            log_t_disc = weightpost[samples[j], parameter_indices[mp.ModelParameter.accretion_timescale]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.accretion_timescale) else mp.default_values[enhancement_model][mp.ModelParameter.accretion_timescale]
-            pressure = weightpost[samples[j], parameter_indices[mp.ModelParameter.pressure]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.pressure) else mp.default_values[enhancement_model][mp.ModelParameter.pressure]
-            fO2 = weightpost[samples[j], parameter_indices[mp.ModelParameter.oxygen_fugacity]] if mp.model_uses_parameter(ld._live_model, mp.ModelParameter.oxygen_fugacity) else mp.default_values[enhancement_model][mp.ModelParameter.oxygen_fugacity]
-            t_disc = 10**log_t_disc
-            t_formation = 1.5
-
-
-            expressions, ignore = cm.complete_model_calculation(
-                fe_star,
-                t_sinceaccretion,
-                d_formation,
-                z_formation,
-                N_c,
-                N_o,
-                f_c,
-                f_o,
-                pollutionfraction,
-                t_disc,
-                pressure,
-                fO2,
-                enhancement_model,
-                t_formation,
-                True,
-                False
-            )
-
-            if expressions is None:
-                print('Warning! The sampled model does not converge! (Or otherwise returns None). Skipping this mass plot sample. Printing attempted params:')
-                print('fe_star: ' + str(fe_star))
-                print('t_sinceaccretion: ' + str(t_sinceaccretion))
-                print('d_formation: ' + str(d_formation))
-                print('z_formation: ' + str(z_formation))
-                print('N_c: ' + str(N_c))
-                print('N_o: ' + str(N_o))
-                print('f_c: ' + str(f_c))
-                print('f_o: ' + str(f_o))
-                print('pollutionfraction: ' + str(pollutionfraction))
-                print('log_t_disc: ' + str(log_t_disc))
-                print('pressure: ' + str(pressure))
-                print('fO2: ' + str(fO2))
-                print('t_formation: ' + str(t_formation))
-                continue
-
-            element_masses = dict() # in kg. At the moment, storing this in a dict is overly complicated but we may want to break it down by element at some point
-            for element in ci.usual_elements:
-                # This calculation assumes that M_cvz = M_HorHe, which should be a pretty safe assumption
-                log_el_HorHe = expressions[element] # log of number ratio of lifetime element to present H (or He)
-                el_to_HorHe_mass_ratio = ci.get_element_mass(element)/ci.get_element_mass(HorHe)
-                element_mass = (10**(q + log_el_HorHe)) * el_to_HorHe_mass_ratio * M_wd * solar_mass_in_kg
-                element_masses[element] = element_mass
-            total_mass = 0
-            for el, mass in element_masses.items():
-                total_mass += mass
-            massofpollutant[j] = total_mass
-        logmassofpollutant = np.log10(massofpollutant)
-        return logmassofpollutant
-
-    def make_mass_plot(self, chains_dir, model, model_name, wd_name, observation_number, enhancement_model, suppress_graphical_output=False):
-        logmassofpollutant = self.get_mass_stats(chains_dir, model, observation_number, enhancement_model)
+        fragment_mass_index = parameter_indices[mp.ModelParameter.fragment_mass]
+        logmassofpollutant = weightpost[:,fragment_mass_index]
 
         half_bin_size = 0.05
         bins, x_bar_centres = self.generate_bins_and_bar_centres(8, 25, half_bin_size)
@@ -1770,8 +1707,8 @@ class ModelAnalyser:
             self.graph_fac.make_histogram(
                 x_bar_centres,
                 [heights],
-                [wd_name],
-                wd_name + '_' + model.get_prefix(observation_number),
+                [wd_name_tuple[1]],
+                wd_name_tuple[0] + '_' + model.get_prefix(),
                 half_bin_size*2,
                 1.2,
                 'Log(Mass of Pollutant/kg)',
@@ -1781,18 +1718,54 @@ class ModelAnalyser:
             )
         return logmassofpollutant # This is just so that the later functions don't need to recalculate it!
 
-    def make_time_plot(self, chains_dir, model, model_name, wd_name, observation_number):
+    def make_accretion_rate_plot(self, chains_dir, model, model_name, wd_name_tuple, observation_number, enhancement_model, suppress_graphical_output=False):
+        stats, weightpost, best_fit_lnz, best_fit_params = self.get_stats_weightpost_and_best_fit(model, observation_number, chains_dir)
+        parameter_indices = mp.parameter_indices(ld._live_model)
+        fragment_mass_index = parameter_indices[mp.ModelParameter.fragment_mass]
+        t_event_index = parameter_indices[mp.ModelParameter.accretion_timescale]
+
+        massofpollutant = 1000*(10**weightpost[:,fragment_mass_index]) # where we have converted from log(kg) to grams
+        t_event_samples = pc.seconds_per_year*(10**weightpost[:,t_event_index]) # where we have converted from years to seconds
+
+        accretion_rate = np.log10(massofpollutant/t_event_samples)
+
+        half_bin_size = 0.05
+        bins, x_bar_centres = self.generate_bins_and_bar_centres(4, 20, half_bin_size)
+
+        heights, bins2 = np.histogram(
+            accretion_rate,
+            bins,
+            density=True
+        )
+
+        text_dict = None
+        if not suppress_graphical_output:
+            self.graph_fac.make_histogram(
+                x_bar_centres,
+                [heights],
+                [wd_name_tuple[1]],
+                wd_name_tuple[0] + '_' + model.get_prefix(),
+                half_bin_size*2,
+                1.2,
+                'log(Accretion Rate /g/s)',
+                'accretion_rate_dist',
+                text_dict,
+                None
+            )
+        return accretion_rate # This is just so that the later functions don't need to recalculate it!
+
+    def make_time_plot(self, chains_dir, model, model_name, wd_name_tuple, observation_number):
         stats, weightpost, best_fit_lnz, best_fit_params = self.get_stats_weightpost_and_best_fit(model, observation_number, chains_dir)
         parameter_indices = mp.parameter_indices(ld._live_model)
         t_sinceaccretion_index = parameter_indices[mp.ModelParameter.t_sinceaccretion]
         accretion_timescale_index = parameter_indices[mp.ModelParameter.accretion_timescale]
         x_data = np.log10(weightpost[:,t_sinceaccretion_index]*1000000)
         y_data = weightpost[:,accretion_timescale_index]
-        self.graph_fac.plot_timesince_v_accretiontime(x_data, y_data, wd_name, model.get_prefix(observation_number), ld._live_t_mg)
+        self.graph_fac.plot_timesince_v_accretiontime(x_data, y_data, wd_name_tuple[0], wd_name_tuple[1], model.get_prefix(), ld._live_t_mg)
 
-    def make_scaled_tevent_plot(self, chains_dir, model, model_name, white_dwarf, observation_number):
+    def make_scaled_tevent_plot(self, chains_dir, model, model_name, white_dwarf, timescale_type, observation_number):
         # Based on Marc Brouwers' code, used for Brouwers et al 2022b
-        wd_name = white_dwarf.name
+        wd_name = white_dwarf.system_name
         t_ss_scaling_factor = 5 # Marc used 3
         steady_state_scaling_factor = 1 # The steady state panel takes up steady_state_scaling_factor*t_ss width on the plot. Marc used 1
         half_bin_size = 0.1
@@ -1805,7 +1778,7 @@ class ModelAnalyser:
         t_obs_data = weightpost[:,t_sinceaccretion_index]*1000000 # convert from Myr to yr
         t_event_data = 10**weightpost[:,accretion_timescale_index] # convert from log yr to yr
 
-        t_element = white_dwarf.timescale_dict[critical_element]
+        t_element = white_dwarf.atmosphere_data.atmosphere_data_dict[timescale_type].timescale_dict[critical_element]
 
         t_ss = t_ss_scaling_factor*t_element # time to reach steady state
 
@@ -1948,7 +1921,7 @@ class ModelAnalyser:
             x_bar_centres,
             [heights],
             names,
-            wd_name + '_' + model.get_prefix(observation_number),
+            white_dwarf.full_name() + '_' + model.get_prefix(),
             half_bin_size*2,
             1.2,
             'Time, $t$',
@@ -1966,7 +1939,7 @@ class ModelAnalyser:
             x_bar_centres,
             [heights],
             names,
-            wd_name + '_' + model.get_prefix(observation_number),
+            white_dwarf.full_name() + '_' + model.get_prefix(),
             half_bin_size*2,
             1.2,
             'Time, $t$',
@@ -1981,11 +1954,11 @@ class ModelAnalyser:
             True
         )
 
-    def make_p_v_fO2_plot(self, chains_dir, model, model_name, wd_name, observation_number):
+    def make_p_v_fO2_plot(self, chains_dir, model, model_name, wd_name_tuple, observation_number):
         x_data = self.get_untransformed_parameter_stats(chains_dir, model, observation_number, mp.ModelParameter.pressure)
         y_data = self.get_untransformed_parameter_stats(chains_dir, model, observation_number, mp.ModelParameter.oxygen_fugacity)
         if x_data is None or y_data is None:
             print('Abandoning pressure v fO2 plot (no pressure and/or fO2 stats available)')
             return
-        self.graph_fac.plot_pressure_v_oxygen_fugacity(x_data, y_data, wd_name, model.get_prefix(observation_number))
+        self.graph_fac.plot_pressure_v_oxygen_fugacity(x_data, y_data, wd_name_tuple[0], wd_name_tuple[1], model.get_prefix())
 

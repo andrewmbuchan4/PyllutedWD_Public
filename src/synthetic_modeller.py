@@ -10,15 +10,16 @@ import scipy.interpolate as si
 import scipy.stats as st
 
 import abundance_model as am
+import atmosphere_model as atm
 import chemistry_info as ci
 import geology_info as gi
 import graph_factory as gf
+import live_data as ld
 import model_parameters as mp
 import prior_functions as pf
 import pwd_utils as pu
 import synthetic_population as sp
 import timescale_interpolator as ti
-import white_dwarf_model as wdm
 
 class ModellerType(Enum):
     SimpleFcfInterpolation = 0
@@ -127,11 +128,13 @@ class Modeller:
             self.model_system = self.apply_simple_fcf_interpolation
         elif self.modeller_type == ModellerType.AnalyticApproximation:
             self.model_system = self.apply_analytic_approximation
-            self.sample_across_stars = modeller_args[0]
+            self.timescale_type_to_use = modeller_args[0]
+            self.sample_across_stars = modeller_args[1] # TODO: At some point, consider thermohaline mixing should become an extra argument
             self.max_star = 957
             self.stellar_compositions = self.load_generic_float_data_csv('StellarCompositionsSortFE.csv')
+            ld._live_stellar_compositions = self.stellar_compositions
             self.stars_to_sample = range(0, self.max_star + 1)
-            self.default_star = list(self.stars_to_sample)
+            self.default_star = list(self.stars_to_sample) #TODO: Currently this is a bit pointless! The default is just everything (which is what we would sample anyway...)
             #self.default_star = [478, 479]
             self.timescale_interpolator = ti.TimescaleInterpolator()
             self.geology_model = gi.GeologyModel()
@@ -287,25 +290,32 @@ class Modeller:
                 system.modelled_properties[model_parameter] = system.modelled_properties.get(model_parameter, [None])
 
     def apply_analytic_approximation(self, system):
+        if system.wd_properties[mp.WDParameter.consider_thermohaline]:
+            # The rewinding of abundances during fcf estimation doesn't work for thermohaline yet: TODO!
+            return None
         HorHe = None
         if system.wd_properties[mp.WDParameter.spectral_type] == 'DB':
-            HorHe = 'He'
+            HorHe = ci.Element.He # TODO: the atmospheric type should probably just be part of the system?
         elif system.wd_properties[mp.WDParameter.spectral_type] == 'DA':
-            HorHe = 'H'
+            HorHe = ci.Element.H
         else:
             pass
-        sinking_timescales = self.timescale_interpolator.get_wd_timescales(
+        all_sinking_timescales = self.timescale_interpolator.get_wd_timescales(
             HorHe,
             system.wd_properties[mp.WDParameter.logg],
             system.wd_properties[mp.WDParameter.temperature],
             system.observed_abundances.get(ci.Element.Ca, -14)  # If Ca not present, we'll assume it's -14: this is the default case, dropoff starts around -12
         ) # These should be in years
 
+        sinking_timescales = all_sinking_timescales[self.timescale_type_to_use]
+
         metallicity = self.estimate_metallicity(system, sinking_timescales)
+
         t_disc, t_sinceaccretion = self.estimate_sinking(system, sinking_timescales, metallicity)
         #if len(metallicity) > 1:
         #    t_disc = t_disc*len(metallicity)
         #    t_sinceaccretion = t_sinceaccretion*len(metallicity)
+
         d_formation = self.estimate_heating(system, sinking_timescales, t_disc, t_sinceaccretion, metallicity)
         fcf = self.estimate_fragment_core_fraction(system, sinking_timescales, t_disc, t_sinceaccretion, d_formation, metallicity)
 
@@ -316,7 +326,7 @@ class Modeller:
             mp.ModelParameter.formation_distance: self.collapse_list_of_repeats(proposed_d_formation),
             mp.ModelParameter.fragment_core_frac: self.collapse_list_of_repeats(fcf),
             mp.ModelParameter.accretion_timescale: t_disc, # It's important not to collapse these
-            mp.ModelParameter.t_sinceaccretion: t_sinceaccretion
+            mp.ModelParameter.t_sinceaccretion: [t/1000000 if t is not None else None for t in t_sinceaccretion] # Just because the higher level code expects Myr, and we've found yr
         }
 
         system.set_modelled_properties(output_dict)
@@ -368,17 +378,27 @@ class Modeller:
             # Then it really doesn't matter what the exact numbers are (and it's kind of meaningless anyway) - just put it in steady state
             t_Mg = sinking_timescales[ci.Element.Mg]
             t_disc = [20*t_Mg]*len(metallicity) # Multiply by len(metallicity) to guarantee that these 3 lists all have the same length
-            t_sinceaccretion = [10*t_Mg/1000000]*len(metallicity)  # 20 and 10 are arbitrary, but will put this system in steady state. just as long as 5t_Mg (ish) < t_sinceaccretion < t_disc
+            t_sinceaccretion = [10*t_Mg]*len(metallicity)  # 20 and 10 are arbitrary, but will put this system in steady state. just as long as 5t_Mg (ish) < t_sinceaccretion < t_disc
         else:
             element1, element2 = self.get_elements_for_sinking_estimate(system)
             XHx1 = system.observed_abundances.get(element1, None)
             XHx2 = system.observed_abundances.get(element2, None)
             if XHx1 is None or XHx2 is None:
                 return [None], [None]
-            t_disc, t_sinceaccretion = self.calculate_sinking_from_element_pair(element1, element2, 10**(XHx1 - XHx2), sinking_timescales[element1], sinking_timescales[element2])
+
+            t_disc, t_sinceaccretion = self.calculate_sinking_from_element_pair(
+                element1,
+                element2,
+                10**(XHx1 - XHx2),
+                sinking_timescales[element1],
+                sinking_timescales[element2],
+                system.wd_properties[mp.WDParameter.consider_thermohaline],
+                system.wd_properties[mp.WDParameter.temperature],
+                system.wd_properties[mp.WDParameter.logg]
+            )
         return t_disc, t_sinceaccretion
 
-    def calculate_sinking_from_element_pair(self, element1, element2, element_ratio, t_1, t_2):
+    def calculate_sinking_from_element_pair(self, element1, element2, element_ratio, t_1, t_2, consider_thermohaline=False, Teff=None, logg=None):
         # element_ratio is in linear space
         # Assume initial composition is Earth like (according to geology_info)
         #initial_Ca = 0.011174350504526264
@@ -386,9 +406,10 @@ class Modeller:
         ratio_increases_with_time = t_1 > t_2
 
         test_t_disc = 3*max(t_1, t_2) # This is a bit experimental - ideally we want this to be another parameter we search for
-        wd_timescales = [t_1, t_2]
+        wd_timescales = np.array([t_1, t_2])
         #non_zero_wd_timescales = [t_1, t_2]
-        pollutionfraction = -6 # Exact value irrelevant: we only care about ratio not absolute quantity
+        #pollutionfraction = -6 # Exact value irrelevant: we only care about ratio not absolute quantity
+        M_cvz = 1000 # Exact value irrelevant: we only care about ratio not absolute quantity
         tolerance = 0.000001
         max_iterations = 100
         zero_time_threshold = 0.00001
@@ -396,10 +417,10 @@ class Modeller:
         t_disc_toret = list()
         t_sinceaccretion_toret = list()
         stars_to_sample = self.default_star
+
         if self.sample_across_stars:
             stars_to_sample = self.stars_to_sample
         # Assume initial composition is Solar like (according to geology_info) (These are not normalised but doesn't matter)
-        # NB: Using geology_info.solar_abundances seemed to underestimate Al/Ca relative to other stars?!? Why?
         # Also (V IMPORTANT) Al/Ca starts increasing (due to 'heating') at distances less than about 0.25AU (-0.6 in log units)
         # This represents a fundamental limit to this method: if distance < -0.6 or so, the model will think we're in
         # declining phase (to try to match the elevated Al/Ca) even if we're not, with various knock-on effects eg overestimating fcf
@@ -414,16 +435,30 @@ class Modeller:
             initial_el2 = self.get_stellar_abundance(star, element2)
             initial_ratio = initial_el1/initial_el2
             #initial_ratio = 10**(initial_XHx1 - initial_XHx2)
-            planetesimal_abundance = [initial_ratio, 1]  # This gets normalised later
+            planetesimal_abundance = np.array([initial_ratio, 1])  # This gets normalised later
             #non_zero_planetesimal_abundance = [initial_Ca, initial_Fe]
-            lower_t_sinceaccretion_bound = 0 # Minimum possible value (in Myr)
-            upper_t_sinceaccretion_bound = 200*(max(t_1, t_2)/1000000) # Maximum possible value (in Myr) Setting it equal to N times t_Ca
+            lower_t_sinceaccretion_bound = 0 # Minimum possible value (in yr)
+            upper_t_sinceaccretion_bound = 200*(max(t_1, t_2)) # Maximum possible value (in yr) Setting it equal to N times t_Ca
             iteration_count = 0
             while True:
                 # Do a simple binary search
                 test_t_sinceaccretion = 0.5*(lower_t_sinceaccretion_bound + upper_t_sinceaccretion_bound)
                 #test_abundances = wdm.process_abundances(test_t_sinceaccretion, test_t_disc, planetesimal_abundance, non_zero_planetesimal_abundance, wd_timescales, non_zero_wd_timescales, pollutionfraction, True)
-                test_abundances = wdm.process_abundances(test_t_sinceaccretion, test_t_disc, planetesimal_abundance, wd_timescales, pollutionfraction, True)
+
+
+                test_abundances = atm.calculate_abundance_by_number(
+                    test_t_sinceaccretion,
+                    test_t_disc,
+                    ci.Element.H, # We can use H here without loss of generality - it scales the abundances linearly, and we only care about the ratios
+                    M_cvz,
+                    np.array([ci.get_element_mass(element1), ci.get_element_mass(element2)]),
+                    planetesimal_abundance,
+                    wd_timescales,
+                    consider_thermohaline,
+                    Teff,
+                    logg
+                )
+                #test_abundances2 = wdm.process_abundances(test_t_sinceaccretion/1000000, test_t_disc, planetesimal_abundance, wd_timescales, -6, True)
                 test_ratio = 10**(test_abundances[0] - test_abundances[1])
                 rel_diff = abs((test_ratio - element_ratio)/element_ratio)
                 if rel_diff < tolerance:
@@ -484,7 +519,7 @@ class Modeller:
             stellar_abundances = [self.get_stellar_abundance(star, element) for element in steady_state_adjusted_abundances]  # TODO check this returns 1 for Mg
             # Now compare steady_state_adjusted_abundances to stellar_abundances
             # We'll call the first element el_base, then compare ratios of all other elements relative to el_base
-            # Use L1 normalisation for now rather than L2 - don't want to be overly swayed by outliers
+            # Use L1 normalisation rather than L2 - don't want to be overly swayed by outliers
             el_index = 0
             total_penalty = 0
             for element, ss_abundance in steady_state_adjusted_abundances.items():
@@ -519,17 +554,18 @@ class Modeller:
             return [None]*len(stars_to_sample)
         observed_element_ratio = 10**(XHx1 - XHx2)
         fcf_toret = list()
-        t_sinceaccretionyears = [t*1000000 if t is not None else None for t in t_sinceaccretion]
-        if len(t_sinceaccretionyears) == 1:
-            t_sinceaccretionyears = len(stars_to_sample)*t_sinceaccretionyears
+
+        #t_sinceaccretionyears = [t*1000000 if t is not None else None for t in t_sinceaccretion]
+        if len(t_sinceaccretion) == 1:
+            t_sinceaccretion = len(stars_to_sample)*t_sinceaccretion
         if len(t_disc) == 1:
             t_disc = len(stars_to_sample)*t_disc
         for star_count, star in enumerate(stars_to_sample):
-            if t_sinceaccretionyears[star_count] is None or t_disc[star_count] is None:
+            if t_sinceaccretion[star_count] is None or t_disc[star_count] is None:
                 fcf_toret.append(None)
             else:
-                scaling_el1 = wdm.calculate_buildup_scaling_factors(t_sinceaccretionyears[star_count], t_disc[star_count], sinking_timescales[element1])*wdm.calculate_sinkout_scaling_factors(t_sinceaccretionyears[star_count], t_disc[star_count], sinking_timescales[element1])
-                scaling_el2 = wdm.calculate_buildup_scaling_factors(t_sinceaccretionyears[star_count], t_disc[star_count], sinking_timescales[element2])*wdm.calculate_sinkout_scaling_factors(t_sinceaccretionyears[star_count], t_disc[star_count], sinking_timescales[element2])
+                scaling_el1 = atm.calculate_buildup_scaling_factors(t_sinceaccretion[star_count], t_disc[star_count], sinking_timescales[element1])*atm.calculate_sinkout_scaling_factors(t_sinceaccretion[star_count], t_disc[star_count], sinking_timescales[element1])
+                scaling_el2 = atm.calculate_buildup_scaling_factors(t_sinceaccretion[star_count], t_disc[star_count], sinking_timescales[element2])*atm.calculate_sinkout_scaling_factors(t_sinceaccretion[star_count], t_disc[star_count], sinking_timescales[element2])
 
                 uncompensated_fragment_element_ratio = observed_element_ratio * (scaling_el2/scaling_el1)
 
@@ -571,10 +607,22 @@ class Modeller:
             target_ratio = None
         else:
             target_ratio = 10**(XHx1 - XHx2)
-        d_formation = self.find_d_formation(element1, element2, target_ratio, t_disc, t_sinceaccretion, sinking_timescales.get(element1), sinking_timescales.get(element2), metallicity)
+        d_formation = self.find_d_formation(
+            element1,
+            element2,
+            target_ratio,
+            t_disc,
+            t_sinceaccretion,
+            sinking_timescales.get(element1),
+            sinking_timescales.get(element2),
+            metallicity,
+            system.wd_properties[mp.WDParameter.consider_thermohaline],
+            system.wd_properties[mp.WDParameter.temperature],
+            system.wd_properties[mp.WDParameter.logg]
+        )
         return d_formation
 
-    def find_d_formation(self, element1, element2, target_ratio, t_disc, t_sinceaccretion, t_1, t_2, metallicity=[None]):
+    def find_d_formation(self, element1, element2, target_ratio, t_disc, t_sinceaccretion, t_1, t_2, metallicity=[None], consider_thermohaline=False, Teff=None, logg=None):
         # Assume initial composition is Solar like (according to geology_info) (These are not normalised but doesn't matter)
         #initial_CaHx = -1.22077587
         #initial_NaHx = -1.3596521970000002
@@ -585,15 +633,16 @@ class Modeller:
         #initial_ratio = 10**(initial_XHx1 - initial_XHx2)
 
         #initial_ratio = 0.048984876/0.058807196
+
         d_formation_toret = list()
         stars_to_sample = metallicity if not all(m is None for m in metallicity) else self.default_star
         if self.sample_across_stars:
             stars_to_sample = self.stars_to_sample
+        M_cvz = 1000
         z_formation = 0.05
         t_formation = 1.5
         tolerance = 0.000001
         max_iterations = 50
-        pollutionfraction = -6 # This doesn't matter since we only care about ratios
         if len(t_sinceaccretion) == 1:
             t_sinceaccretion = len(stars_to_sample)*t_sinceaccretion
         if len(t_disc) == 1:
@@ -615,7 +664,18 @@ class Modeller:
                     test_d_formation = 0.5*(lower_d_formation_bound + upper_d_formation_bound)
                     test_abundances = am.get_all_abundances(ci.usual_elements, test_d_formation, z_formation, t_formation, star)
                     presunk_ratio = initial_ratio*(test_abundances[element1]/test_abundances[element2])
-                    postsinking_abundances = wdm.process_abundances(t_sinceaccretion[star_count], t_disc[star_count], [presunk_ratio, 1], wd_timescales, pollutionfraction, True)
+                    postsinking_abundances = atm.calculate_abundance_by_number(
+                        t_sinceaccretion[star_count],
+                        t_disc[star_count],
+                        ci.Element.H, # We can use H here without loss of generality - it scales the abundances linearly, and we only care about the ratios
+                        M_cvz,
+                        np.array([ci.get_element_mass(element1), ci.get_element_mass(element2)]),
+                        np.array([presunk_ratio, 1]),
+                        wd_timescales,
+                        consider_thermohaline,
+                        Teff,
+                        logg
+                    )
                     test_ratio = 10**(postsinking_abundances[0] - postsinking_abundances[1])
                     rel_diff = abs((test_ratio - target_ratio)/target_ratio)
                     if rel_diff < tolerance:

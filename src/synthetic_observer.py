@@ -135,20 +135,8 @@ class Observer:
         return threshold
 
     def apply_TeffDependentIndividualElementCutoff(self, system):
-        cutoff_thresholds = {  # Abundances have to be above this in order to detect element
-            ci.Element.Al: self.calculate_element_cutoff_threshold(ci.Element.Al, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Ti: self.calculate_element_cutoff_threshold(ci.Element.Ti, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Ca: self.calculate_element_cutoff_threshold(ci.Element.Ca, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Ni: self.calculate_element_cutoff_threshold(ci.Element.Ni, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Fe: self.calculate_element_cutoff_threshold(ci.Element.Fe, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Cr: self.calculate_element_cutoff_threshold(ci.Element.Cr, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Mg: self.calculate_element_cutoff_threshold(ci.Element.Mg, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Si: self.calculate_element_cutoff_threshold(ci.Element.Si, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.Na: self.calculate_element_cutoff_threshold(ci.Element.Na, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.O: self.calculate_element_cutoff_threshold(ci.Element.O, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.C: self.calculate_element_cutoff_threshold(ci.Element.C, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]),
-            ci.Element.N: self.calculate_element_cutoff_threshold(ci.Element.N, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature])
-        }
+        potentially_detectable_elements = self.threshold_def_dict[system.wd_properties[mp.WDParameter.spectral_type]].keys()
+        cutoff_thresholds = {ped: self.calculate_element_cutoff_threshold(ped, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]) for ped in potentially_detectable_elements}
         # Firstly, apply random noise:
         noisy_abundances = self.apply_errors(system.pollution_abundances)
         # Now remove any elements which fall below the cutoff threshold

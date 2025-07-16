@@ -91,7 +91,7 @@ def get_binned_temperature_stats(xlsx_files, wd_names, path=None):
             continue  # No temp vals for this WD
         bin_centres_raw = sheet.col_values(3)
         temp_vals_raw = sheet.col_values(4)
-        
+
         bin_heading_index = bin_centres_raw.index('Bin Value Temperature/K')
         bin_centres = [be for be in bin_centres_raw[bin_heading_index+1:] if be != '']
 
@@ -130,26 +130,6 @@ def make_all_lifetime_hist_plot(all_values, combine=True):
         wd_names.append(wd_name)
         all_heights.append(heights)
     if combine:
-        #superlist = np.array([])
-        #for wd_name, wd_values in all_values.items():
-        #    print(wd_name)
-        #    for value in wd_values:
-        #        superlist = np.append(superlist, value)
-        #    print(len(superlist))
-        #print(superlist)
-        #superlist = np.concatenate([10**(key_value_pair[1]) for key_value_pair in all_values.items()])
-        #print(superlist)
-        #print(len(superlist))
-        #exp_mean = np.mean(superlist)
-        #print(exp_mean)
-        #print(np.log10(exp_mean))
-        #exp_median = np.percentile(superlist, 50)
-        #exp_sigma_upper = np.percentile(superlist, 84)
-        #exp_sigma_lower = np.percentile(superlist, 16)
-        #median = np.log10(exp_median)
-        #print(median)
-        #errorplus = np.log10(exp_sigma_upper - exp_median)
-        #errorminus = np.log10(exp_median - exp_sigma_lower)
         all_exp_means = np.array([np.mean(10**key_value_pair[1]) for key_value_pair in all_values.items()])
         assert len(all_exp_means) == 202
         exp_median = np.percentile(all_exp_means, 50)

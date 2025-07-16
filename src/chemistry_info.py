@@ -403,7 +403,7 @@ element_masses = {
 def get_element_mass(element):
     return element_masses[element]
 
-usual_elements = [
+usual_elements = [ # The ones we assume can safely be handled anywhere in the code
     Element.Al,
     Element.Ti,
     Element.Ca,
@@ -417,6 +417,27 @@ usual_elements = [
     Element.C,
     Element.N
 ]
+
+non_metals = [Element.H, Element.He]
+
+metals = [el for el in all_elements if el not in non_metals]
+
+writeable_elements = usual_elements
+#writeable_elements = [ # The ones we're going to attempt to write to a csv in the synthetic pipeline (and by extension, compute in the forward model!). Doesn't require full functionality elsewhere
+#    Element.Al,
+#    Element.Ti,
+#    Element.Ca,
+#    Element.Ni,
+#    Element.Fe,
+#    Element.Cr,
+#    Element.Mg,
+#    Element.Si,
+#    Element.Na,
+#    Element.O,
+#    Element.C,
+#    Element.N,
+#    Element.S
+#]
 
 atmospheric_types = [
     Element.H,

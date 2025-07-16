@@ -15,6 +15,7 @@ import graph_factory as gf
 import live_data as ld
 import manager as mn
 import pwd_utils as pu
+import timescale_interpolator as ti
 import white_dwarf_model as wdm
 
 from argparse import Namespace
@@ -185,7 +186,7 @@ system_categories = {
     'GD362Corr': 'NED',
     'GD378': 'NED',
     'GD40Corr': 'NED',
-    'GD424': 'NED', 
+    'GD424': 'NED',
     'GD56': 'NED',
     'GD61Corr': 'HPM', # High pressure mantle
     'HE0106-3253': 'Pdegen', # Pressure degenerate
@@ -193,7 +194,7 @@ system_categories = {
     'LHS2534': 'Unphysical',
     'NLTT43806Corr': 'HPM',
     'PG0843+516XCorr': 'Pdegen',
-    'PG1015+161Xu': 'Pdegen', 
+    'PG1015+161Xu': 'Pdegen',
     'PG1225-079Corr': 'NED',
     'SDSSJ0512-0505': 'Pdegen',
     'SDSSJ0738+1835Corr': 'Puncon', # Pressure unconstrained
@@ -228,13 +229,13 @@ def generate_pressure_vals():
     return list(range(0, 61, 1))
     return list(range(0, 10, 1)) + list(range(10, 55, 5)) + [54] + list(range(55, 105, 5))
     #return list(range(0, 101, 1))
-    
+
 def generate_fO2_vals():
     return list()
     print('Warning: using only 2 fO2 values!')
     return [-3, -1]
     return list(range(-3, 0, 1))
-    
+
 def generate_fcf_vals():
     return list()
     return [0.1, 0.2]
@@ -298,11 +299,11 @@ def generate_synthetic_stellar_data(stellar_data, N_synth=10000):
                 # But actually the assumed log(Mg/H) shouldn't matter in the end
                 # It all cancels down to
                 # new value = base_star[X] * 10 ^ (XH_scatter - MgH_scatter)
-                
+
                 XH_scatter = np.random.normal(0, sigma_dict[element])
                 synthetic_value = base_star[el_index] * (10**(XH_scatter - MgH_scatter))
                 synthetic_star.append(synthetic_value)
-                
+
                 el_index += 1
         toret.append(synthetic_star)
         i += 1
@@ -314,11 +315,11 @@ def load_generic_float_data_csv(input_filename):
     generic_list =  [row for row in csv.reader(generic_csv)]
     if input_filename == 'Hollands2017WhiteDwarfObservationalDataCompositions.csv':
         generic_list.append(['-6.5', '0.2', '0', '0', '0', '0', '-6.3', '0.3', '-4.6', '0.2', '-5.8', '0.3', '-5', '0.2', '-5.2', '0.2', '0', '0', '-5', '0.3', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'])  # PG0843+516
-        generic_list.append(['-6.99', '0.15', '-8.68', '0.11', '-6.93', '0.07', '0', '0', '-6.6', '0.1', '-8.25', '0.07', '-6.29', '0.05', '-6.33', '0.1', '0', '0', '-5.48', '0.15', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'])  # WD1551+175    
+        generic_list.append(['-6.99', '0.15', '-8.68', '0.11', '-6.93', '0.07', '0', '0', '-6.6', '0.1', '-8.25', '0.07', '-6.29', '0.05', '-6.33', '0.1', '0', '0', '-5.48', '0.15', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'])  # WD1551+175
     if input_filename == 'WhiteDwarfObservationalDataTimescales.csv':
         # The timescales for PG... are super short, but the model seems to fit the t_sinceaccretion to vaguely normal values?! ==> lots of nan abundances (ie 0)
         generic_list.append(['0.006', '0.0035', '0.0036', '0.0025', '0.0027', '0.003', '0.0059', '0.0052', '0.002', '0.003', '0.006', '0.004'])  # PG0843+516
-        generic_list.append(['837529', '523600', '568853', '576766', '559758', '540754', '866962', '843335', '833681', '862979', '961612', '881049'])  # WD1551+175    
+        generic_list.append(['837529', '523600', '568853', '576766', '559758', '540754', '866962', '843335', '833681', '862979', '961612', '881049'])  # WD1551+175
     generic_array = np.asarray(generic_list)
     return generic_array.astype(np.float)
 
@@ -326,7 +327,7 @@ def run_complete_model(trial_fits, extended_fits):
     # This section is basically replicating some set up functionality in the Manager which I want to avoid using directly
     observations = load_generic_float_data_csv('Hollands2017HB20CompositionsSpuriousRemoved.csv')#'Hollands2017HB20CompositionsSpuriousRemoved.csv')
     timescales = load_generic_float_data_csv('Hollands2017HB20Timescales.csv')#'Hollands2017HB20Timescales.csv')
-    
+
     wd_data = dict()
     wd_abundances = dict()
     wd_timescales = dict()
@@ -349,17 +350,17 @@ def run_complete_model(trial_fits, extended_fits):
             wd_data[i][20],
             wd_data[i][22]
         ])
-    
+
     ld._live_stellar_compositions = load_generic_float_data_csv('StellarCompositionsSortFE.csv')
     ld._live_model = 'Model_Full_No_Crust'
-    
+
     data_dump = dict()
     abundances_dict = dict()
     abundance_lower_bounds_dict = dict()
     abundance_upper_bounds_dict = dict()
     errors_dict = dict()
     stellar_data = list()
-    
+
     args = {
         # Args are: wd observation index, fe_star, t_sinceaccretion, d_formation, z_formation, N_c, N_o, f_c, f_o, pollutionfraction, t_disc
         #'Run1': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -391,16 +392,17 @@ def run_complete_model(trial_fits, extended_fits):
         #'SDSSJ0046+2717': [97, 497.566649374994824, 4.44983251793118928, 0.986849496686652672, 0.0800765049082564490, 0.101173441512605947, 0, 0.190268783122635343, 0, -5.93627694792752969, 4.72730656336368149, 50.9515380519172751, -2.55232983692679438],
         #'PG0843+516': [208, 506.384908064871354, 1.22015164643037965, 1.65900087151922726, 0.0765287567312275541, 0.119782946405400131, 0, 0.700244502198948293, 0, -4.08092789522224120, 3.93531788746016087, 45.6418294690524249, -2.58645754299788688]
     }
-    manager = mn.Manager(
-        Namespace(
-            wd_data_filename='WDInputData.csv',
-            stellar_compositions_filename='StellarCompositionsSortFE.csv',
-            n_live_points = 0, # This argument shouldn't matter, in fact we only use the manager to access observational data so nothing else matters
-            enhancement_model = 'NonEarthlike',
-            base_dir = '.',
-            pollution_model_names=['Model_24']
-        )
-    )
+    manager = mn.Manager()
+    #manager = mn.Manager(
+    #    Namespace(
+    #        wd_data_filename='WDInputData.csv',
+    #        stellar_compositions_filename='StellarCompositionsSortFE.csv',
+    #        n_live_points = 0, # This argument shouldn't matter, in fact we only use the manager to access observational data so nothing else matters
+    #        enhancement_model = 'NonEarthlike',
+    #        base_dir = '.',
+    #        pollution_model_names=['Model_24']
+    #    )
+    #)
     for arg_name, arg_set in fise_run_args.items():
         if limit_to_sample and arg_name not in systems_in_sample:
             continue
@@ -423,7 +425,7 @@ def run_complete_model(trial_fits, extended_fits):
 
         print('Observation:')
         print(observation_to_test_on)
-        manager.publish_live_data(observation_to_test_on)
+        manager.publish_live_data(observation_to_test_on, ti.TimescaleType.KoesterOvershoot)
         abundances_dict[arg_name] = manager.wd_abundances[arg_name]
         abundance_lower_bounds_dict[arg_name] = manager.wd_abundance_lower_bounds[arg_name]
         abundance_upper_bounds_dict[arg_name] = manager.wd_abundance_upper_bounds[arg_name]
@@ -436,7 +438,7 @@ def run_complete_model(trial_fits, extended_fits):
             if abundances_dict[arg_name][element] == 0:
                 abundances_dict[arg_name][element] = np.nan
                 errors_dict[arg_name][element] = np.nan
-        we_care_about_actual_result = False        
+        we_care_about_actual_result = False
         we_care_about_extra_fits = True
         if we_care_about_actual_result:
             print()
@@ -490,18 +492,14 @@ def run_complete_model(trial_fits, extended_fits):
             else:
                 data_dump[arg_name][ef_name] = None
         if we_care_about_actual_result:
-            print('iso491')
             for p in generate_pressure_vals():
-                print('iso493')
                 data_dump[arg_name][(arg_set[7], p, arg_set[12])] = cm.complete_model_calculation(arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], arg_set[9], 10**(arg_set[10]), p, arg_set[12], 'NonEarthlike')[0]
             for fcf in generate_fcf_vals():
                 data_dump[arg_name][(fcf, arg_set[11], arg_set[12])] = cm.complete_model_calculation(arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], fcf, arg_set[8], arg_set[9], 10**(arg_set[10]), arg_set[11], arg_set[12], 'NonEarthlike')[0]
                 for p in generate_pressure_vals():
                     data_dump[arg_name][(fcf, p, arg_set[12])] = cm.complete_model_calculation(arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], fcf, arg_set[8], arg_set[9], 10**(arg_set[10]), p, arg_set[12], 'NonEarthlike')[0]
-    
+
     stellar_data = manager.stellar_compositions
-    print('iso501')
-    print(data_dump)
     return data_dump, abundances_dict, errors_dict, stellar_data, abundance_lower_bounds_dict, abundance_upper_bounds_dict
 
 def collect_model_output(system, all_observations, all_model_data, trial_fits):
@@ -540,10 +538,9 @@ def collect_model_output_mk2(system, wd_type, all_model_data, trial_fits, extend
     ]
     #fits = [(1, -3), (60, -3), (100, -3), (1, -1), (60, -1), (100, -1), (54, -2), 'Golden']
     #fits = ['LP run'] + trial_fits.get(system, list()) + [k for k in extended_fits.get(system, dict()).keys()]
-    
+
     #for f in fits:
     for f, fit in all_model_data[system].items():
-        print('iso537')
         print(f)
         print(fit)
         #print(all_model_data[system][f])
@@ -564,7 +561,7 @@ def collect_model_output_mk2(system, wd_type, all_model_data, trial_fits, extend
             else:
                 toret[str(f)] = output
     return toret
-    
+
 def collect_xfe_data(system, all_model_data, trial_fits):
     fcf_vals = list()
     crfe_v_fcf = list()
@@ -962,7 +959,7 @@ def collect_best_fit_ratios(all_model_data, abundances_dict, errors_dict, stella
         nife_by_system_obs_ub.append(None)
         crmg_by_system_obs_ub.append(None)
         sife_by_system_obs_ub.append(None)
-    
+
     for arg_name, arg_set in fise_run_args.items():
         if limit_to_sample and arg_name not in systems_in_sample:
             continue
@@ -1006,22 +1003,22 @@ def collect_best_fit_ratios(all_model_data, abundances_dict, errors_dict, stella
         nife_by_system_obs_err.append(None if (np.isnan(obs_Ni) or np.isnan(obs_Fe)) else np.sqrt(obs_err_Ni**2 + obs_err_Fe**2))
         crmg_by_system_obs_err.append(None if (np.isnan(obs_Cr) or np.isnan(obs_Mg)) else np.sqrt(obs_err_Cr**2 + obs_err_Mg**2))
         sife_by_system_obs_err.append(None if (np.isnan(obs_Si) or np.isnan(obs_Fe)) else np.sqrt(obs_err_Si**2 + obs_err_Fe**2))
-    
+
         crfe_by_system_obs_lb.append(None if (obs_lb_Cr is None or np.isnan(obs_Fe)) else obs_lb_Cr - obs_Fe)
         mgfe_by_system_obs_lb.append(None if (obs_lb_Mg is None or np.isnan(obs_Fe)) else obs_lb_Mg - obs_Fe)
         nife_by_system_obs_lb.append(None if (obs_lb_Ni is None or np.isnan(obs_Fe)) else obs_lb_Ni - obs_Fe)
         crmg_by_system_obs_lb.append(None if (obs_lb_Cr is None or np.isnan(obs_Mg)) else obs_lb_Cr - obs_Mg)
         sife_by_system_obs_lb.append(None if (obs_lb_Si is None or np.isnan(obs_Fe)) else obs_lb_Si - obs_Fe)
-    
+
         crfe_by_system_obs_ub.append(None if (obs_ub_Cr is None or np.isnan(obs_Fe)) else obs_ub_Cr - obs_Fe)
         mgfe_by_system_obs_ub.append(None if (obs_ub_Mg is None or np.isnan(obs_Fe)) else obs_ub_Mg - obs_Fe)
         nife_by_system_obs_ub.append(None if (obs_ub_Ni is None or np.isnan(obs_Fe)) else obs_ub_Ni - obs_Fe)
         crmg_by_system_obs_ub.append(None if (obs_ub_Cr is None or np.isnan(obs_Mg)) else obs_ub_Cr - obs_Mg)
         sife_by_system_obs_ub.append(None if (obs_ub_Si is None or np.isnan(obs_Fe)) else obs_ub_Si - obs_Fe)
-        
+
         system_ps.append(None)  # This used to be taken from arg_set but I'm disabling because the arg_set isn't up to date!
         system_fcfs.append(None)  # This used to be taken from arg_set but I'm disabling because the arg_set isn't up to date!
-    
+
     stellar_crfe, stellar_nife, stellar_mgfe, stellar_crmg, stellar_sife = collect_best_fit_ratios_from_stellar_data(stellar_data)
     synth_stellar_crfe, synth_stellar_nife, synth_stellar_mgfe, synth_stellar_crmg, synth_stellar_sife = collect_best_fit_ratios_from_stellar_data(synthetic_stellar_data)
     synth_wd_crfe_dict = dict()
@@ -1398,7 +1395,7 @@ def calculate_sinking_vectors(y_el_1, y_el_2, x_el_1, x_el_2):
     wd_timescales = np.array([19194795.09,10663368.1,14083479.59,9241341.812,9430702.751,9965597.748,22230674.45,19801266.37,21802996.49,33976746.42,44367224.76,38432208.65])  # In order of ci.usual_elements. Just an average of all the real timescale
     dummy_planetesimal_abundance = np.array([0.077449061,0.002751825,0.0536328,0.03313212,0.489834545,0.006169951,1,1.07237162,0.02754622,45.67899096,9.310358117,1.000270853])  # Just the first star in the sample. This shouldn't matter
     t_disc = 50000000  # 50 Myr, should ensure we reach a steady state
-    
+
     prev_coords = None
     time = 0
     timestep = 0.05
@@ -1432,11 +1429,11 @@ def calculate_heating_vectors(y_el_1, y_el_2, x_el_1, x_el_2):
     # where the y axis is log(y_el_1/y_el_2)
     # and the x axis is log(x_el_1/x_el_2)
     # eg for CrFe_MgFe we have y_el_1 = Cr, y_el_2 = Fe, x_el_1 = Mg, x_el_2 = Fe
-    
+
     fe_star = 478  # Pick the median value (only matters for oxygen anyway)
     z_formation = 0  # This might be a bad choice? Also 0.05 is the default! But then we do want to show the effect of heating, not the feeding zone
-    t_formation = 1.5        
-        
+    t_formation = 1.5
+
     prev_coords = None
     dist = 1
     diststep = 0.001
@@ -1496,7 +1493,7 @@ def main():
         'SDSSJ0738+1835': [(0.43722029937676, p, -2.54048938334322) for p in [0, 60]] + [(0.43722029937676, 31.2042441423048, f) for f in [-1, -3]],
         'SDSSJ0845+2257': [(0.331040611889366, p, -2.01081246790329) for p in [0, 60]] + [(0.331040611889366, 29.5502718185378, f) for f in [-1, -3]],
         'GD 378': [(0.054500320061958, p, -2.2182777080587) for p in [0, 60]] + [(0.054500320061958, 37.0105226526938, f) for f in [-1, -3]],
-        
+
         'WD0449-259': [(0.66877586362797, p, -1.36618477730749) for p in [0, 60]] + [(0.66877586362797, 19.157755678069, f) for f in [-1, -3]],
         'WD1350-162': [(0.39945856964945, p, -1.95588390243148) for p in [0, 60]] + [(0.39945856964945, 20.0942317714276, f) for f in [-1, -3]],
         'WD0122-227': [(0.567305307981525, p, -1.99238401733305) for p in [0, 60]] + [(0.567305307981525, 29.4379454699773, f) for f in [-1, -3]],
@@ -1599,17 +1596,17 @@ def main():
     synthetic_stellar_data = generate_synthetic_stellar_data(stellar_data)
     synthetic_wd_data = generate_synthetic_wd_data(abundances_dict, errors_dict)
     #pf_keys = list(data['SDSSJ1144+1218'].keys())  # This is a hack
-    
+
     #For these, assume fO2 = IW - 2
     ni_over_mg_vals = dict()
     cr_over_mg_vals = dict()
-    
+
     graph_fac = gf.GraphFactory()
-    
+
     #graph_fac.make_composition_plot('PG0843+516', all_observations['PG0843+516'], all_errors['PG0843+516'], collect_model_output('PG0843+516', all_observations, data, trial_fits))
     #graph_fac.make_composition_plot('SDSSJ1535+1247', all_observations['SDSSJ1535+1247'], all_errors['SDSSJ1535+1247'], collect_model_output('SDSSJ1535+1247', all_observations, data, trial_fits))
     #graph_fac.make_composition_plot('SDSSJ0046+2717', all_observations['SDSSJ0046+2717'], all_errors['SDSSJ0046+2717'], collect_model_output('SDSSJ0046+2717', all_observations, data, trial_fits))
-    
+
     manager = mn.Manager(
         Namespace(
             wd_data_filename='WDInputData.csv',
@@ -1620,7 +1617,7 @@ def main():
             pollution_model_names=['Model_24']
         )
     )
-    
+
     system_names, num_ref_systems, system_obs, system_obs_err, elel_by_system, system_ps, system_fcfs, text_offset_dict, stellar_dict, synth_stellar_dict, synth_wd_dict, systems_to_show_ellipse_dict, system_obs_lb, system_obs_ub = collect_best_fit_ratios(data, abundances_dict, errors_dict, stellar_data, synthetic_stellar_data, synthetic_wd_data, abundance_lower_bounds_dict, abundance_upper_bounds_dict) # Sorry
     made_up_crfe_contour_vals = list()
     made_up_mgfe_contour_vals = list()
@@ -1667,31 +1664,28 @@ def main():
                     example_fcf_lines[fragment_core_number_fraction]['p'].append(p)
 
     #cr_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['crfe'], system_obs['mgfe'], system_obs_err['crfe'], system_obs_err['mgfe'], elel_by_system['crfe'], elel_by_system['mgfe'], ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_crfe_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['crfemgfe'], example_fcf_lines, stellar_dict['crfe'], stellar_dict['mgfe'], synth_stellar_dict['crfe'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Cr, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['crfe'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['crfemgfe'], system_obs_lb['crfe'], system_obs_lb['mgfe'], system_obs_ub['crfe'], system_obs_ub['mgfe'], system_categories)
-    #ni_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['nife'], system_obs['mgfe'], system_obs_err['nife'], system_obs_err['mgfe'], elel_by_system['nife'], elel_by_system['mgfe'], ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_nife_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['nifemgfe'], example_fcf_lines, stellar_dict['nife'], stellar_dict['mgfe'], synth_stellar_dict['nife'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['nife'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['nifemgfe'], system_obs_lb['nife'], system_obs_lb['mgfe'], system_obs_ub['nife'], system_obs_ub['mgfe'], system_categories)    
+    #ni_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['nife'], system_obs['mgfe'], system_obs_err['nife'], system_obs_err['mgfe'], elel_by_system['nife'], elel_by_system['mgfe'], ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_nife_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['nifemgfe'], example_fcf_lines, stellar_dict['nife'], stellar_dict['mgfe'], synth_stellar_dict['nife'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Ni, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['nife'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['nifemgfe'], system_obs_lb['nife'], system_obs_lb['mgfe'], system_obs_ub['nife'], system_obs_ub['mgfe'], system_categories)
     #si_plot_dict = graph_fac.plot_all_system_ratios_poster_version(system_names, num_ref_systems, system_obs['sife'], system_obs['mgfe'], system_obs_err['sife'], system_obs_err['mgfe'], elel_by_system['sife'], elel_by_system['mgfe'], ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe, system_ps, system_fcfs, made_up_sife_contour_vals, made_up_mgfe_contour_vals, made_up_p_contour_vals, text_offset_dict['sifemgfe'], example_fcf_lines, stellar_dict['sife'], stellar_dict['mgfe'], synth_stellar_dict['sife'], synth_stellar_dict['mgfe'], calculate_sinking_vectors(ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), calculate_heating_vectors(ci.Element.Si, ci.Element.Fe, ci.Element.Mg, ci.Element.Fe), synth_wd_dict['sife'], synth_wd_dict['mgfe'], systems_to_show_ellipse_dict['sifemgfe'], system_obs_lb['sife'], system_obs_lb['mgfe'], system_obs_ub['sife'], system_obs_ub['mgfe'], system_categories)
     #graph_fac.multipanelise([cr_plot_dict, ni_plot_dict, si_plot_dict], 3, 1, ['bowtie_multipanel.png', 'bowtie_multipanel.pdf'], 15, 10)
 
     make_video = False
     if make_video:
         for system in ['WD0449-259NoNaCorr']:
-            print('iso1660')
             manager.publish_live_data(fise_run_args[system][0])
             raw = True
             collected_output = collect_model_output_mk2(system, manager.wd_types[system], data, trial_fits, extended_fits, make_video, raw)
             print(collected_output)
             for co_key, co_val in collected_output.items():
-                print('iso1665')
                 if co_key == 'LP run':
                     continue
                 fit_dict = {co_key: co_val}
                 if raw:
-                    print('iso1670')
                     graph_fac.make_composition_plot_raw(system, manager.wd_types[system], system + '_forvid_p' + str(int(100*co_key[1])).zfill(4) + '_', abundances_dict[system], errors_dict[system], fit_dict, None, None, abundance_upper_bounds_dict[system], abundance_lower_bounds_dict[system], make_video)
                 else:
                     graph_fac.make_composition_plot_mk2(system, manager.wd_types[system], system + '_forvid_p' + str(int(100*co_key[1])).zfill(4) + '_', abundances_dict[system], errors_dict[system], fit_dict, None, None, abundance_upper_bounds_dict[system], abundance_lower_bounds_dict[system], make_video)
         return
-    
-    make_comp_and_elel_plots = True
+
+    make_comp_and_elel_plots = False
     make_elel_plots = False
     if make_comp_and_elel_plots:
         for system in ['G238-44']:
@@ -1759,11 +1753,11 @@ def main():
                             'fcf',
                             'fO2'
                         )
-        
+
         #graph_fac.plot_3d_log_elel_ratio(wd_props['log_crfe_array'], generate_pressure_vals(), generate_fO2_vals(), wd, ci.Element.Cr, ci.Element.Fe, wd_props['cnf'], wd_props['observed_log_elfe_ratios'][ci.Element.Cr], wd_props['observed_log_elfe_ratio_errors'][ci.Element.Cr], tag)
     #graph_fac.make_composition_plot('SDSSJ1535+1247_r2000', all_observations['SDSSJ1535+1247'], all_errors['SDSSJ1535+1247'], collect_model_output('SDSSJ1535+1247_r2000', all_observations, data))
     #graph_fac.make_composition_plot('SDSSJ0046+2717_r2000', all_observations['SDSSJ0046+2717'], all_errors['SDSSJ0046+2717'], collect_model_output('SDSSJ0046+2717_r2000', all_observations, data))
     #graph_fac.make_composition_plot('PG0843+516_r2000', all_observations['PG0843+516'], all_errors['PG0843+516'], collect_model_output('PG0843+516_r2000', all_observations, data))
-    
+
 if __name__ == '__main__':
     main()

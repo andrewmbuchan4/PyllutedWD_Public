@@ -32,7 +32,7 @@ class ExcessOxygenCalculator:
                 ci.Element.Si: 2, #SiO2
                 ci.Element.Al: 1.5, #Al2O3
                 ci.Element.Ca: 1, #CaO
-                #ci.Element.C: 2, #CO2
+                #ci.Element.C: 2, #CO2 # Ignoring CO2 (more volatile than H2O? more likely to form H2O than CO2 unless really distant?)
                 ci.Element.Fe: 1.5, #Fe2O3
             }
         }
@@ -116,7 +116,7 @@ class ExcessOxygenCalculator:
         return water_mass, water_mass_fraction, excess_o_mass
 
     def calculate_sigma_significance(self, starting_abundances, favoured_layer, ox_strat, o_error):
-        if o_error == 0:
+        if o_error is None or o_error == 0:
             return None
         o_lower_bound = 0
         o_upper_bound = 10
@@ -175,6 +175,10 @@ class ExcessOxygenCalculator:
         # Composition of data points, if they were in steady state (using predicted composition to fill in missing elements)
         # Firstly, assemble the composition we're going to use
         to_use = dict()
+        i = 0
+        while reference_element not in wd_abundances:
+            reference_element = ci.usual_elements[i]
+            i += 1
         for element, default in predicted_composition.items():
             if element in wd_abundances and wd_abundances[element] != 0:
                 raw_abundance = 10**(wd_abundances[element] - wd_abundances[reference_element])
@@ -206,8 +210,6 @@ class ExcessOxygenCalculator:
                         water_mass, water_mass_fraction, excess_o_mass = self.calculate_water_abundance(normalised_abundances, favoured_layer, fractional_excess_oxygen, total_mass)
                         sigma_significance = self.calculate_sigma_significance(normalised_abundances, favoured_layer, ox_strat, o_error)
                         eoc_stat_dict[composition_name][ox_strat] = excess_oxygen, fractional_excess_oxygen, oxygen_assignations, water_mass, water_mass_fraction, excess_o_mass, normalised_abundances, self.species_names[ox_strat], sigma_significance, favoured_layer
-                # NB: If we ever include conservative compositions that involve altering all elements AND not forcing a fit to data,
-                # need to improve the logic in calculate_conservative_composition - see the TODO there. Also TODO: why are we manually setting everything to bulk here?
                 if include_conservative_solarFe_composition:
                     solar_Fe_comp = self.calculate_conservative_composition(normalised_abundances, None, ci.Element.Mg, gi.Layer.bulk, [ci.Element.Fe])
                     #additional_abundances[composition_name + ', allow solar Fe'] = solar_Fe_comp
@@ -233,7 +235,7 @@ class ExcessOxygenCalculator:
     def calculate_conservative_composition(self, nominal_model, observations, reference_element, reference_layer, elements_to_alter=None, force_data_fit=False):
         #if elements_to_alter is None, assume we need to alter all of them
         #nominal_model is linear, observations and solar are on a log scale
-        # TODO: Assuming maximum abundance for all non-O elements is definitely not the most conservative composition in general
+        # NB: Assuming maximum abundance for all non-O elements is definitely not the most conservative composition in general
         # (because you have to normalise everything afterwards)
         # Need to prioritise maximising the more oxidising elements somehow
         toret = dict()
@@ -291,7 +293,7 @@ def main():
         ci.Element.O: -4.234890122
     }
     mass = 1 # There is an inherent inconsistency in that we later assume that this mass includes H, although H is not present in the dict
-    # Basically we assume M_hydrogen << M_object -> put in paper!
+    # Basically we assume M_hydrogen << M_object
     dummy_gm = gi.GeologyModel()
     earth = dummy_gm.element_info
     print(earth)

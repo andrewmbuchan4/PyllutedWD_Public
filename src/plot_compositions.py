@@ -83,9 +83,12 @@ def main():
         }
     }
     impure_core_frac = 0.9
+    impure_mantle_frac = 0.96
     test_composition['Impure Core'] = dict()
+    test_composition['Impure Mantle'] = dict()
     for el in ci.usual_elements:
         test_composition['Impure Core'][el] = (impure_core_frac*test_composition['Core'][el]) + ((1-impure_core_frac)*test_composition['Mantle'][el])
+        test_composition['Impure Mantle'][el] = (impure_mantle_frac*test_composition['Mantle'][el]) + ((1-impure_mantle_frac)*test_composition['Core'][el])
     all_wd_abundances = {
         ci.Element.Al: -6,
         ci.Element.Ti: -6,

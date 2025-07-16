@@ -1,7 +1,52 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 import chemistry_info as ci
+
+min_mdot_bank = {
+    # Calculate this using the find_mdot_cutoff_as_function_of_teff function in find_synthetic_wd_mass_cutoff.py
+    'Hollands': {
+        'DB': {
+            'gradient': 0.00102,
+            'yintercept': 15.23103026,
+            'leeway': 5 # Seems a bit high - but I've calibrated it and seems to work
+        }
+    },
+    'Default': {
+        'DA': { # These values are not wrong, but are a bit inefficient because it means we will likely forward model a lot of systems with no detectable pollution
+            'gradient': 0,
+            'yintercept': -np.inf,
+            'leeway': 0
+        }
+    },
+    'Realistic': {
+         # These values are not wrong, but are a bit inefficient because it means we will likely forward model a lot of systems with no detectable pollution
+        'DA': {
+            'gradient': 0,
+            'yintercept': -np.inf,
+            'leeway': 0
+        },
+        'DB': {
+            'gradient': 0,
+            'yintercept': -np.inf,
+            'leeway': 0
+        }
+    },
+    'ELB_DT': {
+        'DA': {
+            'gradient': -0.00004963316712,
+            'yintercept': 18.68687806,
+            'leeway': 4 # This is calibrated VERY roughly!
+        },
+        'DB': {
+            'gradient': 0.0001503674854,
+            'yintercept': 14.18686497,
+            'leeway': 0.5 # This is calibrated VERY roughly!
+        }
+    }
+}
 
 threshold_bank = { # Used for defining detection thresholds if observation_type == ObservationType.TeffIndividualElementCutoff
     'Default': {
@@ -16,8 +61,10 @@ threshold_bank = { # Used for defining detection thresholds if observation_type 
             ci.Element.Si: (0.000384039372, -(14.1531876-0.873705764)),
             ci.Element.Na: (0.000384039372, -(14.1531876-1.532413312)),
             ci.Element.O: (0.000384039372, -(14.1531876-2.405138313)),
-            ci.Element.C: (0.000384039372, -(14.1531876-2.405138313)),  # Duplicating O, but since C is not used in modelling this choice makes no difference
-            ci.Element.N: (0.000384039372, -(14.1531876-2.405138313))  # Duplicating O, but since C is not used in modelling this choice makes no difference
+            ci.Element.C: (0.000384039372, -(14.1531876-2.405138313)),  # Duplicating O
+            ci.Element.N: (0.000384039372, -(14.1531876-2.405138313)),  # Duplicating O
+            ci.Element.S: (0.000384039372, -(14.1531876-2.405138313)) #Duplicating O
+
         },
         'DB': {
             ci.Element.Al: (0.000416915147, -(16.6297136-0.955322979)),
@@ -30,8 +77,9 @@ threshold_bank = { # Used for defining detection thresholds if observation_type 
             ci.Element.Si: (0.000416915147, -(16.6297136-0.808628868)),
             ci.Element.Na: (0.000416915147, -(16.6297136-2.142770512)),
             ci.Element.O: (0.000416915147, -(16.6297136-2.103844062)),
-            ci.Element.C: (0.000416915147, -(16.6297136-2.103844062)),  # Duplicating O, but since C is not used in modelling this choice makes no difference
-            ci.Element.N: (0.000416915147, -(16.6297136-2.103844062))  # Duplicating O, but since C is not used in modelling this choice makes no difference
+            ci.Element.C: (0.000416915147, -(16.6297136-2.103844062)),  # Duplicating O
+            ci.Element.N: (0.000416915147, -(16.6297136-2.103844062)),  # Duplicating O
+            ci.Element.S: (0.000416915147, -(16.6297136-2.103844062))  # Duplicating O
         }
     },
     '560mA': {
@@ -46,8 +94,8 @@ threshold_bank = { # Used for defining detection thresholds if observation_type 
             ci.Element.Si: (0.00038403937, -(12.5511276-0.873705764)),
             ci.Element.Na: (0.00038403937, -(12.5511276-1.532413312)),
             ci.Element.O: (0.00038403937, -(12.5511276-2.405138313)),
-            ci.Element.C: (0.00038403937, -(12.5511276-2.405138313)),  # Duplicating O, but since C is not used in modelling this choice makes no difference
-            ci.Element.N: (0.00038403937, -(12.5511276-2.405138313))  # Duplicating O, but since C is not used in modelling this choice makes no difference
+            ci.Element.C: (0.00038403937, -(12.5511276-2.405138313)),  # Duplicating O
+            ci.Element.N: (0.00038403937, -(12.5511276-2.405138313))  # Duplicating O
         },
         'DB': {
             ci.Element.Al: (0.000416915147, -(15.0276536-0.955322979)),
@@ -60,8 +108,8 @@ threshold_bank = { # Used for defining detection thresholds if observation_type 
             ci.Element.Si: (0.000416915147, -(15.0276536-0.808628868)),
             ci.Element.Na: (0.000416915147, -(15.0276536-2.142770512)),
             ci.Element.O: (0.000416915147, -(15.0276536-2.103844062)),
-            ci.Element.C: (0.000416915147, -(15.0276536-2.103844062)),  # Duplicating O, but since C is not used in modelling this choice makes no difference
-            ci.Element.N: (0.000416915147, -(15.0276536-2.103844062))  # Duplicating O, but since C is not used in modelling this choice makes no difference
+            ci.Element.C: (0.000416915147, -(15.0276536-2.103844062)),  # Duplicating O
+            ci.Element.N: (0.000416915147, -(15.0276536-2.103844062))  # Duplicating O
         }
     },
     'v2': {
@@ -125,6 +173,42 @@ threshold_bank = { # Used for defining detection thresholds if observation_type 
             ci.Element.C: (0, 0),
             ci.Element.N: (0, 0)
         }
+    },
+    'ELB_DT': { #These are the 'real', not the conservative, limits. Interpolated between 10,000 and 20,000 K
+        'DA': {
+            ci.Element.C: (-0.0001, -7),
+            ci.Element.N: (-0.00025, -4),
+            ci.Element.O: (0.0001, -9),
+            ci.Element.Mg: (0.00005, -6.5),
+            ci.Element.Al: (-0.00005, -5),
+            ci.Element.Si: (-0.0002, -3),
+            ci.Element.P: (-0.00005, -7.5),
+            ci.Element.S: (-0.00005, -6.5),
+            ci.Element.Ca: (0.00025, -11),
+            ci.Element.Fe: (0, -6.5),
+            ci.Element.Ni: (0, -7),
+            ci.Element.Cu: (0.00005, -10),
+            ci.Element.Cr: (0, 0),
+            ci.Element.Na: (0, 0),
+            ci.Element.Ti: (0, 0)
+        },
+        'DB': {
+            ci.Element.C: (0.00015, -12.5),
+            ci.Element.N: (0.00005, -10),
+            ci.Element.O: (0.0003, -13.5),
+            ci.Element.Mg: (0.0002, -10.5),
+            ci.Element.Al: (0.00005, -8),
+            ci.Element.Si: (0, -8),
+            ci.Element.P: (0.00015, -12.5),
+            ci.Element.S: (0.0001, -11),
+            ci.Element.Ca: (0.0003, -13),
+            ci.Element.Fe: (0.00015, -10),
+            ci.Element.Ni: (0.0002, -11.5),
+            ci.Element.Cu: (0.00025, -14.5),
+            ci.Element.Cr: (0, 0),
+            ci.Element.Na: (0, 0),
+            ci.Element.Ti: (0, 0)
+        }
     }
     #'v1': {
     #    'DA': {
@@ -157,17 +241,3 @@ threshold_bank = { # Used for defining detection thresholds if observation_type 
     #    }
     #}
 }
-# The Default set above are calculated from MWDD (03/08/22) looking at all available WDs with pollution recorded and specifying 2 coordinates that the threshold seems to pass through (from visual inspection, leaving a ~0.5 dex margin) These are:
-# Actually from WDMS, seems to be more complete!?
-# Al: DA: (5000, -10) and (22500, -7) DB: (5000, -9.2) and (24000, -6)
-# Ti: DA: (5000, -10.4) and (13500, -8) DB: (10000, -11.2) and (15000, -10.6)
-# Ca: DA: (5000, -10.4) and (24000, -6.6) DB: (7500, -10.8) and (20000, -8.2) where WDJ1922+0233 is an outlier
-# Ni: DA: (5500, -10) and (22500, -6.8) DB: (5000, -10) and (17500, -8) where WD1425+540 is an outlier
-# Fe: DA: (5000, -9.4) and (22500, -5.6) DB: (5000, -10) and (22500, -6.6)
-# Cr: DA: (5000, -10) and (23000, -6) DB: (5000, -10.6) and (22500, -8.2) where GD378 is an outlier
-# Mg: DA: (2500, -9.4) and (15000, -7.2) DB: (5000, -9.4) and (22500, -6.2) where WD1425+540 is an outlier
-# Si: DA: (7500, -7.4) and (20000, -6.5) where WD2230-125 is an outlier DB: (5000, -8.1) and (24000, -8.1)
-# Na: DA: (5000, -8.1) and (24000, -8.1) (only 1 data point for this!) DB: (6000, -10) and (17000, -6) where WDJ2147-4035 is an outlier
-# O: DA: (5000, -5.6) and (22500, -5.6) DB: (5000, -6.7) and (24000, -6.7)
-# C: DA: (5000, -7.6) and (22500, -7.6) DB: (5000, -8) and (24000, -8)
-# N: DA: (5000, -6) and (22500, -6) no data points! basing this on lowest upper bound DB: (5000, -8.2) and (24000, -8.2) only one data point!

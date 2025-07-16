@@ -1,0 +1,360 @@
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 11000. -11.994  1.958  1.627  1.679  1.830  1.875  1.777  1.658
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    1.599  1.496  1.444  1.443  1.469  1.607  1.641
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    1.627  1.534  1.503  1.475  1.441  1.415  1.385
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    1.385  1.406  1.390  1.392  1.371  1.316  1.305
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 12000. -12.601  1.584  1.155  1.284  1.461  1.500  1.368  1.258
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    1.187  1.061  1.005  0.997  1.068  1.222  1.247
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    1.219  1.130  1.091  1.042  1.022  0.992  0.973
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    0.982  0.995  0.975  0.976  0.941  0.903  0.887
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 13000. -13.115  1.161  0.657  0.930  1.108  1.104  0.935  0.863
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    0.779  0.637  0.574  0.554  0.717  0.867  0.862
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    0.799  0.744  0.695  0.618  0.615  0.581  0.600
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    0.612  0.612  0.589  0.594  0.513  0.524  0.505
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 14000. -13.610  0.686  0.229  0.584  0.757  0.714  0.514  0.446
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    0.339  0.235  0.172  0.157  0.375  0.507  0.477
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    0.389  0.350  0.278  0.218  0.214  0.177  0.227
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    0.242  0.234  0.208  0.223  0.106  0.133  0.117
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 15000. -14.164  0.126 -0.172  0.199  0.333  0.228  0.031 -0.040
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -0.162 -0.211 -0.281 -0.233 -0.007  0.053 -0.012
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.072 -0.118 -0.251 -0.255 -0.260 -0.229 -0.216
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.218 -0.232 -0.260 -0.252 -0.333 -0.326 -0.353
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 16000. -14.968 -0.419 -0.642 -0.278 -0.366 -0.537 -0.685 -0.864
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.052 -1.109 -1.172 -0.704 -0.596 -0.661 -0.767
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.800 -0.902 -0.987 -0.994 -0.920 -0.823 -0.819
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.864 -0.891 -0.900 -0.935 -1.024 -1.035 -1.077
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 17000. -15.546 -1.264 -1.017 -0.677 -0.953 -1.203 -1.320 -1.398
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.487 -1.540 -1.553 -1.083 -1.124 -1.177 -1.242
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.311 -1.571 -1.705 -1.740 -1.295 -1.329 -1.356
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.390 -1.401 -1.435 -1.460 -1.468 -1.468 -1.500
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 18000. -15.521 -1.076 -1.011 -0.658 -0.878 -1.159 -1.298 -1.386
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.474 -1.516 -1.547 -1.074 -1.103 -1.154 -1.212
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.263 -1.499 -1.642 -1.694 -1.287 -1.310 -1.335
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.373 -1.387 -1.419 -1.438 -1.457 -1.457 -1.490
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 19000. -15.454 -0.883 -0.977 -0.615 -0.771 -1.050 -1.223 -1.339
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.433 -1.469 -1.514 -1.038 -1.040 -1.098 -1.155
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.191 -1.373 -1.506 -1.566 -1.253 -1.249 -1.267
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.313 -1.334 -1.362 -1.379 -1.415 -1.416 -1.451
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+7.5 20000. -15.409 -0.793 -0.959 -0.591 -0.714 -0.958 -1.147 -1.296
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.407 -1.444 -1.495 -1.018 -0.986 -1.054 -1.120
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.151 -1.292 -1.404 -1.453 -1.233 -1.198 -1.208
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.259 -1.287 -1.310 -1.330 -1.385 -1.389 -1.426
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 11000. -12.211  1.260  0.985  1.262  1.311  1.207  1.055  1.022
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    0.844  0.825  0.807  0.855  1.002  1.046  0.942
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    0.917  0.896  0.750  0.780  0.811  0.747  0.779
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    0.783  0.783  0.776  0.780  0.679  0.699  0.683
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 12000. -13.165  0.880  0.466  0.603  0.770  0.799  0.657  0.558
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    0.490  0.360  0.310  0.308  0.379  0.524  0.544
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    0.506  0.425  0.389  0.334  0.322  0.295  0.267
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    0.279  0.292  0.273  0.278  0.231  0.202  0.187
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 13000. -13.636  0.507  0.034  0.283  0.452  0.450  0.275  0.206
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    0.128 -0.012 -0.068 -0.082  0.062  0.204  0.202
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    0.136  0.082  0.036 -0.037 -0.038 -0.069 -0.068
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.052 -0.049 -0.071 -0.063 -0.147 -0.137 -0.155
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 14000. -14.066  0.127 -0.341 -0.014  0.154  0.122 -0.075 -0.136
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -0.232 -0.352 -0.413 -0.429 -0.232 -0.099 -0.121
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.207 -0.245 -0.307 -0.375 -0.375 -0.412 -0.381
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.363 -0.367 -0.391 -0.378 -0.490 -0.462 -0.479
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 15000. -14.490 -0.281 -0.672 -0.309 -0.150 -0.210 -0.426 -0.494
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -0.607 -0.683 -0.742 -0.744 -0.524 -0.415 -0.455
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.546 -0.583 -0.674 -0.709 -0.710 -0.738 -0.701
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.686 -0.696 -0.722 -0.702 -0.822 -0.799 -0.817
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 16000. -14.991 -0.743 -1.025 -0.658 -0.546 -0.668 -0.843 -0.911
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.048 -1.100 -1.174 -1.091 -0.871 -0.831 -0.907
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.951 -0.997 -1.149 -1.149 -1.153 -1.096 -1.092
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.100 -1.113 -1.139 -1.136 -1.205 -1.200 -1.230
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 17000. -15.721 -1.225 -1.444 -1.086 -1.174 -1.352 -1.493 -1.661
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.853 -1.910 -1.973 -1.512 -1.408 -1.469 -1.577
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.607 -1.713 -1.797 -1.800 -1.727 -1.639 -1.632
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.675 -1.700 -1.707 -1.745 -1.830 -1.840 -1.882
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 18000. -16.304 -2.107 -1.822 -1.495 -1.773 -2.016 -2.127 -2.206
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.297 -2.352 -2.359 -1.895 -1.938 -1.997 -2.062
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.132 -2.392 -2.517 -2.546 -2.106 -2.142 -2.169
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.202 -2.212 -2.249 -2.277 -2.281 -2.281 -2.312
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 19000. -16.280 -1.915 -1.815 -1.473 -1.701 -1.975 -2.105 -2.193
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.282 -2.326 -2.352 -1.885 -1.916 -1.971 -2.030
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.082 -2.324 -2.458 -2.502 -2.098 -2.124 -2.148
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.185 -2.198 -2.231 -2.254 -2.268 -2.268 -2.300
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.0 20000. -16.236 -1.749 -1.796 -1.443 -1.617 -1.902 -2.057 -2.163
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.255 -2.293 -2.333 -1.863 -1.875 -1.932 -1.989
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.027 -2.229 -2.360 -2.413 -2.077 -2.085 -2.104
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.146 -2.164 -2.194 -2.214 -2.242 -2.243 -2.276
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 11000. -11.886  1.304  1.051  1.108  1.215  1.233  1.076  1.016
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    0.966  0.856  0.835  0.861  0.877  0.968  0.979
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    0.921  0.873  0.846  0.807  0.810  0.781  0.710
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    0.722  0.745  0.740  0.760  0.687  0.666  0.663
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 12000. -13.470  0.075 -0.191  0.094  0.137  0.023 -0.119 -0.158
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -0.345 -0.360 -0.382 -0.316 -0.165 -0.128 -0.240
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.257 -0.282 -0.435 -0.403 -0.374 -0.421 -0.390
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.390 -0.392 -0.399 -0.402 -0.493 -0.476 -0.495
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 13000. -14.201 -0.201 -0.645 -0.402 -0.243 -0.250 -0.437 -0.498
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -0.575 -0.710 -0.760 -0.767 -0.631 -0.499 -0.503
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.579 -0.624 -0.671 -0.742 -0.737 -0.769 -0.779
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.758 -0.755 -0.775 -0.763 -0.857 -0.843 -0.859
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 14000. -14.610 -0.546 -0.991 -0.681 -0.522 -0.553 -0.758 -0.812
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -0.905 -1.023 -1.078 -1.090 -0.906 -0.782 -0.803
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.893 -0.926 -0.988 -1.053 -1.049 -1.085 -1.069
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.048 -1.051 -1.072 -1.056 -1.171 -1.143 -1.159
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 15000. -14.991 -0.885 -1.288 -0.941 -0.787 -0.840 -1.057 -1.116
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.225 -1.311 -1.368 -1.372 -1.164 -1.055 -1.089
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.183 -1.216 -1.301 -1.342 -1.339 -1.373 -1.344
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.326 -1.333 -1.356 -1.336 -1.459 -1.432 -1.449
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 16000. -15.383 -1.242 -1.577 -1.213 -1.075 -1.156 -1.370 -1.437
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.561 -1.615 -1.672 -1.651 -1.434 -1.355 -1.409
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.487 -1.525 -1.644 -1.653 -1.650 -1.658 -1.637
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.629 -1.640 -1.666 -1.648 -1.754 -1.739 -1.761
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 17000. -15.744 -1.548 -1.829 -1.465 -1.364 -1.487 -1.657 -1.724
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.870 -1.921 -1.993 -1.899 -1.685 -1.650 -1.730
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.771 -1.815 -1.974 -1.970 -1.971 -1.914 -1.909
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.919 -1.932 -1.955 -1.954 -2.023 -2.018 -2.047
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 18000. -16.327 -1.962 -2.200 -1.847 -1.906 -2.054 -2.156 -2.284
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.536 -2.619 -2.704 -2.271 -2.119 -2.156 -2.287
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.314 -2.403 -2.510 -2.504 -2.481 -2.357 -2.349
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.382 -2.400 -2.404 -2.442 -2.524 -2.534 -2.574
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 19000. -16.911 -2.572 -2.531 -2.197 -2.397 -2.677 -2.809 -2.904
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.996 -3.037 -3.067 -2.608 -2.632 -2.692 -2.749
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.792 -3.020 -3.142 -3.182 -2.820 -2.842 -2.862
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.900 -2.914 -2.947 -2.972 -2.989 -2.989 -3.021
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+8.5 20000. -17.062 -2.819 -2.637 -2.309 -2.556 -2.817 -2.934 -3.019
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -3.110 -3.158 -3.174 -2.714 -2.751 -2.812 -2.872
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.929 -3.181 -3.304 -3.338 -2.926 -2.957 -2.982
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -3.017 -3.028 -3.064 -3.092 -3.099 -3.099 -3.130
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 11000. -12.148  0.811  0.605  0.594  0.693  0.734  0.627  0.525
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                    0.490  0.413  0.362  0.393  0.394  0.450  0.476
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                    0.457  0.383  0.360  0.356  0.329  0.312  0.253
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                    0.216  0.244  0.246  0.265  0.233  0.180  0.170
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 12000. -13.210  0.029 -0.256 -0.098 -0.006 -0.027 -0.222 -0.243
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -0.330 -0.425 -0.437 -0.418 -0.347 -0.261 -0.287
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -0.367 -0.380 -0.443 -0.479 -0.450 -0.510 -0.546
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -0.519 -0.506 -0.512 -0.489 -0.610 -0.585 -0.592
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 13000. -14.549 -0.975 -1.247 -0.959 -0.910 -1.016 -1.166 -1.206
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.386 -1.405 -1.429 -1.369 -1.214 -1.175 -1.280
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.303 -1.327 -1.478 -1.449 -1.422 -1.467 -1.437
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.437 -1.439 -1.448 -1.447 -1.540 -1.523 -1.543
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 14000. -15.154 -1.234 -1.651 -1.353 -1.208 -1.240 -1.453 -1.501
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.594 -1.705 -1.754 -1.760 -1.588 -1.476 -1.497
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.591 -1.619 -1.686 -1.742 -1.733 -1.772 -1.767
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -1.744 -1.745 -1.764 -1.745 -1.865 -1.835 -1.851
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 15000. -15.513 -1.535 -1.929 -1.597 -1.455 -1.504 -1.724 -1.776
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -1.885 -1.972 -2.023 -2.025 -1.829 -1.728 -1.762
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -1.855 -1.884 -1.970 -2.008 -2.000 -2.038 -2.019
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.000 -2.004 -2.025 -2.004 -2.127 -2.099 -2.116
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 16000. -15.840 -1.813 -2.169 -1.819 -1.684 -1.752 -1.970 -2.029
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.152 -2.215 -2.267 -2.256 -2.049 -1.964 -2.010
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.095 -2.128 -2.237 -2.253 -2.246 -2.272 -2.251
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.238 -2.245 -2.268 -2.247 -2.364 -2.342 -2.362
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 17000. -16.288 -2.192 -2.487 -2.127 -2.022 -2.130 -2.317 -2.381
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.527 -2.572 -2.631 -2.566 -2.356 -2.310 -2.386
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.436 -2.476 -2.627 -2.619 -2.613 -2.589 -2.579
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.583 -2.594 -2.616 -2.610 -2.692 -2.683 -2.710
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 18000. -16.415 -2.292 -2.580 -2.219 -2.119 -2.235 -2.412 -2.478
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -2.627 -2.673 -2.736 -2.657 -2.446 -2.407 -2.487
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.531 -2.572 -2.728 -2.721 -2.717 -2.679 -2.671
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -2.678 -2.689 -2.712 -2.708 -2.785 -2.777 -2.805
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 19000. -16.890 -2.646 -2.897 -2.544 -2.552 -2.697 -2.791 -2.873
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -3.110 -3.196 -3.298 -2.972 -2.787 -2.799 -2.924
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -2.939 -3.004 -3.165 -3.159 -3.160 -3.026 -3.022
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -3.048 -3.060 -3.071 -3.097 -3.158 -3.161 -3.196
+
+lg   Teff     lqc   lt(He) lt(Li) lt(Be) lt(B)  lt(C)  lt(N)  lt(O)
+9.0 20000. -17.475 -3.117 -3.245 -2.908 -3.037 -3.302 -3.447 -3.578
+                    lt(F)  lt(Ne) lt(Na) lt(Mg) lt(Al) lt(Si) lt(P)
+                   -3.695 -3.733 -3.779 -3.326 -3.306 -3.370 -3.437
+                    lt(S)  lt(Cl) lt(Ar) lt(K)  lt(Ca) lt(Sc) lt(Ti)
+                   -3.465 -3.631 -3.725 -3.745 -3.538 -3.527 -3.531
+                    lt(V)  lt(Cr) lt(Mn) lt(Fe) lt(Co) lt(Ni) lt(Cu)
+                   -3.574 -3.594 -3.614 -3.647 -3.690 -3.693 -3.728

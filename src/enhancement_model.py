@@ -4,6 +4,8 @@
 # This is more of a fragment abundance calculator now, rather than an enhancement model!
 
 from enum import Enum
+import numpy as np
+
 import chemistry_info as ci
 import geology_info as gi
 
@@ -18,7 +20,9 @@ class EnhancementModel():
             'NonEarthlike': self.find_enhancements_nonearthlike,
             'MantleOnly': self.find_enhancements_nonearthlike,
             'EarthMantle': self.find_enhancements_nonearthlike,
-            'Meteorite': self.find_enhancements_nonearthlike
+            'Meteorite': self.find_enhancements_nonearthlike,
+            'NELRevamp': self.find_enhancements_nonearthlike,
+            'FixedLightElement': self.find_enhancements_with_fixed_light_element
         }
         self.model = self.known_models.get(self.model_type)
         if self.model is None:
@@ -56,7 +60,7 @@ class EnhancementModel():
         fO2,
         normalise_abundances=True,
         extra_output=False
-    ):  # TODO: Figure out something a bit more elegant than sending every parameter then ignoring half of them
+    ):
         return self.model(
             geo_model,
             disc_abundances,
@@ -74,11 +78,75 @@ class EnhancementModel():
     def find_enhancements_nonearthlike(self, geo_model, disc_abundances, elements, parent_core_number_fraction, parent_crust_number_fraction, fragment_core_number_fraction, fragment_crust_number_fraction, pressure=54, fO2=-2, normalise_abundances=True, extra_output=False):  # 54/-2 from Fischer+ 2015
         if fragment_core_number_fraction is None:
             # This means no differentiation took place
+            log_disc_abundances = {el: np.log10(disc_abundances[el]) for el in disc_abundances}
+            return disc_abundances, {'FragmentAbundances': disc_abundances, 'FragmentLogAbundances': log_disc_abundances}
+        # The geo_model should have been initialised using disc_abundances
+        number_abundances, parent_core_number_fraction, Ds, all_Ds = geo_model.form_a_planet_iteratively(pressure, fO2)
+        if number_abundances is None:
+            return None, None
+        enhancements = dict()
+        log_enhancements = dict()
+        fragment_mantle_number_fraction = 1 - fragment_core_number_fraction
+        for element in elements:
+            # The fragment abundances in each Layer are the same as the parent:
+            fragment_core_abundance = number_abundances[element][gi.Layer.core]
+            fragment_mantle_abundance = number_abundances[element][gi.Layer.mantle]
+            # But the bulk is different if it has different mantle/core fractions:
+            final = (fragment_mantle_number_fraction*fragment_mantle_abundance) + (fragment_core_number_fraction*fragment_core_abundance)
+            enhancements[element] = final
+            log_enhancements[element] = np.log10(final)
+        diagnostics_dict = {
+            'Abundances': number_abundances,
+            'ParentCoreNumberFraction': parent_core_number_fraction,
+            'Ds': Ds,
+            'FragmentAbundances': enhancements,
+            'FragmentLogAbundances': log_enhancements
+        }
+        return enhancements, diagnostics_dict
+
+    def find_enhancements_with_fixed_light_element(self, geo_model, disc_abundances, elements, parent_core_number_fraction, parent_crust_number_fraction, fragment_core_number_fraction, fragment_crust_number_fraction, pressure=54, fO2=-2, normalise_abundances=True, extra_output=False):  # 54/-2 from Fischer+ 2015
+        if fragment_core_number_fraction is None:
+            # This means no differentiation took place
             return disc_abundances, None
         # The geo_model should have been initialised using disc_abundances
         number_abundances, parent_core_number_fraction, Ds, all_Ds = geo_model.form_a_planet_iteratively(pressure, fO2)
         if number_abundances is None:
             return None, None
+
+
+        # add S to the mantle - Not modelled properly yet, so
+        # let's randomise it up to 5% (Earth is 0% McDonough 2003, Mars is 2% Yoshizaki 2020, so we're covering those cases and beyond)
+        number_abundances[ci.Element.S][gi.Layer.mantle] = np.random.uniform(0, 0.05)
+        number_abundances[ci.Element.S][gi.Layer.core] = 0.0
+        # Here's the new bit: we take any light element out of the calculated core, and replace it with the equivalent amount of the elements in the following dict:
+        light_elements = {
+             # The number is what fraction of the light element content corresponds to this specific element
+            #ci.Element.S: 0.99,
+            #ci.Element.Si: 0.005,
+            #ci.Element.O: 0.005
+
+            ci.Element.S: 0.01,
+            ci.Element.Si: 0.495,
+            ci.Element.O: 0.495
+        }
+        heavy_elements = [ci.Element.Fe, ci.Element.Ni]
+        heavy_element_content = sum([number_abundances[el][gi.Layer.core] for el in heavy_elements])
+        light_element_content = 1 - heavy_element_content
+        for el in number_abundances:
+            if el in heavy_elements:
+                pass
+            elif el in light_elements:
+                number_abundances[el][gi.Layer.core] = light_elements[el]*light_element_content
+            else:
+                number_abundances[el][gi.Layer.core] = 0.0
+        # And normalise (although, as long as the light_elements dict is normalised, I don't think this is actually necessary for the core)
+        total_core_abundance = sum([number_abundances[el][gi.Layer.core] for el in number_abundances])
+        total_mantle_abundance = sum([number_abundances[el][gi.Layer.mantle] for el in number_abundances])
+
+        for element in number_abundances:
+            number_abundances[element][gi.Layer.core] /= total_core_abundance
+            number_abundances[element][gi.Layer.mantle] /= total_mantle_abundance
+
         enhancements = dict()
         fragment_mantle_number_fraction = 1 - fragment_core_number_fraction
         for element in elements:
@@ -89,7 +157,7 @@ class EnhancementModel():
             enhancements[element] = (fragment_mantle_number_fraction*fragment_mantle_abundance) + (fragment_core_number_fraction*fragment_core_abundance)
         diagnostics_dict = {
             'Abundances': number_abundances,
-            'ParentCoreNumberFraction': parent_core_number_fraction,
+            'ParentCoreNumberFraction': None, # We changed it when we overwrote the light element, so would need to recalculate if we need this
             'Ds': Ds
         }
         return enhancements, diagnostics_dict

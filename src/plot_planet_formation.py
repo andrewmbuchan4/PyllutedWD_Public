@@ -10,7 +10,7 @@ import graph_factory as gf
 def generate_pressure_vals():
     return list(range(0, 61, 1))
     #return list(range(0, 10, 1)) + list(range(10, 105, 5))
-    
+
 def generate_fO2_vals():
     return[-3, -2.8, -2.6, -2.4, -2.2, -2, -1.8, -1.6, -1.4, -1.2, -1]  # Reducing range to avoid non-convergence!
 
@@ -82,7 +82,8 @@ def form_planets(geo_model, start_from_prev_result=False):
             else:
                 for element in abundances.keys():
                     if element == ci.Element.O:
-                        continue  # This calculation is not applicable to O at present TODO: It will be soon after implementing James Badro's O parametrisation
+                        print('We currently skip O, but could proabbly reinstate it now that it has partitioning implemented...')
+                        continue
                     if prev_Ds is None or prev_cnf is None or prev_P is None:
                         critical_fragment_core_fraction_dict[(pressure, fO2)][element] = None
                         for fcf in generate_fcf_vals():
@@ -106,7 +107,7 @@ def form_planets(geo_model, start_from_prev_result=False):
             prev_cnf = cnf
             prev_P = pressure
     return planet_dict, planet_cnf_dict, planet_Ds_dict, critical_fragment_core_fraction_dict, dlogX_dP_dict
-    
+
 def form_planets_with_variable_sulfur(geo_model, pressure=None, fO2=None):
     # Each planet is defined by a bulk sulfur abundance
     planet_dict = dict()
@@ -118,7 +119,7 @@ def form_planets_with_variable_sulfur(geo_model, pressure=None, fO2=None):
         fO2 = geo_model.get_earth_oxygen_fugacity()
     geo_model.reinit()  # This ensures that the element_info is returned from an unknown state to the default
     default_abundances = dict()
-    for el, abundances in geo_model.element_info.items(): 
+    for el, abundances in geo_model.element_info.items():
         default_abundances[el] = abundances[gi.Layer.bulk]
     sulfur_vals = [s / 10000 for s in range(0, 501, 1)]
     #s_val = 0
@@ -127,7 +128,7 @@ def form_planets_with_variable_sulfur(geo_model, pressure=None, fO2=None):
     #    s_val += 0.0005
     for s in sulfur_vals:
         new_abundances = dict()
-        for el, abundance in default_abundances.items(): 
+        for el, abundance in default_abundances.items():
             new_abundances[el] = abundance
         new_abundances[ci.Element.S] = s
         geo_model.reinit(new_abundances)
@@ -274,7 +275,7 @@ def extract_stacked_abundances(stacked_named_elements, variable_p_vals_core, var
                 weighted_stacked_variable_offset = [sum(a) if a[1] is not None else None for a in zip(weighted_stacked_variable_offset, weighted_ref_vals)]
         stacked_variable_p_vals[layer][ci.Element.Placeholder] = stacked_variable_offset
         bulk_stacked_variable_p_vals[layer][ci.Element.Placeholder] = weighted_stacked_variable_offset
-        
+
     stacked_variable_fO2_vals = {gi.Layer.core: dict(), gi.Layer.mantle: dict()}
     bulk_stacked_variable_fO2_vals = {gi.Layer.core: dict(), gi.Layer.mantle: dict()}  # These will be weighted by core/mantle number fraction at a particular pressure/fO2
     weighted_stacked_variable_offset = [0]*len(variable_fO2_vals_core[ci.Element.Fe]) # Assume they all have the same number of data points...we should bail if this isn't true
@@ -302,19 +303,19 @@ def extract_stacked_abundances(stacked_named_elements, variable_p_vals_core, var
                 weighted_stacked_variable_offset = [sum(a) if a[1] is not None else None for a in zip(weighted_stacked_variable_offset, weighted_ref_vals)]
         stacked_variable_fO2_vals[layer][ci.Element.Placeholder] = stacked_variable_offset
         bulk_stacked_variable_fO2_vals[layer][ci.Element.Placeholder] = weighted_stacked_variable_offset
-    
+
     return stacked_variable_p_vals, bulk_stacked_variable_p_vals, stacked_variable_fO2_vals, bulk_stacked_variable_fO2_vals
 
 def main():
     geo_model = gi.GeologyModel()
     planet_dict, planet_cnf_dict, planet_Ds_dict, critical_fragment_core_fraction_dict, dlogX_dP_dict = form_planets(geo_model)
-    
+
     earth_pressure = geo_model.get_earth_differentiation_pressure()
     earth_fO2 = geo_model.get_earth_oxygen_fugacity()
     # planet_dict = {Planet_key: {Element1: {Layer1: number, ... } ...} ...}
     elements = planet_dict[(earth_pressure, earth_fO2)].keys()
-    
-    
+
+
     colour_dict = {
         ci.Element.Ca: '#006400',
         ci.Element.C: '#00ff00',
@@ -346,7 +347,7 @@ def main():
     variable_fcrit_dict = dict()
     variable_dlogX_dP_dict = dict()
     observed_cnfs = {'Earth': geo_model.earth_layer_number_fractions[gi.Layer.core]}
-    
+
     for element in elements:
         variable_p_vals_core[element] = list()
         variable_p_vals_mantle[element] = list()
@@ -430,10 +431,10 @@ def main():
                 variable_fO2_vals_core[element].append(None)
                 variable_fO2_vals_mantle[element].append(None)
         variable_fO2_cnf_core.append(planet_cnf_dict.get((earth_pressure, f), None))
-    
+
     mn_cr_core = list()
     mn_cr_mantle = list()
-    
+
     for i, mn in enumerate(variable_fO2_vals_core[ci.Element.Mn]):
         mn_cr_core.append(mn/variable_fO2_vals_core[ci.Element.Cr][i])
     for i, mn in enumerate(variable_fO2_vals_mantle[ci.Element.Mn]):
@@ -447,7 +448,7 @@ def main():
     print(mn_cr_core)
     print(mn_cr_mantle)
     raise
-    
+
     stacked_named_elements_combined = { # We want to bundle up minor elements for readability for the bulk plot
         gi.Layer.core: [ci.Element.Ni, ci.Element.Si, ci.Element.O, ci.Element.Fe],
         gi.Layer.mantle: [ci.Element.Ca, ci.Element.Al, ci.Element.Fe, ci.Element.Mg, ci.Element.Si, ci.Element.O]
@@ -456,7 +457,7 @@ def main():
         gi.Layer.core: [ci.Element.Cr, ci.Element.C, ci.Element.Ni, ci.Element.Si, ci.Element.O, ci.Element.Fe],
         gi.Layer.mantle: [ci.Element.C, ci.Element.Cr, ci.Element.Ni, ci.Element.Ca, ci.Element.Al, ci.Element.Fe, ci.Element.Mg, ci.Element.Si, ci.Element.O]
     }
-    
+
     stacked_variable_p_vals_for_single_plots, bulk_stacked_variable_p_vals_for_single_plots, stacked_variable_fO2_vals_for_single_plots, bulk_stacked_variable_fO2_vals_for_single_plots = extract_stacked_abundances(
         stacked_named_elements,
         variable_p_vals_core,
@@ -496,9 +497,9 @@ def main():
     #            variable_s_vals_mantle[element].append(planet_dict_sulf[s][element][gi.Layer.mantle])
     #        except KeyError:
     #            variable_s_vals_mantle[element].append(None)
-    
+
     run_tag = geo_model.config_name
-    
+
     graph_fac = gf.GraphFactory()
     #for ktp in [(54, -2), (66, -2), (67, -2), (68, -2), (69, -2), (70, -2), (71, -2), (72, -2), (73, -2), (74, -2), (75, -2), (90, -2), (154, -2)]:
     #    tag = str(ktp[0]) + '_' + str(ktp[1])
@@ -515,22 +516,22 @@ def main():
     #graph_fac.make_planet_formation_plot(variable_fO2_vals_mantle, 'fO2', generate_fO2_vals(), 'mantle', observed_earth_mantle_abundances, run_tag + s_tag)
     #graph_fac.make_planet_cnf_plot(variable_p_cnf_core, 'Pressure', generate_pressure_vals(), observed_cnfs)
     #graph_fac.make_planet_cnf_plot(variable_fO2_cnf_core, 'fO2', generate_fO2_vals(), observed_cnfs)
-    
+
     #graph_fac.make_planet_formation_plot(variable_p_vals_core_rel_iron, 'Pressure', generate_pressure_vals(), 'core', observed_earth_core_abundances_rel_iron, run_tag + s_tag, 'Iron')
     #graph_fac.make_planet_formation_plot(variable_p_vals_mantle_rel_iron, 'Pressure', generate_pressure_vals(), 'mantle', observed_earth_mantle_abundances_rel_iron, run_tag + s_tag, 'Iron')
-    
-    
+
+
     #graph_fac.make_earth_composition_plot(observed_earth_core_abundances, {'Model (' + str(earth_pressure) + ' GPa, IW' + str(earth_fO2) + ')': planet_dict[(earth_pressure, earth_fO2)]}, gi.Layer.core, 'core' + run_tag + s_tag)
     #graph_fac.make_earth_composition_plot(observed_earth_mantle_abundances, {'Model (' + str(earth_pressure) + 'GPa, IW' + str(earth_fO2) + ')': planet_dict[(earth_pressure, earth_fO2)]}, gi.Layer.mantle, 'mantle' + run_tag + s_tag)
-    
+
     #graph_fac.make_planet_formation_stacked_plot(stacked_variable_p_vals_for_single_plots[gi.Layer.core], 'Pressure', generate_pressure_vals(), 'core', observed_earth_core_abundances, colour_dict, run_tag + s_tag)
     #graph_fac.make_planet_formation_stacked_plot(stacked_variable_p_vals_for_single_plots[gi.Layer.mantle], 'Pressure', generate_pressure_vals(), 'mantle', observed_earth_mantle_abundances, colour_dict, run_tag + s_tag)
     #graph_fac.make_planet_formation_combined_stacked_plot(bulk_stacked_variable_p_vals_for_bulk_plots, 'Pressure', generate_pressure_vals(), 'bulk', None, colour_dict, run_tag + s_tag)
-    
+
     #graph_fac.make_planet_formation_stacked_plot(stacked_variable_fO2_vals_for_single_plots[gi.Layer.core], 'fO2', generate_fO2_vals(), 'core', observed_earth_core_abundances, colour_dict, run_tag + s_tag)
     #graph_fac.make_planet_formation_stacked_plot(stacked_variable_fO2_vals_for_single_plots[gi.Layer.mantle], 'fO2', generate_fO2_vals(), 'mantle', observed_earth_mantle_abundances, colour_dict, run_tag + s_tag)
     #graph_fac.make_planet_formation_combined_stacked_plot(bulk_stacked_variable_fO2_vals_for_bulk_plots, 'fO2', generate_fO2_vals(), 'bulk', None, colour_dict, run_tag + s_tag)
-    
+
     graph_fac.make_planet_formation_multipanel_stacked_plot(
         stacked_variable_p_vals_for_single_plots,
         bulk_stacked_variable_p_vals_for_single_plots,
@@ -543,13 +544,13 @@ def main():
         colour_dict,
         run_tag + s_tag
     )
-    
+
     #plot_wd_comparisons(planet_dict, run_tag) # Deprecated: Use plot_isolated_pressure_fO2_effect.py instead
     #print(planet_dict[(earth_pressure, earth_fO2)])
     #print(planet_cnf_dict[(earth_pressure, earth_fO2)])
     #print(planet_Ds_dict[(earth_pressure, earth_fO2)][-1:])
     #geo_model.tabulate_output(planet_dict[(earth_pressure, earth_fO2)], planet_cnf_dict[(earth_pressure, earth_fO2)], planet_Ds_dict[(earth_pressure, earth_fO2)][-1:][0], 'test_out')
-    
+
     #print('Ni core')
     #print(variable_s_vals_core[ci.Element.Ni])
     #print('Ni mantle')
@@ -560,9 +561,9 @@ def main():
     #print(variable_s_vals_mantle[ci.Element.Cr])
     #graph_fac.make_planet_formation_plot(variable_s_vals_core, 'Sulfur Content', sulf_vals, str(gi.Layer.core), None, '54_-2')
     #graph_fac.make_planet_formation_plot(variable_s_vals_mantle, 'Sulfur Content', sulf_vals, str(gi.Layer.mantle), None, '54_-2')
-    
+
     #graph_fac.make_fcrit_plot(variable_fcrit_dict, generate_pressure_vals(), earth_fO2)
     #graph_fac.make_dlogX_dP_plot(variable_dlogX_dP_dict, generate_fcf_vals(), earth_fO2)
-    
+
 if __name__ == '__main__':
     main()

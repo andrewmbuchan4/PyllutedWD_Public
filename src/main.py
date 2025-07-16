@@ -6,8 +6,8 @@ import manager as mn
 import pwd_utils as pu
 
 def main():
-    arguments = pu.parse_command_line_arguments()
-    manager = mn.Manager(arguments)
+    pu.set_up_configuration()
+    manager = mn.Manager()
     manager.run()
 
 if __name__ == '__main__':

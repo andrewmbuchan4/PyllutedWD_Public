@@ -73,7 +73,7 @@ class CH(GenData):
     def log2x( self, eles=None ):
         if eles is None:
             eles = self.chems
-            
+
         ss = 0.
         for x in eles:
             if not np.isnan(getattr(self, "log"+x)) :
@@ -99,11 +99,11 @@ class CH(GenData):
                     if not np.isnan(ce):
                         c_tmp[k,l] = np.power(10,np.random.normal(loc=c,scale=ce))
                         l += 1
-                    
+
         ss = np.nansum(c_tmp, axis=1)
         c_tmp = c_tmp/ss[:,None]
         ss_tmp = np.nanstd(c_tmp, axis=0)
-    
+
         l=0
         for x in eles:
             getattr(self, x+"E").append(ss_tmp[l])
@@ -120,7 +120,7 @@ class CH(GenData):
                     sum += getattr(self, e)*getattr(M,e)
                 for e in eles:
                     setattr(self, "C"+e, getattr(self, "C"+e)/sum)
-                
+
             if eles is None:
                 # check if log2x conversion has been made
                 if self.chems[0] not in locals():
@@ -130,9 +130,9 @@ class CH(GenData):
                 # rerun conversion to x
                 # as ele list may now be new
                 self.log2x(eles)
-                        
+
             x2c(self,MO,eles)
-        
+
         else :
             if eles is None:
                 eles = self.chems
@@ -144,7 +144,7 @@ class CH(GenData):
             eles = self.chems
 
         return [getattr(self, i) for i in eles]
-    
+
 
 # ---------- Peridotite liquidus ----------
 def Tpdliq(P):
@@ -166,4 +166,4 @@ def Tpdliq(P):
     else:
         T = b_lp + a_lp*P
 
-    return T #- 600  #Fudge to see what happens!
+    return T

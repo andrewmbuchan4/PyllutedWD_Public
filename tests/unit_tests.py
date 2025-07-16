@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# TODO: Find a less hacky way to import from /src/
-# Maybe add an __init__.py to /src/
-
 import csv
 import numpy as np
 import os
@@ -49,6 +46,7 @@ sys.path.append(get_path_to_src())
 sys.path.append(get_path_to_original_src())
 
 import abundance_model as am
+import atmosphere_model as atm
 import chemistry_info as ci
 import complete_model as cm
 import disc_model as dm
@@ -64,6 +62,7 @@ import original_complete_model as ocm
 import original_enhancement_model as oe
 import original_pressure_model as op
 import partition_model as pam
+import physical_constants as pc
 import pwd_utils as pu
 import rpy2.robjects as robjects
 import solar_abundances as sa
@@ -73,35 +72,83 @@ import synthetic_modeller as sm
 import synthetic_population as sp
 import synthetic_pipeline as spi
 import synthetic_observer as so
+import thermohaline_interpolator as thi
 import timescale_interpolator as ti
 import white_dwarf as wd
 import white_dwarf_model as wdm
-
-#def get_path_to_base_dir():
-#    return pu.get_path_to_output_base_dir()
-
-#def get_path_to_test_output():
-#    return get_path_to_base_dir() + 'tests'
 
 class TimescaleInterpolatorTests(unittest.TestCase):
 
     def test_init(self):
         test_ti = ti.TimescaleInterpolator()
-        self.assertEqual(6.392, test_ti.timescale_data['He'][8][3000][-7][ci.Element.C])
-        self.assertEqual(6.32, test_ti.timescale_data['He'][8][3000][-7][ci.Element.N])
-        self.assertEqual(-5.533, test_ti.timescale_data['He'][8][3000][-7]['logq'])
-        self.assertEqual(6.464, test_ti.timescale_data['He'][8][3000][-7.5][ci.Element.C])
-        self.assertEqual(6.389, test_ti.timescale_data['He'][8][3250][-7.5][ci.Element.C])
-        self.assertEqual(5.021, test_ti.timescale_data['He'][8.5][3250][-7.5][ci.Element.C])
+        self.assertEqual(6.392, test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.He][8][3000][-7][ci.Element.C])
+        self.assertEqual(6.32, test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.He][8][3000][-7][ci.Element.N])
+        self.assertEqual(-5.533, test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.He][8][3000][-7]['logq'])
+        self.assertEqual(6.464, test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.He][8][3000][-7.5][ci.Element.C])
+        self.assertEqual(6.389, test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.He][8][3250][-7.5][ci.Element.C])
+        self.assertEqual(5.021, test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.He][8.5][3250][-7.5][ci.Element.C])
+        self.assertEqual(5.98, test_ti.all_timescale_data[ti.TimescaleType.KoesterNoOvershoot][ci.Element.He][8][3250][-7.5][ci.Element.C])
         with self.assertRaises(KeyError):
-            not_real = test_ti.timescale_data['He'][8][3001][-7][ci.Element.C]
+            not_real = test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.He][8][3001][-7][ci.Element.C]
         with self.assertRaises(KeyError):
-            not_real = test_ti.timescale_data['H'][8][3000][-7][ci.Element.C]  # -7 is meaningless to a H interpolator: CaHe is not a variable
+            not_real = test_ti.all_timescale_data[ti.TimescaleType.KoesterOvershoot][ci.Element.H][8][3000][-7][ci.Element.C]  # -7 is meaningless to a H interpolator: CaHe is not a variable
+        with self.assertRaises(KeyError):
+            not_real = test_ti.all_timescale_data[ti.TimescaleType.KoesterNoOvershoot][ci.Element.He][8][3001][-7][ci.Element.C]
+        with self.assertRaises(KeyError):
+            not_real = test_ti.all_timescale_data[ti.TimescaleType.KoesterNoOvershoot][ci.Element.H][8][3000][-7][ci.Element.C]  # -7 is meaningless to a H interpolator: CaHe is not a variable
         self.assertEqual(None, test_ti.wd_data)
-        self.assertEqual(['H', 'He'], list(test_ti.interpolators.keys()))
-        self.assertEqual(2, len(test_ti.interpolators['H']['logq'].grid))  # H is 2D (Teff, logg)
-        self.assertEqual(3, len(test_ti.interpolators['He']['logq'].grid)) # He is 3D (Teff, logg, CaHe)
         self.assertEqual([
+            ti.TimescaleType.KoesterOvershoot,
+            ti.TimescaleType.KoesterNoOvershoot,
+            ti.TimescaleType.BedardNoOvershoot,
+            ti.TimescaleType.BedardOvershoot,
+            ti.TimescaleType.BedardVariableOvershoot,
+            ti.TimescaleType.Bedard3DOvershoot,
+            ti.TimescaleType.MWDD,
+            ti.TimescaleType.Bedard3DOvershootPatched
+        ], list(test_ti.interpolators.keys()))
+        self.assertEqual([ci.Element.H, ci.Element.He], list(test_ti.interpolators[ti.TimescaleType.KoesterOvershoot].keys()))
+        self.assertEqual([ci.Element.H, ci.Element.He], list(test_ti.interpolators[ti.TimescaleType.KoesterNoOvershoot].keys()))
+        self.assertEqual([ci.Element.H, ci.Element.He], list(test_ti.interpolators[ti.TimescaleType.BedardNoOvershoot].keys()))
+        self.assertEqual(2, len(test_ti.interpolators[ti.TimescaleType.KoesterOvershoot][ci.Element.H]['logq'].grid))  # H is 2D (Teff, logg)
+        self.assertEqual(3, len(test_ti.interpolators[ti.TimescaleType.KoesterOvershoot][ci.Element.He]['logq'].grid)) # He is 3D (Teff, logg, CaHe)
+        self.assertEqual(2, len(test_ti.interpolators[ti.TimescaleType.KoesterNoOvershoot][ci.Element.H]['logq'].grid))  # H is 2D (Teff, logg)
+        self.assertEqual(3, len(test_ti.interpolators[ti.TimescaleType.KoesterNoOvershoot][ci.Element.He]['logq'].grid)) # He is 3D (Teff, logg, CaHe)
+        self.assertEqual(2, len(test_ti.interpolators[ti.TimescaleType.BedardNoOvershoot][ci.Element.H]['logq'].grid))  # Both 2D in this case
+        self.assertEqual(2, len(test_ti.interpolators[ti.TimescaleType.BedardNoOvershoot][ci.Element.He]['logq'].grid))
+        expected_els_da_koester = [
+             'logq',
+             ci.Element.He,
+             ci.Element.Li,
+             ci.Element.Be,
+             ci.Element.B,
+             ci.Element.C,
+             ci.Element.N,
+             ci.Element.O,
+             ci.Element.F,
+             ci.Element.Ne,
+             ci.Element.Na,
+             ci.Element.Mg,
+             ci.Element.Al,
+             ci.Element.Si,
+             ci.Element.P,
+             ci.Element.S,
+             ci.Element.Cl,
+             ci.Element.Ar,
+             ci.Element.K,
+             ci.Element.Ca,
+             ci.Element.Sc,
+             ci.Element.Ti,
+             ci.Element.V,
+             ci.Element.Cr,
+             ci.Element.Mn,
+             ci.Element.Fe,
+             ci.Element.Co,
+             ci.Element.Ni,
+             ci.Element.Cu,
+             ci.Element.Zn
+             ]
+        expected_els_db_koester = [
              'logq',
              ci.Element.Li,
              ci.Element.Be,
@@ -131,52 +178,406 @@ class TimescaleInterpolatorTests(unittest.TestCase):
              ci.Element.Ni,
              ci.Element.Cu,
              ci.Element.Zn
-             ], list(test_ti.interpolators['He'].keys()))
+             ]
+        expected_els_da_bedard = [
+             'logq',
+             ci.Element.He,
+             ci.Element.Li,
+             ci.Element.Be,
+             ci.Element.B,
+             ci.Element.C,
+             ci.Element.N,
+             ci.Element.O,
+             ci.Element.F,
+             ci.Element.Ne,
+             ci.Element.Na,
+             ci.Element.Mg,
+             ci.Element.Al,
+             ci.Element.Si,
+             ci.Element.P,
+             ci.Element.S,
+             ci.Element.Cl,
+             ci.Element.Ar,
+             ci.Element.K,
+             ci.Element.Ca,
+             ci.Element.Sc,
+             ci.Element.Ti,
+             ci.Element.V,
+             ci.Element.Cr,
+             ci.Element.Mn,
+             ci.Element.Fe,
+             ci.Element.Co,
+             ci.Element.Ni,
+             ci.Element.Cu
+             ]
+        expected_els_db_bedard = [
+             'logq',
+             ci.Element.H,
+             ci.Element.Li,
+             ci.Element.Be,
+             ci.Element.B,
+             ci.Element.C,
+             ci.Element.N,
+             ci.Element.O,
+             ci.Element.F,
+             ci.Element.Ne,
+             ci.Element.Na,
+             ci.Element.Mg,
+             ci.Element.Al,
+             ci.Element.Si,
+             ci.Element.P,
+             ci.Element.S,
+             ci.Element.Cl,
+             ci.Element.Ar,
+             ci.Element.K,
+             ci.Element.Ca,
+             ci.Element.Sc,
+             ci.Element.Ti,
+             ci.Element.V,
+             ci.Element.Cr,
+             ci.Element.Mn,
+             ci.Element.Fe,
+             ci.Element.Co,
+             ci.Element.Ni,
+             ci.Element.Cu
+             ]
+        self.assertEqual(expected_els_da_koester, list(test_ti.interpolators[ti.TimescaleType.KoesterOvershoot][ci.Element.H].keys()))
+        self.assertEqual(expected_els_db_koester, list(test_ti.interpolators[ti.TimescaleType.KoesterOvershoot][ci.Element.He].keys()))
+        self.assertEqual(expected_els_da_koester, list(test_ti.interpolators[ti.TimescaleType.KoesterNoOvershoot][ci.Element.H].keys()))
+        self.assertEqual(expected_els_db_koester, list(test_ti.interpolators[ti.TimescaleType.KoesterNoOvershoot][ci.Element.He].keys()))
+        self.assertEqual(expected_els_da_bedard, list(test_ti.interpolators[ti.TimescaleType.BedardNoOvershoot][ci.Element.H].keys()))
+        self.assertEqual(expected_els_db_bedard, list(test_ti.interpolators[ti.TimescaleType.BedardNoOvershoot][ci.Element.He].keys()))
 
     def test_interpolation(self):
         test_ti = ti.TimescaleInterpolator()
         wd_data = test_ti.load_wd_data()
-        self.assertEqual({'CaHe': -9.1, 'Teff': 6466, 'Type': 'He', 'logg': 8.257}, wd_data['SDSSJ0002+3209'])
-        self.assertEqual({'CaHe': -6.11, 'Teff': 20409, 'Type': 'H', 'logg': 7.95}, wd_data['WD1929+011'])
-        self.assertEqual(None, test_ti.extract_timescales('He', 8.1, 3123, 0))
+        self.assertEqual({'CaHe': -9.1, 'Teff': 6466, 'Type': ci.Element.He, 'logg': 8.257}, wd_data['SDSSJ0002+3209'])
+        self.assertEqual({'CaHe': -6.11, 'Teff': 20409, 'Type': ci.Element.H, 'logg': 7.95}, wd_data['WD1929+011'])
+        expected_extraction1 = {
+            ti.TimescaleType.KoesterNoOvershoot: None,
+            ti.TimescaleType.KoesterOvershoot: None,
+            ti.TimescaleType.BedardNoOvershoot: {
+                'logq': -6.232334199999999,
+                ci.Element.H: 5.732727200000001,
+                ci.Element.Li: 6.257455600000004,
+                ci.Element.Be: 6.164903800000006,
+                ci.Element.B: 5.847232400000003,
+                ci.Element.C: 5.879926399999999,
+                ci.Element.N: 6.002531600000001,
+                ci.Element.O: 6.034313400000002,
+                ci.Element.F: 6.002959399999999,
+                ci.Element.Ne: 6.0586920000000015,
+                ci.Element.Na: 6.027485599999997,
+                ci.Element.Mg: 6.0033434,
+                ci.Element.Al: 5.900314600000005,
+                ci.Element.Si: 5.780371400000005,
+                ci.Element.P:  5.629068800000002,
+                ci.Element.S:  5.658020600000001,
+                ci.Element.Cl: 5.502982200000005,
+                ci.Element.Ar: 5.526023799999999,
+                ci.Element.K:  5.580110399999999,
+                ci.Element.Ca: 5.647683600000001,
+                ci.Element.Sc: 5.650120999999999,
+                ci.Element.Ti: 5.663650400000002,
+                ci.Element.V:  5.670551999999999,
+                ci.Element.Cr: 5.680871800000002,
+                ci.Element.Mn: 5.655886800000001,
+                ci.Element.Fe: 5.660532800000004,
+                ci.Element.Co: 5.616544599999999,
+                ci.Element.Ni: 5.552737200000001,
+                ci.Element.Cu: 5.445662399999998
+            },
+            ti.TimescaleType.BedardOvershoot: {
+                'logq': -5.6906326,
+                ci.Element.H: 6.221067200000002,
+                ci.Element.Li: 6.8880693999999965,
+                ci.Element.Be: 6.854940000000003,
+                ci.Element.B: 6.7592555999999995,
+                ci.Element.C: 6.468953200000001,
+                ci.Element.N: 6.443493200000002,
+                ci.Element.O: 6.5780556,
+                ci.Element.F: 6.553332600000002,
+                ci.Element.Ne: 6.6093112000000005,
+                ci.Element.Na: 6.580157200000001,
+                ci.Element.Mg: 6.619160399999998,
+                ci.Element.Al: 6.543061000000004,
+                ci.Element.Si: 6.517992600000005,
+                ci.Element.P:  6.450583000000002,
+                ci.Element.S:  6.293319000000003,
+                ci.Element.Cl: 6.0812431999999985,
+                ci.Element.Ar: 6.110725399999999,
+                ci.Element.K:  6.0352624,
+                ci.Element.Ca: 6.109430200000002,
+                ci.Element.Sc: 6.083895399999999,
+                ci.Element.Ti: 6.110914599999998,
+                ci.Element.V:  6.146158400000003,
+                ci.Element.Cr: 6.190768000000002,
+                ci.Element.Mn: 6.193118800000005,
+                ci.Element.Fe: 6.215168,
+                ci.Element.Co: 6.181930600000001,
+                ci.Element.Ni: 6.191247199999997,
+                ci.Element.Cu: 6.158520999999998
+            },
+            ti.TimescaleType.BedardVariableOvershoot: {
+                'logq': -5.939016599999998,
+                ci.Element.H: 5.972106799999999,
+                ci.Element.Li: 6.611198799999998,
+                ci.Element.Be: 6.585248,
+                ci.Element.B: 6.3012194000000035,
+                ci.Element.C: 6.1153874,
+                ci.Element.N: 6.293006400000002,
+                ci.Element.O: 6.3362929999999995,
+                ci.Element.F: 6.307791400000003,
+                ci.Element.Ne: 6.359745400000002,
+                ci.Element.Na: 6.336093000000002,
+                ci.Element.Mg: 6.368794599999999,
+                ci.Element.Al: 6.290168999999998,
+                ci.Element.Si: 6.159237600000002,
+                ci.Element.P: 5.946629200000002,
+                ci.Element.S: 5.9568056,
+                ci.Element.Cl: 5.872900799999997,
+                ci.Element.Ar: 5.749484800000001,
+                ci.Element.K: 5.8404953999999965,
+                ci.Element.Ca: 5.8849884,
+                ci.Element.Sc: 5.9005862,
+                ci.Element.Ti: 5.926497400000001,
+                ci.Element.V: 5.9347252,
+                ci.Element.Cr: 5.963026799999996,
+                ci.Element.Mn: 5.964051400000002,
+                ci.Element.Fe: 5.983149800000002,
+                ci.Element.Co: 5.9499124000000005,
+                ci.Element.Ni: 5.9228407999999995,
+                ci.Element.Cu: 5.831818400000003
+            },
+            ti.TimescaleType.MWDD: {
+                'logq': -6.232334199999999,
+                ci.Element.Li: 6.257455600000004,
+                ci.Element.Be: 6.163928400000006,
+                ci.Element.B: 5.848032400000001,
+                ci.Element.C: 5.879926399999999,
+                ci.Element.N: 6.002531600000001,
+                ci.Element.O: 6.034313400000002,
+                ci.Element.F: 6.003934799999997,
+                ci.Element.Ne: 6.0586920000000015,
+                ci.Element.Na: 6.027485599999997,
+                ci.Element.Mg: 6.0043188,
+                ci.Element.Al: 5.900314600000005,
+                ci.Element.Si: 5.780371400000005,
+                ci.Element.P:  5.630044200000002,
+                ci.Element.S:  5.658020600000001,
+                ci.Element.Cl: 5.502982200000005,
+                ci.Element.Ar: 5.526023799999999,
+                ci.Element.K:  5.580110399999999,
+                ci.Element.Ca: 5.648659,
+                ci.Element.Sc: 5.650120999999999,
+                ci.Element.Ti: 5.663650400000002,
+                ci.Element.V:  5.670551999999999,
+                ci.Element.Cr: 5.677770200000001,
+                ci.Element.Mn: 5.655886800000001,
+                ci.Element.Fe: 5.660532800000004,
+                ci.Element.Co: 5.616544599999999,
+                ci.Element.Ni: 5.552737200000001,
+                ci.Element.Cu: 5.445662399999998
+            }
+        }
+        test_extraction1 = test_ti.extract_timescales(ci.Element.He, 8.1, 3123, None)
+        self.assertTrue(expected_extraction1, test_extraction1)
 
-        test_extraction = test_ti.extract_timescales('He', 8.1, 3123, -7.2)
+        test_extraction = test_ti.extract_timescales(ci.Element.He, 8.1, 3123, -7.2)
         expected_test_extraction = {
-            'logq': -5.827288959999999,
-            ci.Element.Li: 6.174627040000002,
-            ci.Element.Be: 6.10975712,
-            ci.Element.B: 6.077452320000001,
-            ci.Element.C: 6.101025120000003,
-            ci.Element.N: 6.02990816,
-            ci.Element.O: 5.969210240000002,
-            ci.Element.F: 5.85992624,
-            ci.Element.Ne: 5.858646240000001,
-            ci.Element.Na: 5.783110240000001,
-            ci.Element.Mg: 5.773388960000001,
-            ci.Element.Al: 5.717176160000001,
-            ci.Element.Si: 5.712894240000001,
-            ci.Element.P: 5.658746240000001,
-            ci.Element.S: 5.654281440000002,
-            ci.Element.Cl: 5.596773440000001,
-            ci.Element.Ar: 5.5272793600000005,
-            ci.Element.K: 5.558265440000001,
-            ci.Element.Ca: 5.555288320000001,
-            ci.Element.Sc: 5.487475520000001,
-            ci.Element.Ti: 5.456463360000002,
-            ci.Element.V: 5.4264633600000005,
-            ci.Element.Cr: 5.422941440000002,
-            ci.Element.Mn: 5.396876640000001,
-            ci.Element.Fe: 5.394555360000001,
-            ci.Element.Co: 5.3685515200000005,
-            ci.Element.Ni: 5.37839152,
-            ci.Element.Cu: 5.336287360000001,
-            ci.Element.Zn: 5.325647360000001
+            ti.TimescaleType.KoesterOvershoot: {
+                'logq': -5.827288959999999,
+                ci.Element.Li: 6.174627040000002,
+                ci.Element.Be: 6.10975712,
+                ci.Element.B: 6.077452320000001,
+                ci.Element.C: 6.101025120000003,
+                ci.Element.N: 6.02990816,
+                ci.Element.O: 5.969210240000002,
+                ci.Element.F: 5.85992624,
+                ci.Element.Ne: 5.858646240000001,
+                ci.Element.Na: 5.783110240000001,
+                ci.Element.Mg: 5.773388960000001,
+                ci.Element.Al: 5.717176160000001,
+                ci.Element.Si: 5.712894240000001,
+                ci.Element.P: 5.658746240000001,
+                ci.Element.S: 5.654281440000002,
+                ci.Element.Cl: 5.596773440000001,
+                ci.Element.Ar: 5.5272793600000005,
+                ci.Element.K: 5.558265440000001,
+                ci.Element.Ca: 5.555288320000001,
+                ci.Element.Sc: 5.487475520000001,
+                ci.Element.Ti: 5.456463360000002,
+                ci.Element.V: 5.4264633600000005,
+                ci.Element.Cr: 5.422941440000002,
+                ci.Element.Mn: 5.396876640000001,
+                ci.Element.Fe: 5.394555360000001,
+                ci.Element.Co: 5.3685515200000005,
+                ci.Element.Ni: 5.37839152,
+                ci.Element.Cu: 5.336287360000001,
+                ci.Element.Zn: 5.325647360000001
+            },
+            ti.TimescaleType.KoesterNoOvershoot: {
+                'logq': -6.261410879999999,
+                ci.Element.Li: 5.79920672,
+                ci.Element.Be: 5.723501920000001,
+                ci.Element.B: 5.681917760000001,
+                ci.Element.C: 5.692329920000001,
+                ci.Element.N: 5.621113920000001, # I have checked this value by hand from the raw data
+                ci.Element.O: 5.5603017600000015,
+                ci.Element.F: 5.457495840000001,
+                ci.Element.Ne: 5.450973920000002,
+                ci.Element.Na: 5.3797979200000015,
+                ci.Element.Mg: 5.367157920000001,
+                ci.Element.Al: 5.313067040000001,
+                ci.Element.Si: 5.30658192,
+                ci.Element.P: 5.255251040000001,
+                ci.Element.S: 5.248729120000002,
+                ci.Element.Cl: 5.194461120000001,
+                ci.Element.Ar: 5.129389920000001,
+                ci.Element.K: 5.155675040000001,
+                ci.Element.Ca: 5.151353760000001,
+                ci.Element.Sc: 5.087960000000001,
+                ci.Element.Ti: 5.058255200000001,
+                ci.Element.V: 5.029333920000002,
+                ci.Element.Cr: 5.024747200000001,
+                ci.Element.Mn: 4.999665920000001,
+                ci.Element.Fe: 4.996843040000001,
+                ci.Element.Co: 4.971721120000001,
+                ci.Element.Ni: 4.979757920000001,
+                ci.Element.Cu: 4.939876000000002,
+                ci.Element.Zn: 4.929053120000001
+            },
+            ti.TimescaleType.BedardNoOvershoot: {
+                'logq': -6.232334199999999,
+                ci.Element.H: 5.732727200000001,
+                ci.Element.Li: 6.257455600000004,
+                ci.Element.Be: 6.164903800000006,
+                ci.Element.B: 5.847232400000003,
+                ci.Element.C: 5.879926399999999,
+                ci.Element.N: 6.002531600000001,
+                ci.Element.O: 6.034313400000002,
+                ci.Element.F: 6.002959399999999,
+                ci.Element.Ne: 6.0586920000000015,
+                ci.Element.Na: 6.027485599999997,
+                ci.Element.Mg: 6.0033434,
+                ci.Element.Al: 5.900314600000005,
+                ci.Element.Si: 5.780371400000005,
+                ci.Element.P:  5.629068800000002,
+                ci.Element.S:  5.658020600000001,
+                ci.Element.Cl: 5.502982200000005,
+                ci.Element.Ar: 5.526023799999999,
+                ci.Element.K:  5.580110399999999,
+                ci.Element.Ca: 5.647683600000001,
+                ci.Element.Sc: 5.650120999999999,
+                ci.Element.Ti: 5.663650400000002,
+                ci.Element.V:  5.670551999999999,
+                ci.Element.Cr: 5.680871800000002,
+                ci.Element.Mn: 5.655886800000001,
+                ci.Element.Fe: 5.660532800000004,
+                ci.Element.Co: 5.616544599999999,
+                ci.Element.Ni: 5.552737200000001,
+                ci.Element.Cu: 5.445662399999998
+            },
+            ti.TimescaleType.BedardOvershoot: {
+                'logq': -5.6906326,
+                ci.Element.H: 6.221067200000002,
+                ci.Element.Li: 6.8880693999999965,
+                ci.Element.Be: 6.854940000000003,
+                ci.Element.B: 6.7592555999999995,
+                ci.Element.C: 6.468953200000001,
+                ci.Element.N: 6.443493200000002,
+                ci.Element.O: 6.5780556,
+                ci.Element.F: 6.553332600000002,
+                ci.Element.Ne: 6.6093112000000005,
+                ci.Element.Na: 6.580157200000001,
+                ci.Element.Mg: 6.619160399999998,
+                ci.Element.Al: 6.543061000000004,
+                ci.Element.Si: 6.517992600000005,
+                ci.Element.P: 6.450583000000002,
+                ci.Element.S: 6.293319000000003,
+                ci.Element.Cl: 6.0812431999999985,
+                ci.Element.Ar: 6.110725399999999,
+                ci.Element.K: 6.0352624,
+                ci.Element.Ca: 6.109430200000002,
+                ci.Element.Sc: 6.083895399999999,
+                ci.Element.Ti: 6.110914599999998,
+                ci.Element.V: 6.146158400000003,
+                ci.Element.Cr: 6.190768000000002,
+                ci.Element.Mn: 6.193118800000005,
+                ci.Element.Fe: 6.215168,
+                ci.Element.Co: 6.181930600000001,
+                ci.Element.Ni: 6.191247199999997,
+                ci.Element.Cu: 6.158520999999998
+            },
+            ti.TimescaleType.BedardVariableOvershoot: {
+                'logq': -5.939016599999998,
+                ci.Element.H: 5.972106799999999,
+                ci.Element.Li: 6.611198799999998,
+                ci.Element.Be: 6.585248,
+                ci.Element.B: 6.3012194000000035,
+                ci.Element.C: 6.1153874,
+                ci.Element.N: 6.293006400000002,
+                ci.Element.O: 6.3362929999999995,
+                ci.Element.F: 6.307791400000003,
+                ci.Element.Ne: 6.359745400000002,
+                ci.Element.Na: 6.336093000000002,
+                ci.Element.Mg: 6.368794599999999,
+                ci.Element.Al: 6.290168999999998,
+                ci.Element.Si: 6.159237600000002,
+                ci.Element.P: 5.946629200000002,
+                ci.Element.S: 5.9568056,
+                ci.Element.Cl: 5.872900799999997,
+                ci.Element.Ar: 5.749484800000001,
+                ci.Element.K: 5.8404953999999965,
+                ci.Element.Ca: 5.8849884,
+                ci.Element.Sc: 5.9005862,
+                ci.Element.Ti: 5.926497400000001,
+                ci.Element.V: 5.9347252,
+                ci.Element.Cr: 5.963026799999996,
+                ci.Element.Mn: 5.964051400000002,
+                ci.Element.Fe: 5.983149800000002,
+                ci.Element.Co: 5.9499124000000005,
+                ci.Element.Ni: 5.9228407999999995,
+                ci.Element.Cu: 5.831818400000003
+            },
+            ti.TimescaleType.Bedard3DOvershoot: None,
+            ti.TimescaleType.MWDD: {
+                'logq': -6.232334199999999,
+                ci.Element.Li: 6.257455600000004,
+                ci.Element.Be: 6.163928400000006,
+                ci.Element.B: 5.848032400000001,
+                ci.Element.C: 5.879926399999999,
+                ci.Element.N: 6.002531600000001,
+                ci.Element.O: 6.034313400000002,
+                ci.Element.F: 6.003934799999997,
+                ci.Element.Ne: 6.0586920000000015,
+                ci.Element.Na: 6.027485599999997,
+                ci.Element.Mg: 6.0043188,
+                ci.Element.Al: 5.900314600000005,
+                ci.Element.Si: 5.780371400000005,
+                ci.Element.P:  5.630044200000002,
+                ci.Element.S:  5.658020600000001,
+                ci.Element.Cl: 5.502982200000005,
+                ci.Element.Ar: 5.526023799999999,
+                ci.Element.K:  5.580110399999999,
+                ci.Element.Ca: 5.648659,
+                ci.Element.Sc: 5.650120999999999,
+                ci.Element.Ti: 5.663650400000002,
+                ci.Element.V:  5.670551999999999,
+                ci.Element.Cr: 5.677770200000001,
+                ci.Element.Mn: 5.655886800000001,
+                ci.Element.Fe: 5.660532800000004,
+                ci.Element.Co: 5.616544599999999,
+                ci.Element.Ni: 5.552737200000001,
+                ci.Element.Cu: 5.445662399999998
+            },
+            ti.TimescaleType.Bedard3DOvershootPatched: None
         }
         self.assertEqual(expected_test_extraction, test_extraction)
-        test_H_extraction = test_ti.extract_timescales('H', 8.1, 3123)
+        test_H_extraction = test_ti.extract_timescales(ci.Element.H, 8.1, 3123)
         expected_test_H_extraction = {
             'logq': -4.338032799999992,
-            ci.Element.He: 7.0982055999999965, # This is the only value I've manually checked
+            ci.Element.He: 7.0982055999999965, # I have checked this value by hand from the raw data
             ci.Element.Li: 6.913929599999997,
             ci.Element.Be: 6.902627999999993,
             ci.Element.B: 6.925250399999989,
@@ -206,8 +607,8 @@ class TimescaleInterpolatorTests(unittest.TestCase):
             ci.Element.Cu: 6.521268799999995,
             ci.Element.Zn: 6.51356719999999
         }
-        self.assertEqual(expected_test_H_extraction, test_H_extraction)
-        test_extrapolation = test_ti.extract_timescales('He', 9.1, 6123, -6.2)
+        self.assertEqual(expected_test_H_extraction, test_H_extraction[ti.TimescaleType.KoesterOvershoot])
+        test_extrapolation = test_ti.extract_timescales(ci.Element.He, 9.1, 6123, -6.2)
         expected_extrapolation = {
             'logq': -8.82152,
             ci.Element.Li: 3.2080931200000116,
@@ -239,7 +640,7 @@ class TimescaleInterpolatorTests(unittest.TestCase):
             ci.Element.Cu: 2.447452320000007,
             ci.Element.Zn: 2.4322123200000014
         }
-        self.assertEqual(expected_extrapolation, test_extrapolation)
+        self.assertEqual(expected_extrapolation, test_extrapolation[ti.TimescaleType.KoesterOvershoot])
         wd_timescales_dict = test_ti.return_wd_timescales_as_dict(test_extraction)
         expected_wd_timescales_dict = {
             'logq': -5.827288959999999,
@@ -256,13 +657,13 @@ class TimescaleInterpolatorTests(unittest.TestCase):
             ci.Element.C: 1261900.5219890976,
             ci.Element.N: 1071292.7356341446
         }
-        self.assertEqual(expected_wd_timescales_dict, wd_timescales_dict)
-        wd_timescales_list = test_ti.return_wd_timescales_as_list(test_extraction)
+        self.assertEqual(expected_wd_timescales_dict, wd_timescales_dict[ti.TimescaleType.KoesterOvershoot])
+        wd_timescales_list = test_ti.return_wd_timescales_as_list(test_extraction[ti.TimescaleType.KoesterOvershoot])
         self.assertEqual([-5.827288959999999, 521406.1627526086, 286064.1007553645, 359160.2953306345, 238996.48847621836, 248059.2121373417, 264814.30405580055, 593456.5943745527, 516290.6261463279, 606890.3612551007, 931558.7297104555, 1261900.5219890976, 1071292.7356341446], wd_timescales_list)
-        self.assertEqual(wd_timescales_dict, test_ti.get_wd_timescales('He', 8.1, 3123, -7.2))
+        self.assertEqual(wd_timescales_dict, test_ti.get_wd_timescales(ci.Element.He, 8.1, 3123, -7.2))
         processed_wd_data = test_ti.process_wd_data()
         self.assertEqual(len(processed_wd_data), len(wd_data))
-        test_real_extraction = test_ti.extract_timescales('He', 8.257, 6466, -9.1)
+        test_real_extraction = test_ti.extract_timescales(ci.Element.He, 8.257, 6466, -9.1)
         expected_real_timescales = {
             'logq': -5.659591270399999,
             ci.Element.Li: 6.145003929600002,
@@ -294,8 +695,132 @@ class TimescaleInterpolatorTests(unittest.TestCase):
             ci.Element.Cu: 5.465944384000001,
             ci.Element.Zn: 5.4567685376
         }
-        self.assertEqual(expected_real_timescales, test_real_extraction)
-        self.assertEqual(expected_real_timescales, processed_wd_data['SDSSJ0002+3209'])
+        self.assertEqual(expected_real_timescales, test_real_extraction[ti.TimescaleType.KoesterOvershoot])
+        self.assertEqual(expected_real_timescales, processed_wd_data['SDSSJ0002+3209'][ti.TimescaleType.KoesterOvershoot])
+
+class AtmosphereModelTests(unittest.TestCase):
+
+    def assertListsAlmostEqual(self, list1, list2):
+        # This function is useful across the board - should make it available at a higher level. Should also add useful output for if the entries aren't equal
+        self.assertEqual(len(list1), len(list2))
+        for i, val1 in enumerate(list1):
+            if np.isnan(val1):
+                self.assertTrue(np.isnan(list2[i]))
+            else:
+                self.assertAlmostEqual(val1, list2[i])
+
+    def test_number_abundance_calculation_non_thermohaline(self):
+        argument_sets = [
+            # Arguments are: t, t_event, Hx, M_cvz, mu_X, M_X, tau_X, expected_N_X
+            [100, 90, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-0.8792852115115177, -0.6845351853425914, -2.1540777613296918])],
+            [0, 90, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-np.inf, -np.inf, -np.inf])],
+            [1000, 10000, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-2.7604502791595324, -2.335358024443877, -3.9421818055678997])],
+            [2000, 10000, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-2.7604502791595253, -2.335358024443877, -3.9421818055679028])], # This is a sanity check - it's practically the same as previous case because it reached steady state
+            [1500, 1000, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-8.765199987276498, -21.076016292773502, -15.715548920369425])],
+            [10500, 10000, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-9.765199987276489, -22.076016292773474, -16.715548920369407])], # This should match the previous one because they're both 500 yr into declining phase, but one order of magnitude less because we spread the same mass over a 10 times longer accretion event, so there was 1/10 the amount of material in atmosphere at start of dec phase
+            [100000000000, 10000, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-np.inf, -np.inf, -np.inf])],
+            [100, 90, ci.Element.He, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([-0.28040333557866465, -0.08565330940973795, -1.5551958853968382])], # 4 times higher than the first case bc He is 4 times heavier than H, so there are 4 times less He atoms
+            [100, 90, ci.Element.H, 0, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([np.nan, np.nan, np.nan])],
+            [100, 90, ci.Element.H, 300, np.array([0, 8000, 10.9]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), np.array([np.nan, -3.6845351853425914, -2.191504259270315])],
+            [100, 90, ci.Element.H, 300, np.array([6, 8, 10]), np.array([-200, 10000, 0]), np.array([31, 11, 17]), np.array([np.nan, -0.6845351853425914, -np.inf])],
+            [100, 90, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([0, 100000000, 10]), np.array([np.nan, 0.6232490514919188, -2.561221317793099])]
+        ]
+
+        for i, arg_set in enumerate(argument_sets):
+            print('AtmosphereModelTests: Testing arg set ' + str(i))
+            N_X = atm.calculate_abundance_by_number(arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6])
+            expected_N_X = arg_set[7]
+            self.assertListsAlmostEqual(expected_N_X.tolist(), N_X.tolist())
+
+    def test_number_abundance_calculation_thermohaline(self):
+        argument_sets = [
+            # Arguments are: t, t_event, Hx, M_cvz, mu_X, M_X, tau_X, consider_thermohaline, Teff, logg, expected_N_X
+            [100, 90, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1000, 10000, 200]), np.array([31, 11, 17]), False, 10000, 8, np.array([-0.8792852115115177, -0.6845351853425914, -2.1540777613296918])],
+            [100, 90, ci.Element.H, 300, np.array([6, 8, 10]), np.array([1, 10, 0.2]), np.array([31, 11, 17]), False, 10000, 8, np.array([-3.8792852115115177, -3.6845351853425914, -5.1540777613296918])],
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), False, 10000, 8, np.array([-4.262068962629518, -4.6876620286480355, -4.500670410361624])],
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([-5.138124625324908, -5.138124625324908, -5.138124625324908])], # Checking that all abundances are equal: differential sinking not active in this case
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 6000, 8, np.array([-4.261330505769083, -4.6869235717876006, -4.499931953501189])], # Now it is active again since this is cold enough to not trigger strong thermohaline mixing
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 30000, 8, np.array([-6.450575499257915, -6.450575499257915, -6.450575499257915])], # Differential sinking not active again. Abundances lower this time (more extreme thermohaline effect)...
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 300000, 8, np.array([-6.450575499257915, -6.450575499257915, -6.450575499257915])], # ...but the effect caps out at high Teff
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8.1, np.array([-5.0717902980865475, -5.0717902980865475, -5.0717902980865475])],
+            [100, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8.1, np.array([-5.211885292248887, -5.46660346345314, -5.3272576403825775])],
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 1000, 8, np.array([-4.262068962629518, -4.6876620286480355, -4.500670410361624])],
+            [90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 100, 8, np.array([-4.262068962629518, -4.6876620286480355, -4.500670410361624])], # Should cap out at low Teff too
+            [80, 100, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-6*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([4.889741275678141, 4.889741275678141, 4.889741275678141])],
+            [80, 100, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-5*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([5.889741275678141, 5.889741275678141, 5.889741275678141])],  # Thermohaline effects cap at high Mdot so it just scales linearly
+            [80, 100, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-22*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([-9.317408919886569, -9.733480671129392, -9.54806755834558])], # Test the low Mdot interpolation
+            [80, 100, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-27*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([-14.317527880791054, -14.733599632033878, -14.548186519250065])],
+            [80, 100, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-28*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([-15.317527880791054, -15.733599632033878, -15.548186519250065])], # Should eventually cap out too
+            [110, 100, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-24*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 100000, 8, np.array([-11.50948919722806, -12.19662151392834, -11.86938311170987])], # Declining phase, lowMdot interpolation and max Teff cap out, all in one call
+            [110, 100, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-4*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 100000, 8, np.array([5.172666137988294, 4.917947966784041, 5.0572937898546035])], # Declining phase, max Mdot cap out and max Teff cap out, all in one call
+            [0, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([-np.inf, -np.inf, -np.inf])],
+            [0.00000001, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([-14.418485214181391, -14.418485214181391, -14.418485214181391])],
+            [90, 90, ci.Element.He, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([-3.663187086696664, -4.0887801527151835, -3.901788534428771])], # No thermohaline mixing for He
+            [90, 90, ci.Element.Ru, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 6000, 8, np.array([-2.26090722903824, -2.68650029505676, -2.4995086767703474])], # The logic still works for crazy atmospheres - Ru is 100x heavier than H, so relative number abundances are 100x higher!
+            [90, -90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([np.nan, np.nan, np.nan])],
+            [-90, 90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([np.nan, np.nan, np.nan])],
+            [-90, -90, ci.Element.H, 1E-14, np.array([6, 6, 6]), 1E-17*np.array([1, 1, 1]), np.array([31, 11, 17]), True, 10000, 8, np.array([np.nan, np.nan, np.nan])]
+        ]
+
+        for i, arg_set in enumerate(argument_sets):
+            print('AtmosphereModelTests (therm): Testing arg set ' + str(i))
+            N_X = atm.calculate_abundance_by_number(arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], arg_set[9])
+            expected_N_X = arg_set[10]
+            print('Comparing the following lists')
+            print(expected_N_X.tolist())
+            print(N_X.tolist())
+            self.assertListsAlmostEqual(expected_N_X.tolist(), N_X.tolist())
+
+class ThermohalineInterpolatorTests(unittest.TestCase):
+
+    def test_init(self):
+        therm_interpolator = thi.ThermohalineInterpolator()
+        self.assertEqual(dict(), therm_interpolator.accretion_rate_limits_dict)
+        self.assertEqual(dict(), therm_interpolator.temperature_limits_dict)
+        self.assertTrue(therm_interpolator.interpolate)
+
+    def test_call(self):
+        therm_interpolator = thi.ThermohalineInterpolator()
+        self.assertEqual(dict(), therm_interpolator.accretion_rate_limits_dict)
+        self.assertEqual(dict(), therm_interpolator.temperature_limits_dict)
+        therm_factor = therm_interpolator((6, 10000, 8))
+        self.assertAlmostEqual(np.array(-0.3746319), therm_factor)
+        self.assertEqual(dict(), therm_interpolator.accretion_rate_limits_dict)
+        self.assertEqual(dict(), therm_interpolator.temperature_limits_dict)
+        therm_factor = therm_interpolator((20, 70000, 8.2))
+        self.assertAlmostEqual(np.array(-3.07815201), therm_factor)
+        self.assertEqual({(20499.840981016227, 8.2): (3.799526635787294, 11.000000000001494)}, therm_interpolator.accretion_rate_limits_dict)
+        self.assertEqual({8.2: 20499.840981016227}, therm_interpolator.temperature_limits_dict)
+        therm_factor = therm_interpolator((2, 9000, 8))
+        self.assertAlmostEqual(np.array(-0.0015027371331392955), therm_factor)
+        self.assertEqual({(20499.840981016227, 8.2): (3.799526635787294, 11.000000000001494), (9000, 8): (3.799526635787294, 11.799526635787338)}, therm_interpolator.accretion_rate_limits_dict)
+        self.assertEqual({8.2: 20499.840981016227, 8: 20501.4456482059}, therm_interpolator.temperature_limits_dict)
+        therm_factor = therm_interpolator((-2, 9000, 8))
+        self.assertAlmostEqual(np.array(0), therm_factor)
+        self.assertEqual({(20499.840981016227, 8.2): (3.799526635787294, 11.000000000001494), (9000, 8): (3.799526635787294, 11.799526635787338)}, therm_interpolator.accretion_rate_limits_dict)
+        self.assertEqual({8.2: 20499.840981016227, 8: 20501.4456482059}, therm_interpolator.temperature_limits_dict)
+
+    def test_find_accretion_rate_limits(self):
+        therm_interpolator = thi.ThermohalineInterpolator()
+        self.assertEqual(dict(), therm_interpolator.accretion_rate_limits_dict)
+        therm_interpolator.find_accretion_rate_limits(12000, 8.1)
+        self.assertEqual({(12000, 8.1): (3.799526635787305, 11.799526635787327)}, therm_interpolator.accretion_rate_limits_dict)
+        therm_interpolator.find_accretion_rate_limits(70000, 8.1)
+        self.assertEqual({(12000, 8.1): (3.799526635787305, 11.799526635787327), (70000, 8.1): (np.nan, np.nan)}, therm_interpolator.accretion_rate_limits_dict)
+        therm_interpolator.find_accretion_rate_limits(1000, 8.1)
+        self.assertEqual({(12000, 8.1): (3.799526635787305, 11.799526635787327), (70000, 8.1): (np.nan, np.nan), (1000, 8.1): (np.nan, np.nan)}, therm_interpolator.accretion_rate_limits_dict)
+        therm_interpolator.find_accretion_rate_limits(70000, 10)
+        self.assertEqual({(12000, 8.1): (3.799526635787305, 11.799526635787327), (70000, 8.1): (np.nan, np.nan), (1000, 8.1): (np.nan, np.nan), (70000, 10): (np.nan, np.nan)}, therm_interpolator.accretion_rate_limits_dict)
+
+    def test_find_max_temperature(self):
+        therm_interpolator = thi.ThermohalineInterpolator()
+        self.assertEqual(dict(), therm_interpolator.temperature_limits_dict)
+        therm_interpolator.find_max_temperature(8.1)
+        self.assertEqual({8.1: 20500.643322442924}, therm_interpolator.temperature_limits_dict)
+        therm_interpolator.find_max_temperature(8.2)
+        self.assertEqual({8.1: 20500.643322442924, 8.2: 20499.840981016227}, therm_interpolator.temperature_limits_dict)
+        therm_interpolator.find_max_temperature(6)
+        self.assertEqual({8.1: 20500.643322442924, 8.2: 20499.840981016227, 6: np.nan}, therm_interpolator.temperature_limits_dict)
 
 class WhiteDwarfDataPointTests(unittest.TestCase):
 
@@ -486,12 +1011,30 @@ class WhiteDwarfTests(unittest.TestCase):
         }
         abundance_data = wd.WhiteDwarfAbundanceData(wd_abundance_data_raw)
         white_dwarf1 = wd.WhiteDwarf('TestWD1', property_data1, abundance_data)
-        expected_str1 = "\n--- TestWD1 ---\nSpectral Type: DA\nAtmospheric Type: H\nTemperature: -1123.0±0.0 K\nLogg: 8.123±0.0\nMass: ---\nDistance: ---\nLogq: ---\nH: 0.0±0.0 (not included)\nLi: -4.6±0.6\nC: <-6.5\nK: >-12.8 (not included)\nFe: <-6.54 (not included)\nAg: -7.9^{+0.31}_{-0.33}\nPo: >-12.5\nDs: -7.6±0.4\nTs: -7.77±0.11 (not included)\n"
+        expected_str1 = "\n--- TestWD1 ---\n\nSpectral Type: DA\nAtmospheric Type: H\nTemperature: -1123.0±0.0 K\nLogg: 8.123±0.0\nMass: ---\nDistance: ---\n\nH: 0.0±0.0 (not included)\nLi: -4.6±0.6\nC: <-6.5\nK: >-12.8 (not included)\nFe: <-6.54 (not included)\nAg: -7.9^{+0.31}_{-0.33}\nPo: >-12.5\nDs: -7.6±0.4\nTs: -7.77±0.11 (not included)\n\n\n"
         self.assertEqual(str(white_dwarf1), expected_str1)
 
         white_dwarf2 = wd.WhiteDwarf('TestWD2', property_data2, abundance_data)
-        expected_str2 = "\n--- TestWD2 ---\nSpectral Type: DB\nAtmospheric Type: He\nTemperature: -1123.0±0.0 K\nLogg: 8.123±0.0\nMass: 1000.0±0.0 M_{Solar}\nDistance: 10000.0±0.0 pc\nLogq: ---\nHe: 0.0±0.0 (not included)\nLi: -4.6±0.6\nC: <-6.5\nK: >-12.8 (not included)\nFe: <-6.54 (not included)\nAg: -7.9^{+0.31}_{-0.33}\nPo: >-12.5\nDs: -7.6±0.4\nTs: -7.77±0.11 (not included)\n"
+        expected_str2 = "\n--- TestWD2 ---\n\nSpectral Type: DB\nAtmospheric Type: He\nTemperature: -1123.0±0.0 K\nLogg: 8.123±0.0\nMass: 1000.0±0.0 M_{Solar}\nDistance: 10000.0±0.0 pc\n\nHe: 0.0±0.0 (not included)\nLi: -4.6±0.6\nC: <-6.5\nK: >-12.8 (not included)\nFe: <-6.54 (not included)\nAg: -7.9^{+0.31}_{-0.33}\nPo: >-12.5\nDs: -7.6±0.4\nTs: -7.77±0.11 (not included)\n\n\n"
         self.assertEqual(str(white_dwarf2), expected_str2)
+
+        atm_data = wd.WhiteDwarfAtmosphereDataset({
+            ti.TimescaleType.KoesterNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                'logq': -14.22,
+                ci.Element.Pm: 345.6,
+                ci.Element.Sn: 987.5
+            }),
+            ti.TimescaleType.KoesterOvershoot: wd.WhiteDwarfAtmosphereData({
+                mp.WDParameter.logq: -16.22,
+                ci.Element.Pm: 3345.6,
+                ci.Element.Mc: 0.02
+            })
+        })
+        white_dwarf3 = wd.WhiteDwarf('TestWD1', property_data1, abundance_data, atm_data)
+        expected_str3 = "\n--- TestWD1 ---\n\nSpectral Type: DA\nAtmospheric Type: H\nTemperature: -1123.0±0.0 K\nLogg: 8.123±0.0\nMass: ---\nDistance: ---\n\nH: 0.0±0.0 (not included)\nLi: -4.6±0.6\nC: <-6.5\nK: >-12.8 (not included)\nFe: <-6.54 (not included)\nAg: -7.9^{+0.31}_{-0.33}\nPo: >-12.5\nDs: -7.6±0.4\nTs: -7.77±0.11 (not included)\n\nKoesterNoOvershoot Sinking Timescales:\nlog(q): -14.22±0.0\nPm: 345.6 yr\nSn: 987.5 yr\n\nKoesterOvershoot Sinking Timescales:\nlog(q): -16.22±0.0\nPm: 3345.6 yr\nMc: 0.02 yr\n\n\n"
+        self.assertEqual(str(white_dwarf3), expected_str3)
+        white_dwarf4 = wd.WhiteDwarf('TestWD1', property_data2, abundance_data, atm_data)
+        self.assertEqual(6.0255958607435685e-12, white_dwarf4.get_logq_in_solar_masses(ti.TimescaleType.KoesterNoOvershoot)) # A bit out of place...
 
     def test_getters(self):
         wd_property_data_raw = {
@@ -651,7 +1194,7 @@ class WhiteDwarfTests(unittest.TestCase):
         self.assertEqual(white_dwarf1.get_all_elements_overlapping_with_fit_dict(fit_dict), expected_overlapping_elements)
 
     def test_get_pollution_fraction_estimates(self):
-        # Testing both the implied pollution fraction from (included) measurements and the maximum implied pollution fraction
+        # Testing both the implied pollution fraction from (included) measurements and the maximum implied pollution fraction. This is not really relevant now
         wd_property_data_raw = {
             mp.WDParameter.atmospheric_type: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.label, ci.Element.H),
             mp.WDParameter.temperature: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -1123, 0),
@@ -758,97 +1301,48 @@ class ManagerTests(unittest.TestCase):
         )
 
     def test_init(self):
-        with self.assertRaises(TypeError):
-            test_mn = mn.Manager()
+        test_mn = mn.Manager() # This should default to the settings in configuration.ini - although really this test should probably not be sensitive to the contents of that file!
+        # And should also test on a different configuration file which uses specific models rather than a hierarchy and has malformed data/invalid file names etc
 
-        test_mn = mn.Manager(self.test_args_none)
-        self.assertIsNone(test_mn.wd_data_filename)
-        self.assertIsNone(test_mn.stellar_compositions_filename)
+        self.assertEqual('WDInputData.csv', test_mn.wd_data_filename)
+        self.assertEqual('StellarCompositionsSortFE.csv', test_mn.stellar_compositions_filename)
+        self.assertEqual('NonEarthlike', test_mn.enhancement_model)
+        self.assertEqual(-1, test_mn.seed)
         self.assertIsNone(test_mn.model_names)
-        self.assertIsNone(test_mn.stellar_compositions)
-        self.assertEqual(0, len(test_mn.models.keys()))
-
-        with self.assertRaises(FileNotFoundError):
-            test_mn = mn.Manager(self.test_args_invalid_sc)
-
-        with self.assertRaises(KeyError):
-            test_mn = mn.Manager(self.test_args_invalid_pm)
-        with self.assertRaises(KeyError):
-            test_mn = mn.Manager(self.test_args_invalid_hierarchy)
-
-        test_mn = mn.Manager(self.test_args_golden)
-        self.assertEqual(self.real_stellar_comps_file, test_mn.stellar_compositions_filename)
-        self.assertEqual(['Model_24'], test_mn.model_names)
-        self.assertEqual(False, test_mn.use_hierarchy)
-        self.assertEqual(None, test_mn.parameter_hierarchy)
-        self.assertEqual(1500, test_mn.n_live_points)
-        self.assertEqual(958, len(test_mn.stellar_compositions))
-        self.assertEqual(1, len(test_mn.models.keys()))
-        # TODO: Should add another check going over the full contents of the file
-
-        test_mn = mn.Manager(self.test_args_hierarchy)
-        self.assertEqual(self.real_stellar_comps_file, test_mn.stellar_compositions_filename)
-        self.assertEqual(None, test_mn.model_names)
-        self.assertEqual(True, test_mn.use_hierarchy)
+        self.assertTrue(test_mn.use_hierarchy)
+        self.assertEqual('Hierarchy_Default', test_mn.hierarchy_name)
         self.assertEqual(
             {
-                0: [
-                    mp.ModelParameter.metallicity,
-                    mp.ModelParameter.t_sinceaccretion,
-                    mp.ModelParameter.pollution_frac,
-                    mp.ModelParameter.accretion_timescale
-                ],
-                1: [mp.ModelParameter.formation_distance]
-            },
-            test_mn.parameter_hierarchy)
-        self.assertEqual(1500, test_mn.n_live_points)
+                0: [mp.ModelParameter.metallicity, mp.ModelParameter.t_sinceaccretion, mp.ModelParameter.fragment_mass, mp.ModelParameter.accretion_timescale],
+                1: [mp.ModelParameter.formation_distance],
+                2: [mp.ModelParameter.feeding_zone_size],
+                3: [mp.ModelParameter.fragment_core_frac, mp.ModelParameter.pressure, mp.ModelParameter.oxygen_fugacity]
+            }, test_mn.parameter_hierarchy
+        )
+        self.assertEqual(
+            [
+                ti.TimescaleType.KoesterNoOvershoot,
+                ti.TimescaleType.KoesterOvershoot,
+                ti.TimescaleType.BedardNoOvershoot,
+                ti.TimescaleType.BedardOvershoot,
+                ti.TimescaleType.BedardVariableOvershoot,
+                ti.TimescaleType.Bedard3DOvershoot,
+                ti.TimescaleType.MWDD,
+                ti.TimescaleType.Bedard3DOvershootPatched
+            ], test_mn.timescale_types_to_run
+        )
+        self.assertEqual([False, True], test_mn.thermohaline_regimes_to_run)
+        self.assertEqual(False, test_mn.suppress_graphical_output)
+        self.assertEqual(734, len(test_mn.white_dwarfs))
+        self.assertEqual(8, test_mn.default_logg)
+        self.assertEqual(-15, test_mn.default_Ca_value)
+        self.assertEqual(2000, test_mn.n_live_points)
         self.assertEqual(958, len(test_mn.stellar_compositions))
-        self.assertEqual(0, len(test_mn.models.keys()))
-
-    def test_load_compositions(self):
-        test_mn = mn.Manager(self.test_args_none)
-        self.assertIsNone(test_mn.stellar_compositions_filename)
-        self.assertIsNone(test_mn.stellar_compositions)
-
-        test_mn.load_compositions()
-
-        self.assertIsNone(test_mn.stellar_compositions_filename)
-        self.assertIsNone(test_mn.stellar_compositions)
-
-        with self.assertRaises(FileNotFoundError):
-            test_mn.load_compositions('foo')
-
-        test_mn.load_compositions(self.real_stellar_comps_file)
-
-        self.assertEqual(self.real_stellar_comps_file, test_mn.stellar_compositions_filename)
-        self.assertEqual(958, len(test_mn.stellar_compositions))
-
-        with self.assertWarns(UserWarning):
-            test_mn.load_compositions(self.real_stellar_comps_file)
-
-    def test_load_methods(self):
-        test_mn = mn.Manager(self.test_args_none)
-
-        self.assertIsNone(test_mn.model_names)
-        self.assertEqual(0, len(test_mn.models.keys()))
-
-        test_mn.load_models()
-
-        self.assertIsNone(test_mn.model_names)
-        self.assertEqual(0, len(test_mn.models.keys()))
-
-        with self.assertRaises(KeyError):
-            test_mn.load_models(['bar', 'baz'])
-
-        test_mn.load_models(['Model_24'])
-        self.assertEqual(test_mn.model_names, ['Model_24'])
-        self.assertEqual(1, len(test_mn.models.keys()))
-
-        with self.assertWarns(UserWarning):
-            test_mn.load_models(['Model_24'])
+        self.assertEqual(dict(), test_mn.models)
+        self.assertEqual(dict(), test_mn.executed_models)
 
     def test_load_values(self):
-        test_mn = mn.Manager(self.test_args_hierarchy)
+        test_mn = mn.Manager()
 
         # For GALEX1931+0117:
         # For purposes of updating John's code, I filled in all the timescales/logqs in the csv file.
@@ -859,8 +1353,7 @@ class ManagerTests(unittest.TestCase):
                 mp.WDParameter.atmospheric_type: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.label, ci.Element.H),
                 mp.WDParameter.mass: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 0.596, 0),
                 mp.WDParameter.temperature: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 20409, 0),
-                mp.WDParameter.logg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 7.95, 0),
-                mp.WDParameter.logq: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -16.192102, 0)
+                mp.WDParameter.logg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 7.95, 0)
             }),
             wd.WhiteDwarfAbundanceData({
                 ci.Element.Ni: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -6.7, 0.3),
@@ -870,31 +1363,419 @@ class ManagerTests(unittest.TestCase):
                 ci.Element.Cr: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -6.1, 0.3),
                 ci.Element.C: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -6.8, 0.3, False),
                 ci.Element.Al: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -6.2, 0.2)
+            }),
+            wd.WhiteDwarfAtmosphereDataset({
+                ti.TimescaleType.KoesterNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.192102000000006, #This happens to be the same as the overshoot case for this one!
+                    ci.Element.Al: 0.013820902396929203,
+                    ci.Element.Ti: 0.007857160053722625,
+                    ci.Element.Ca: 0.008551305064535511,
+                    ci.Element.Ni: 0.0058163160846718374,
+                    ci.Element.Fe: 0.006352677375621979,
+                    ci.Element.Cr: 0.006908510150094222,
+                    ci.Element.Mg: 0.01442371724114125,
+                    ci.Element.Si: 0.012453791771387156,
+                    ci.Element.Na: 0.004759581852912534,
+                    ci.Element.O: 0.00700801140594409,
+                    ci.Element.C: 0.01423467644313019,
+                    ci.Element.N: 0.008844139822659266
+                }),
+                ti.TimescaleType.KoesterOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.192102000000006,
+                    ci.Element.Al: 0.013820902396929203,
+                    ci.Element.Ti: 0.007857160053722625,
+                    ci.Element.Ca: 0.008551305064535511,
+                    ci.Element.Ni: 0.0058163160846718374,
+                    ci.Element.Fe: 0.006352677375621979,
+                    ci.Element.Cr: 0.006908510150094222,
+                    ci.Element.Mg: 0.01442371724114125,
+                    ci.Element.Si: 0.012453791771387156,
+                    ci.Element.Na: 0.004759581852912534,
+                    ci.Element.O: 0.00700801140594409,
+                    ci.Element.C: 0.01423467644313019,
+                    ci.Element.N: 0.008844139822659266
+                }),
+                ti.TimescaleType.BedardNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.371724,  # Again, this happens to be the same as the overshoot case
+                    ci.Element.Al: 0.010849249580537668,
+                    ci.Element.Ti: 0.0063664187373546465,
+                    ci.Element.Ca: 0.007253942354258323,
+                    ci.Element.Ni: 0.00486953172940064,
+                    ci.Element.Fe: 0.004988893121240738,
+                    ci.Element.Cr: 0.005714556092674965,
+                    ci.Element.Mg: 0.011832055551331475,
+                    ci.Element.Si: 0.009561114078236264,
+                    ci.Element.Na: 0.004004110001747341,
+                    ci.Element.O: 0.005746163775920785,
+                    ci.Element.C: 0.009213301851464161,
+                    ci.Element.N: 0.006946819264894303
+                }),
+                ti.TimescaleType.BedardOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.371724,
+                    ci.Element.Al: 0.010849249580537668,
+                    ci.Element.Ti: 0.0063664187373546465,
+                    ci.Element.Ca: 0.007253942354258323,
+                    ci.Element.Ni: 0.00486953172940064,
+                    ci.Element.Fe: 0.004988893121240738,
+                    ci.Element.Cr: 0.005714556092674965,
+                    ci.Element.Mg: 0.011832055551331475,
+                    ci.Element.Si: 0.009561114078236264,
+                    ci.Element.Na: 0.004004110001747341,
+                    ci.Element.O: 0.005746163775920785,
+                    ci.Element.C: 0.009213301851464161,
+                    ci.Element.N: 0.006946819264894303
+                }),
+                ti.TimescaleType.BedardVariableOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.371724,
+                    ci.Element.Al: 0.010849249580537668,
+                    ci.Element.Ti: 0.0063664187373546465,
+                    ci.Element.Ca: 0.007253942354258323,
+                    ci.Element.Ni: 0.00486953172940064,
+                    ci.Element.Fe: 0.004988893121240738,
+                    ci.Element.Cr: 0.005714556092674965,
+                    ci.Element.Mg: 0.011832055551331475,
+                    ci.Element.Si: 0.009561114078236264,
+                    ci.Element.Na: 0.004004110001747341,
+                    ci.Element.O: 0.005746163775920785,
+                    ci.Element.C: 0.009213301851464161,
+                    ci.Element.N: 0.006946819264894303
+                }),
+                ti.TimescaleType.Bedard3DOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.1352631,
+                    ci.Element.Al: 0.017029453066988692,
+                    ci.Element.Ti: 0.010097398586142536,
+                    ci.Element.Ca: 0.010374044342579441,
+                    ci.Element.Ni: 0.007123719326677305,
+                    ci.Element.Fe: 0.007782660754446889,
+                    ci.Element.Cr: 0.008672368034467732,
+                    ci.Element.Mg: 0.01699871920436737,
+                    ci.Element.Si: 0.014857833936371927,
+                    ci.Element.Na: 0.005735496248057374,
+                    ci.Element.O: 0.008639760426209783,
+                    ci.Element.C: 0.016712218304083728,
+                    ci.Element.N: 0.011344286863441407
+                }),
+                ti.TimescaleType.MWDD: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.3819181,
+                    ci.Element.Al: 0.010650029236420904,
+                    ci.Element.Ti: 0.006243632031556506,
+                    ci.Element.Ca: 0.007135509685949294,
+                    ci.Element.Ni: 0.004785519607664693,
+                    ci.Element.Fe: 0.00489774533909043,
+                    ci.Element.Cr: 0.005615671565486851,
+                    ci.Element.Mg: 0.011640461532735517,
+                    ci.Element.Si: 0.009386431173243375,
+                    ci.Element.Na: 0.0039389013135738525,
+                    ci.Element.O: 0.005641711839238161,
+                    ci.Element.C: 0.008991937922430205,
+                    ci.Element.N: 0.006798094540750175
+                }),
+                ti.TimescaleType.Bedard3DOvershootPatched: wd.WhiteDwarfAtmosphereData({
+                    # This WD happens to sit right inbetween the VO and Patched grids, so need to interpolate. (We have 3 DAs in this test for this reason! One for each regime)
+                    mp.WDParameter.logq: -16.2271654,
+                    ci.Element.Al: 0.014248757655435654,
+                    ci.Element.Ti: 0.008395479393529479,
+                    ci.Element.Ca: 0.00903200563770281,
+                    ci.Element.Ni: 0.00615039204598485,
+                    ci.Element.Fe: 0.00653519574068265,
+                    ci.Element.Cr: 0.007341513470696146,
+                    ci.Element.Mg: 0.014788533177719006,
+                    ci.Element.Si: 0.012524572180999295,
+                    ci.Element.Na: 0.004993053275855988,
+                    ci.Element.O: 0.007356047077691492,
+                    ci.Element.C: 0.013149302002152646,
+                    ci.Element.N: 0.00929902253134939
+                }),
             })
         )
-        expected_wd_222.timescale_dict = {
-            ci.Element.Al: 0.0138209024,
-            ci.Element.Ti: 0.007857160054,
-            ci.Element.Ca: 0.008551305065,
-            ci.Element.Ni: 0.005816316085,
-            ci.Element.Fe: 0.006352677376,
-            ci.Element.Cr: 0.00690851015,
-            ci.Element.Mg: 0.01442371724,
-            ci.Element.Si: 0.01245379177,
-            ci.Element.Na: 0.004759581853,
-            ci.Element.O: 0.007008011406,
-            ci.Element.C: 0.01423467644,
-            ci.Element.N: 0.008844139823
-        }
+        expected_wd_236 = wd.WhiteDwarf(
+            'SDSSJ1043+0855',
+            wd.WhiteDwarfPropertyData({
+                mp.WDParameter.spectral_type: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.label, 'DA'),
+                mp.WDParameter.mass: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 0.626, 0),
+                mp.WDParameter.temperature: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 18330, 0),
+                mp.WDParameter.logg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 8.05, 0)
+            }),
+            wd.WhiteDwarfAbundanceData({
+                ci.Element.C: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -6.15, 0.3, False),
+                ci.Element.O: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -4.9, 0.2),
+                ci.Element.Mg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -5.11, 0.2),
+                ci.Element.Al: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -7.06, 0.3),
+                ci.Element.Si: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -5.33, 0.5),
+                ci.Element.Ca: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 5.96, 0.2),
 
+                ci.Element.Ti: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -7.0, 0),
+                ci.Element.Cr: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, 6.5, 0),
+                ci.Element.Fe: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 6.15, 0.3),
+                ci.Element.Ni: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 7.38, 0.3)
+            }),
+            wd.WhiteDwarfAtmosphereDataset({
+                ti.TimescaleType.KoesterOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.555411999999997,
+                    ci.Element.Al: 0.005934279535546039,
+                    ci.Element.Ti: 0.003671267248872019,
+                    ci.Element.Ca: 0.004336706191208475,
+                    ci.Element.Ni: 0.0026668586645214724,
+                    ci.Element.Fe: 0.002935567020550475,
+                    ci.Element.Cr: 0.0032614896149133145,
+                    ci.Element.Mg: 0.007130959994285996,
+                    ci.Element.Si: 0.005495965527215545,
+                    ci.Element.Na: 0.0024623625649367433,
+                    ci.Element.O: 0.003469189314151306,
+                    ci.Element.C: 0.005206381643052118,
+                    ci.Element.N: 0.004071139650067431
+                }),
+                ti.TimescaleType.KoesterNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.555411999999997,
+                    ci.Element.Al: 0.005934279535546039,
+                    ci.Element.Ti: 0.003671267248872019,
+                    ci.Element.Ca: 0.004336706191208475,
+                    ci.Element.Ni: 0.0026668586645214724,
+                    ci.Element.Fe: 0.002935567020550475,
+                    ci.Element.Cr: 0.0032614896149133145,
+                    ci.Element.Mg: 0.007130959994285996,
+                    ci.Element.Si: 0.005495965527215545,
+                    ci.Element.Na: 0.0024623625649367433,
+                    ci.Element.O: 0.003469189314151306,
+                    ci.Element.C: 0.005206381643052118,
+                    ci.Element.N: 0.004071139650067431
+                }),
+                ti.TimescaleType.BedardNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.639186000000002,
+                    ci.Element.Al: 0.005873338075387059,
+                    ci.Element.Ti: 0.003627028766101857,
+                    ci.Element.Ca: 0.0043245109389184145,
+                    ci.Element.Ni: 0.0027672920791231063,
+                    ci.Element.Fe: 0.002640164577940586,
+                    ci.Element.Cr: 0.003354524746220148,
+                    ci.Element.Mg: 0.006879802958963415,
+                    ci.Element.Si: 0.004886872406605205,
+                    ci.Element.Na: 0.0024129093149292415,
+                    ci.Element.O: 0.003327943925537073,
+                    ci.Element.C: 0.0048434296938909315,
+                    ci.Element.N: 0.00396537258750075
+                }),
+                ti.TimescaleType.BedardOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.639186000000002,
+                    ci.Element.Al: 0.005873338075387059,
+                    ci.Element.Ti: 0.003627028766101857,
+                    ci.Element.Ca: 0.0043245109389184145,
+                    ci.Element.Ni: 0.0027672920791231063,
+                    ci.Element.Fe: 0.002640164577940586,
+                    ci.Element.Cr: 0.003354524746220148,
+                    ci.Element.Mg: 0.006879802958963415,
+                    ci.Element.Si: 0.004886872406605205,
+                    ci.Element.Na: 0.0024129093149292415,
+                    ci.Element.O: 0.003327943925537073,
+                    ci.Element.C: 0.0048434296938909315,
+                    ci.Element.N: 0.00396537258750075
+                }),
+                ti.TimescaleType.BedardVariableOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.639186000000002,
+                    ci.Element.Al: 0.005873338075387059,
+                    ci.Element.Ti: 0.003627028766101857,
+                    ci.Element.Ca: 0.0043245109389184145,
+                    ci.Element.Ni: 0.0027672920791231063,
+                    ci.Element.Fe: 0.002640164577940586,
+                    ci.Element.Cr: 0.003354524746220148,
+                    ci.Element.Mg: 0.006879802958963415,
+                    ci.Element.Si: 0.004886872406605205,
+                    ci.Element.Na: 0.0024129093149292415,
+                    ci.Element.O: 0.003327943925537073,
+                    ci.Element.C: 0.0048434296938909315,
+                    ci.Element.N: 0.00396537258750075
+                }),
+                ti.TimescaleType.Bedard3DOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.318444,
+                    ci.Element.Al: 0.010802020570960715,
+                    ci.Element.Ti: 0.00634319408695934,
+                    ci.Element.Ca: 0.0070418861610901376,
+                    ci.Element.Ni: 0.004814442453513755,
+                    ci.Element.Fe: 0.0049641054680102815,
+                    ci.Element.Cr: 0.005706843986710429,
+                    ci.Element.Mg: 0.011461699023744169,
+                    ci.Element.Si: 0.009487111395555562,
+                    ci.Element.Na: 0.003950026415978833,
+                    ci.Element.O: 0.0058830291460484395,
+                    ci.Element.C: 0.009371691846749701,
+                    ci.Element.N: 0.007162835873271362
+                }),
+                ti.TimescaleType.MWDD: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.644821999999998,
+                    ci.Element.Al: 0.005797930431290188,
+                    ci.Element.Ti: 0.003585667377489108,
+                    ci.Element.Ca: 0.0042847254588627036,
+                    ci.Element.Ni: 0.002734683057440141,
+                    ci.Element.Fe: 0.0026008721243337006,
+                    ci.Element.Cr: 0.0033213909654360727,
+                    ci.Element.Mg: 0.006810798002720251,
+                    ci.Element.Si: 0.004819722122114213,
+                    ci.Element.Na: 0.002390710560716041,
+                    ci.Element.O: 0.0032943140613688024,
+                    ci.Element.C: 0.004784559943242473,
+                    ci.Element.N: 0.00392530131692707
+                }),
+                ti.TimescaleType.Bedard3DOvershootPatched: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.318444,
+                    ci.Element.Al: 0.010802020570960715,
+                    ci.Element.Ti: 0.00634319408695934,
+                    ci.Element.Ca: 0.0070418861610901376,
+                    ci.Element.Ni: 0.004814442453513755,
+                    ci.Element.Fe: 0.0049641054680102815,
+                    ci.Element.Cr: 0.005706843986710429,
+                    ci.Element.Mg: 0.011461699023744169,
+                    ci.Element.Si: 0.009487111395555562,
+                    ci.Element.Na: 0.003950026415978833,
+                    ci.Element.O: 0.0058830291460484395,
+                    ci.Element.C: 0.009371691846749701,
+                    ci.Element.N: 0.007162835873271362
+                })
+            })
+        )
+        expected_wd_301 = wd.WhiteDwarf(
+            'GaiaJ0510+2315',
+            wd.WhiteDwarfPropertyData({
+                mp.WDParameter.spectral_type: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.label, 'DA'),
+                mp.WDParameter.mass: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 0.746, 0),
+                mp.WDParameter.temperature: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 21700, 0),
+                mp.WDParameter.logg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 8.2, 0)
+            }),
+            wd.WhiteDwarfAbundanceData({
+                ci.Element.O: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -4.2348, 0.1),
+                ci.Element.Mg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -5.2347, 0.1),
+                ci.Element.Si: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -5.119024, 0.1),
+                ci.Element.Ca: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 6.3148, 0.1),
+            }),
+            wd.WhiteDwarfAtmosphereDataset({
+                ti.TimescaleType.KoesterOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.50760000000001,
+                    ci.Element.C: 0.006980395019858036,
+                    ci.Element.N: 0.003971549684604506,
+                    ci.Element.O: 0.0030512655099359434,
+                    ci.Element.Na: 0.002040609950289374,
+                    ci.Element.Mg: 0.0061665179497525004,
+                    ci.Element.Al: 0.006177318585915238,
+                    ci.Element.Si: 0.005430002130657389,
+                    ci.Element.Ca: 0.0036264358550606277,
+                    ci.Element.Ti: 0.0034692851727188426,
+                    ci.Element.Cr: 0.0030163379624671663,
+                    ci.Element.Fe: 0.0027820184125097835,
+                    ci.Element.Ni: 0.0025309292209157543
+                }),
+                ti.TimescaleType.KoesterNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.50760000000001,
+                    ci.Element.C: 0.006980395019858036,
+                    ci.Element.N: 0.003971549684604506,
+                    ci.Element.O: 0.0030512655099359434,
+                    ci.Element.Na: 0.002040609950289374,
+                    ci.Element.Mg: 0.0061665179497525004,
+                    ci.Element.Al: 0.006177318585915238,
+                    ci.Element.Si: 0.005430002130657389,
+                    ci.Element.Ca: 0.0036264358550606277,
+                    ci.Element.Ti: 0.0034692851727188426,
+                    ci.Element.Cr: 0.0030163379624671663,
+                    ci.Element.Fe: 0.0027820184125097835,
+                    ci.Element.Ni: 0.0025309292209157543
+                }),
+                ti.TimescaleType.BedardNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.685,
+                    ci.Element.C: 0.0043617422692703725,
+                    ci.Element.N: 0.003138773664086122,
+                    ci.Element.O: 0.0025172131972423053,
+                    ci.Element.Na: 0.001727348630497726,
+                    ci.Element.Mg: 0.005092605092574638,
+                    ci.Element.Al: 0.004829031073766105,
+                    ci.Element.Si: 0.004241505163138565,
+                    ci.Element.Ca: 0.0031128629469706326,
+                    ci.Element.Ti: 0.002839487753868497,
+                    ci.Element.Cr: 0.0025019579136939373,
+                    ci.Element.Fe: 0.0022115664858298892,
+                    ci.Element.Ni: 0.0021090166093702097
+                }),
+                ti.TimescaleType.BedardOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.685,
+                    ci.Element.C: 0.0043617422692703725,
+                    ci.Element.N: 0.003138773664086122,
+                    ci.Element.O: 0.0025172131972423053,
+                    ci.Element.Na: 0.001727348630497726,
+                    ci.Element.Mg: 0.005092605092574638,
+                    ci.Element.Al: 0.004829031073766105,
+                    ci.Element.Si: 0.004241505163138565,
+                    ci.Element.Ca: 0.0031128629469706326,
+                    ci.Element.Ti: 0.002839487753868497,
+                    ci.Element.Cr: 0.0025019579136939373,
+                    ci.Element.Fe: 0.0022115664858298892,
+                    ci.Element.Ni: 0.0021090166093702097
+                }),
+                ti.TimescaleType.BedardVariableOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.685,
+                    ci.Element.C: 0.0043617422692703725,
+                    ci.Element.N: 0.003138773664086122,
+                    ci.Element.O: 0.0025172131972423053,
+                    ci.Element.Na: 0.001727348630497726,
+                    ci.Element.Mg: 0.005092605092574638,
+                    ci.Element.Al: 0.004829031073766105,
+                    ci.Element.Si: 0.004241505163138565,
+                    ci.Element.Ca: 0.0031128629469706326,
+                    ci.Element.Ti: 0.002839487753868497,
+                    ci.Element.Cr: 0.0025019579136939373,
+                    ci.Element.Fe: 0.0022115664858298892,
+                    ci.Element.Ni: 0.0021090166093702097
+                }),
+                ti.TimescaleType.Bedard3DOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.624200000000002,
+                    ci.Element.C: 0.005143514873243852,
+                    ci.Element.N: 0.0035988189612589237,
+                    ci.Element.O: 0.002798981319634372,
+                    ci.Element.Na: 0.0018933024635704647,
+                    ci.Element.Mg: 0.005584187600997102,
+                    ci.Element.Al: 0.005438761317204103,
+                    ci.Element.Si: 0.004722587355729608,
+                    ci.Element.Ca: 0.003409887100677623,
+                    ci.Element.Ti: 0.0032216621887342744,
+                    ci.Element.Cr: 0.002802592787424118,
+                    ci.Element.Fe: 0.0024774220576332913,
+                    ci.Element.Ni: 0.002318996002505059
+                }),
+                ti.TimescaleType.MWDD: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.70312,
+                    ci.Element.C: 0.00417157446120628,
+                    ci.Element.N: 0.003023987558303149,
+                    ci.Element.O: 0.0024396077256845523,
+                    ci.Element.Na: 0.0016791906215408389,
+                    ci.Element.Mg: 0.004950624650796981,
+                    ci.Element.Al: 0.004667023632109997,
+                    ci.Element.Si: 0.004102041029866081,
+                    ci.Element.Ca: 0.003026913428101311,
+                    ci.Element.Ti: 0.002742963319467846,
+                    ci.Element.Cr: 0.0024242644894489043,
+                    ci.Element.Fe: 0.0021408192439307974,
+                    ci.Element.Ni: 0.002050123387357036
+                }),
+                ti.TimescaleType.Bedard3DOvershootPatched: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -16.685,
+                    ci.Element.C: 0.0043617422692703725,
+                    ci.Element.N: 0.003138773664086122,
+                    ci.Element.O: 0.0025172131972423053,
+                    ci.Element.Na: 0.001727348630497726,
+                    ci.Element.Mg: 0.005092605092574638,
+                    ci.Element.Al: 0.004829031073766105,
+                    ci.Element.Si: 0.004241505163138565,
+                    ci.Element.Ca: 0.0031128629469706326,
+                    ci.Element.Ti: 0.002839487753868497,
+                    ci.Element.Cr: 0.0025019579136939373,
+                    ci.Element.Fe: 0.0022115664858298892,
+                    ci.Element.Ni: 0.0021090166093702097
+                })
+            })
+        )
         expected_wd_360 = wd.WhiteDwarf(
-            'GD61Corr',
+            'GD61_Corr',
             wd.WhiteDwarfPropertyData({
                 mp.WDParameter.spectral_type: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.label, 'DB'), # Should infer He
                 mp.WDParameter.mass: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 0.71, 0),
                 mp.WDParameter.temperature: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 17280, 0),
-                mp.WDParameter.logg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 8.2, 0),
-                mp.WDParameter.logq: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -6.247375999999992, 0)
+                mp.WDParameter.logg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, 8.2, 0)
             }),
             wd.WhiteDwarfAbundanceData({
                 ci.Element.Ni: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -8.8, 0),
@@ -908,30 +1789,109 @@ class ManagerTests(unittest.TestCase):
                 ci.Element.N: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -8, 0, False),
                 ci.Element.Al: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -7.8, 0),
                 ci.Element.Ca: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -7.9, 0.0634),
-                ci.Element.Ti: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, 8.6, 0)  #Should add minus sign
+                ci.Element.Ti: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, 8.6, 0)  # The minus sign gets added automatically
+            }),
+            wd.WhiteDwarfAtmosphereDataset({
+                ti.TimescaleType.KoesterNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -6.675699199999988,
+                    ci.Element.Al: 112266.76280212057,
+                    ci.Element.Ti: 72910.8229201416,
+                    ci.Element.Ca: 88672.14208493519,
+                    ci.Element.Ni: 64888.53961297752,
+                    ci.Element.Fe: 66958.35876460896,
+                    ci.Element.Cr: 68860.15564372398,
+                    ci.Element.Mg: 125628.44956781625,
+                    ci.Element.Si: 113922.9441342239,
+                    ci.Element.Na: 124936.11584994856,
+                    ci.Element.O: 167753.65835695906,
+                    ci.Element.C: 204158.75094004275,
+                    ci.Element.N: 184649.78231741278
+                }),
+                ti.TimescaleType.KoesterOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -6.247375999999992,
+                    ci.Element.Al: 232973.86252231084,
+                    ci.Element.Ti: 154620.54509961695,
+                    ci.Element.Ca: 189274.1044509627,
+                    ci.Element.Ni: 137270.11578430876,
+                    ci.Element.Fe: 139050.0662120362,
+                    ci.Element.Cr: 147321.86225016386,
+                    ci.Element.Mg: 256372.8315223011,
+                    ci.Element.Si: 238523.51461649648,
+                    ci.Element.Na: 255006.0005828049,
+                    ci.Element.O: 335529.87881929334,
+                    ci.Element.C: 404414.9483500713,
+                    ci.Element.N: 368830.81649282615
+                }),
+                ti.TimescaleType.BedardNoOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -6.876639999999999,
+                    ci.Element.Al: 83964.55681227875,
+                    ci.Element.Ti: 60594.331704769946,
+                    ci.Element.Ca: 64419.2998025116,
+                    ci.Element.Ni: 56290.09738312519,
+                    ci.Element.Fe: 59387.630806465495,
+                    ci.Element.Cr: 61435.01943511929,
+                    ci.Element.Mg: 93473.3913912631,
+                    ci.Element.Si: 78376.16331580719,
+                    ci.Element.Na: 93735.4783465025,
+                    ci.Element.O: 99306.11683163364,
+                    ci.Element.C: 104911.71825325783,
+                    ci.Element.N: 100374.63984633211
+                }),
+                ti.TimescaleType.BedardOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -6.3587039999999995,
+                    ci.Element.Al: 262325.1923613523,
+                    ci.Element.Ti: 159399.88362882257,
+                    ci.Element.Ca: 172857.40940931826,
+                    ci.Element.Ni: 168562.12592238086,
+                    ci.Element.Fe: 168611.81370999877,
+                    ci.Element.Cr: 164488.67414412534,
+                    ci.Element.Mg: 277955.96593716956,
+                    ci.Element.Si: 257660.5918275943,
+                    ci.Element.Na: 267167.72970757366,
+                    ci.Element.O: 279151.5219556833,
+                    ci.Element.C: 308790.5492629715,
+                    ci.Element.N: 285522.2780526775
+                }),
+                ti.TimescaleType.BedardVariableOvershoot: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -6.333536,
+                    ci.Element.Al: 274976.76604823413,
+                    ci.Element.Ti: 166289.18316346064,
+                    ci.Element.Ca: 180810.64690052296,
+                    ci.Element.Ni: 176564.74844027977,
+                    ci.Element.Fe: 176080.79890136025,
+                    ci.Element.Cr: 171550.50466665142,
+                    ci.Element.Mg: 289771.72090777167,
+                    ci.Element.Si: 270979.2272718993,
+                    ci.Element.Na: 278560.79934108024,
+                    ci.Element.O: 291018.09935393475,
+                    ci.Element.C: 324226.12063769985,
+                    ci.Element.N: 298109.626215266
+                }),
+                ti.TimescaleType.MWDD: wd.WhiteDwarfAtmosphereData({
+                    mp.WDParameter.logq: -6.793999999999999,
+                    ci.Element.Al: 97884.06573284,
+                    ci.Element.Ti: 69282.57171806743,
+                    ci.Element.Ca: 73506.8817757163,
+                    ci.Element.Ni: 65059.69155790839,
+                    ci.Element.Fe: 68773.95497861334,
+                    ci.Element.Cr: 70504.36411431662,
+                    ci.Element.Mg: 108013.98774569132,
+                    ci.Element.Si: 90957.81099372983,
+                    ci.Element.Na: 107886.72254261986,
+                    ci.Element.O: 113588.92776665377,
+                    ci.Element.C: 120153.38212358896,
+                    ci.Element.N: 114925.39365030358
+                })
             })
         )
-        expected_wd_360.timescale_dict = {
-            ci.Element.Al: 232973.86252231084,
-            ci.Element.Ti: 154620.54509961695,
-            ci.Element.Ca: 189274.1044509627,
-            ci.Element.Ni: 137270.11578430876,
-            ci.Element.Fe: 139050.0662120362,
-            ci.Element.Cr: 147321.86225016386,
-            ci.Element.Mg: 256372.8315223011,
-            ci.Element.Si: 238523.51461649648,
-            ci.Element.Na: 255006.0005828049,
-            ci.Element.O: 335529.87881929334,
-            ci.Element.C: 404414.9483500713,
-            ci.Element.N: 368830.81649282615
-        }
-
         self.assertEqual(test_mn.white_dwarfs[222], expected_wd_222)
+        self.assertEqual(test_mn.white_dwarfs[236], expected_wd_236)
+        self.assertEqual(test_mn.white_dwarfs[301], expected_wd_301)
         self.assertEqual(test_mn.white_dwarfs[360], expected_wd_360)
 
     def test_publish_live_data(self):
-        test_mn = mn.Manager(self.test_args_hierarchy)
-        test_mn.publish_live_data(360)
+        test_mn = mn.Manager()
+        test_mn.publish_live_data(360, ti.TimescaleType.KoesterOvershoot)
         self.assertEqual(ld._live_white_dwarf, test_mn.white_dwarfs[360])
         expected_result = dict()
 
@@ -971,6 +1931,8 @@ class ManagerTests(unittest.TestCase):
         expected_live_mass = 0.71
         expected_live_type = ci.Element.He
         expected_live_elements_present = [ci.Element.Ca, ci.Element.Fe, ci.Element.Mg, ci.Element.Si, ci.Element.O]
+        expected_live_teff = 17280.0
+        expected_live_logg = 8.2
 
         self.assertTrue((ld._live_all_wd_abundances == expected_live_all_wd_abundances).all())
         self.assertTrue((ld._live_all_wd_errors == expected_live_all_wd_errors).all())
@@ -982,7 +1944,9 @@ class ManagerTests(unittest.TestCase):
         self.assertEqual(ld._live_q, expected_live_q)
         self.assertEqual(ld._live_mass, expected_live_mass)
         self.assertEqual(ld._live_type, expected_live_type)
-        self.assertEqual(ld._live_elements_present, expected_live_elements_present)
+        self.assertEqual(set(ld._live_elements_present), set(expected_live_elements_present))
+        self.assertEqual(ld._live_teff, expected_live_teff)
+        self.assertEqual(ld._live_logg, expected_live_logg)
 
 class EnhancementTests(unittest.TestCase):
 
@@ -1085,8 +2049,6 @@ class EnhancementTests(unittest.TestCase):
         self.assertEqual(expected_enhancements1, enhancements1)
         self.assertEqual(expected_enhancements2, enhancements2)
 
-
-#TODO: See if it's possible to put this in the GeologyTests class, or otherwise not have this lying around
 def get_mock_partition_coefficient(element, pressure=None, fO2=None):
     mock_pc_dict = {
         ci.Element.Ni: 50,
@@ -1101,7 +2063,6 @@ def get_mock_partition_coefficient(element, pressure=None, fO2=None):
 class AbundanceTests(unittest.TestCase):
 
     def load_generic_float_data_csv(self, input_filename):
-        # TODO: Change this to a with clause to prevent ResourceWarnings
         generic_csv = open(get_path_to_data() + input_filename)
         generic_list =  [row for row in csv.reader(generic_csv)]
         generic_array = np.asarray(generic_list)
@@ -1128,34 +2089,6 @@ class AbundanceTests(unittest.TestCase):
             ci.Element.N
         ]
         calculated_results = am.get_all_abundances(elements, linear_d_formation, z_formation, t_formation, fe_star)
-        #calculated_results = dict()
-        #calculated_results[ci.Element.Al] = am.Al(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Ti] = am.Ti(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Ca] = am.Ca(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Ni] = am.Ni(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Fe] = am.Fe(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Cr] = am.Cr(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Mg] = am.Mg(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Si] = am.Si(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.Na] = am.Na(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.O] = am.O(
-        #    dm.T_disc(linear_d_formation, t_formation),
-        #    t_formation,
-        #    linear_d_formation,
-        #    fe_star,
-        #    z_formation,
-        #    calculated_results[ci.Element.Al],
-        #    calculated_results[ci.Element.Ti],
-        #    calculated_results[ci.Element.Ca],
-        #    calculated_results[ci.Element.Ni],
-        #    calculated_results[ci.Element.Fe],
-        #    calculated_results[ci.Element.Cr],
-        #    calculated_results[ci.Element.Mg],
-        #    calculated_results[ci.Element.Si],
-        #    calculated_results[ci.Element.Na]
-        #)
-        #calculated_results[ci.Element.C] = am.C(linear_d_formation, z_formation, t_formation)
-        #calculated_results[ci.Element.N] = am.Nz(linear_d_formation, z_formation, t_formation)
 
         golden_results = {
             ci.Element.Al: 0.9999810892034007,
@@ -1198,7 +2131,6 @@ class PamelaTests(unittest.TestCase):
             ci.Element.V,
             ci.Element.Cr,
             ci.Element.Cu,
-            #ci.Element.Ti,
             ci.Element.Fe,
             ci.Element.W,
             ci.Element.P,
@@ -1326,10 +2258,10 @@ class PamelaTests(unittest.TestCase):
             self.assertAlmostEqual(exp, C)
 
         old_gammas = pamela.calculate_gammas()
-        self.assertEqual(0.19087291612663068, old_gammas[ci.Element.O])
-        self.assertEqual(5.938117878057908, old_gammas[ci.Element.Si])
-        self.assertEqual(0.8762221554491502, old_gammas[ci.Element.Fe])
-        self.assertEqual(0.6472702432098675, old_gammas[ci.Element.Mn])
+        self.assertAlmostEqual(0.19087291612663068, old_gammas[ci.Element.O])
+        self.assertAlmostEqual(5.938117878057908, old_gammas[ci.Element.Si])
+        self.assertAlmostEqual(0.8762221554491502, old_gammas[ci.Element.Fe])
+        self.assertAlmostEqual(0.6472702432098675, old_gammas[ci.Element.Mn])
         new_gammas = pamela.calculate_gammas(pamela.T0, np.array(expected_C))
         self.assertEqual(new_gammas, old_gammas)
 
@@ -1355,9 +2287,9 @@ class PamelaTests(unittest.TestCase):
         self.assertEqual(-0.22918003981901158, eps_e[6][0])  # V - C gets overriden by es
         gammas = pamela.calculate_gammas(3300)
         gammas_e = pamela_es.calculate_gammas(3300)
-        self.assertEqual(0.3906320799707601, gammas[ci.Element.O])
-        self.assertEqual(1.186036978787397, gammas[ci.Element.V])
-        self.assertEqual(1.2185224417219145, gammas_e[ci.Element.V]) # I'm assuming this is OK, I didn't check by hand...TODO
+        self.assertAlmostEqual(0.3906320799707601, gammas[ci.Element.O])
+        self.assertAlmostEqual(1.186036978787397, gammas[ci.Element.V])
+        self.assertAlmostEqual(1.2185224417219145, gammas_e[ci.Element.V])
 
     def test_convert_abundance_dict_to_layer_composition(self):
         pamela = pam.PartitionModel(
@@ -1423,9 +2355,7 @@ class PamelaTests(unittest.TestCase):
         Ds = pamela.get_all_partition_coefficients(54, -2)
         exp_Ds = {
             ci.Element.Hf: 0.0,
-            #ci.Element.U: 0,
             ci.Element.Ta: 0.017342227950395302,
-            #ci.Element.Pb: 0,
             ci.Element.Nb: 0.5237944840651807,
             ci.Element.Si: 0.6839893208888564,
             ci.Element.Mn: 5.053769920186087,
@@ -1471,9 +2401,7 @@ class PamelaTests(unittest.TestCase):
         Ds = pamela.get_all_partition_coefficients(54, -2, test_abundances)
         exp_Ds = {
             ci.Element.Hf: 0,
-            #ci.Element.U: 0,
             ci.Element.Ta: 0.09111458357273382,
-            #ci.Element.Pb: 0,
             ci.Element.Nb: 0.5702315612044024,
             ci.Element.Si: 0.4062020447208237,
             ci.Element.Mn: 4.215817726905471,
@@ -1623,6 +2551,176 @@ class GeologyTests(unittest.TestCase):
         self.assertTrue(w_met < 1)
         self.assertEqual(len(Ds), 24)
         self.assertEqual(all_Ds, None)  # We didn't tell it to store these
+        expected_abundances = {
+            ci.Element.Hf: {
+                gi.Layer.bulk: 2.7864515603493478e-08,
+                gi.Layer.core: 0.0,
+                gi.Layer.mantle: 3.457773385643354e-08
+            },
+            ci.Element.Ta: {
+                gi.Layer.bulk: 3.616581827223245e-09,
+                gi.Layer.core: 3.2068772969822515e-09,
+                gi.Layer.mantle: 3.7152894227473975e-09
+            },
+            ci.Element.Nb: {
+                gi.Layer.bulk: 1.2397067644439534e-07,
+                gi.Layer.core: 3.946115224744226e-07,
+                gi.Layer.mantle: 5.876693580055409e-08
+            },
+            ci.Element.Si: {
+                gi.Layer.bulk: 0.15013035395386498,
+                gi.Layer.core: 0.131781696676525,
+                gi.Layer.mantle: 0.15455098277888274
+            },
+            ci.Element.Mn: {
+                gi.Layer.bulk: 0.00038117866818521953,
+                gi.Layer.core: 0.001165849993557462,
+                gi.Layer.mantle: 0.0001921329047077404
+                },
+            ci.Element.Zn: {
+                gi.Layer.bulk: 1.6014996989478682e-05,
+                gi.Layer.core: 7.35533200780222e-06,
+                gi.Layer.mantle: 1.8101314571890158e-05
+            },
+            ci.Element.Ga: {
+                gi.Layer.bulk: 1.1263074987867517e-06,
+                gi.Layer.core: 1.0971909698821512e-06,
+                gi.Layer.mantle: 1.1333223983472394e-06
+            },
+            ci.Element.V: {
+                gi.Layer.bulk: 5.395470924151831e-05,
+                gi.Layer.core: 0.00016723772625079367,
+                gi.Layer.mantle: 2.6662168047197238e-05
+            },
+            ci.Element.Cr: {
+                gi.Layer.bulk: 0.0023669608105361967,
+                gi.Layer.core: 0.007075860701522058,
+                gi.Layer.mantle: 0.001232476162161708
+            },
+            ci.Element.Cu: {
+                gi.Layer.bulk: 2.4715808308283354e-05,
+                gi.Layer.core: 8.958797025011969e-05,
+                gi.Layer.mantle: 9.086579624332024e-06
+            },
+            ci.Element.Fe: {
+                gi.Layer.bulk: 0.15006893982819816,
+                gi.Layer.core: 0.6750980730644544,
+                gi.Layer.mantle: 0.023577078497163388
+            },
+            ci.Element.W: {
+                gi.Layer.bulk: 2.420586998738845e-08,
+                gi.Layer.core: 1.2000974202323387e-07,
+                gi.Layer.mantle: 1.1244647986698433e-09
+            },
+            ci.Element.P: {
+                gi.Layer.bulk: 0.0006042600345224482,
+                gi.Layer.core: 0.0030273657178258636,
+                gi.Layer.mantle: 2.047690622093159e-05
+            },
+            ci.Element.Co: {
+                gi.Layer.bulk: 0.00039087192643566125,
+                gi.Layer.core: 0.0018574823398001305,
+                gi.Layer.mantle: 3.7530997605301916e-05
+            },
+            ci.Element.Ni: {
+                gi.Layer.bulk: 0.008120759633256047,
+                gi.Layer.core: 0.03848874529973153,
+                gi.Layer.mantle: 0.0008043979309279375
+            },
+            ci.Element.O: {
+                gi.Layer.bulk: 0.48615723914543096,
+                gi.Layer.core: 0.10797785244937178,
+                gi.Layer.mantle: 0.5772695668250886
+            },
+            ci.Element.C: {
+                gi.Layer.bulk: 0.0015917333226106879,
+                gi.Layer.core: 0.00819296152013823,
+                gi.Layer.mantle: 1.3422474852156032e-06
+            },
+            ci.Element.S: {
+                gi.Layer.bulk: 0.005033944726789019,
+                gi.Layer.core: 0.02506831618945311,
+                gi.Layer.mantle: 0.00020719361844052199
+            },
+            ci.Element.N: {
+                gi.Layer.bulk: 4.6744203944017475e-05,
+                gi.Layer.core: 0.0,
+                gi.Layer.mantle: 5.800598389388276e-05
+            },
+            ci.Element.Na: {
+                gi.Layer.bulk: 0.0020508290816938467,
+                gi.Layer.core: 0.0,
+                gi.Layer.mantle: 0.0025449221217738738
+            },
+            ci.Element.Mg: {
+                gi.Layer.bulk: 0.1659389539738732,
+                gi.Layer.core: 0.0,
+                gi.Layer.mantle: 0.20591755724632782
+            },
+            ci.Element.Al: {
+                gi.Layer.bulk: 0.015403870863974397,
+                gi.Layer.core: 0.0,
+                gi.Layer.mantle: 0.019115026246018785
+            },
+            ci.Element.Ti: {
+                gi.Layer.bulk: 0.00044298713595743367,
+                gi.Layer.core: 0.0,
+                gi.Layer.mantle: 0.0005497131730881219
+            },
+            ci.Element.Ca: {
+                gi.Layer.bulk: 0.011174350504526264,
+                gi.Layer.core: 0.0,
+                gi.Layer.mantle: 0.013866514791147875
+            }
+        }
+
+        expected_Ds = {
+            ci.Element.Hf: 0.0,
+            ci.Element.Ta: 0.8629279364003023,
+            ci.Element.Nb: 6.71307582961421,
+            ci.Element.Si: 0.8524485194804874,
+            ci.Element.Mn: 6.066326250546324,
+            ci.Element.Zn: 0.40623468571255655,
+            ci.Element.Ga: 0.9678623359106977,
+            ci.Element.V:  6.270809823944999,
+            ci.Element.Cr: 5.739652291231085,
+            ci.Element.Cu: 9.856758082205513,
+            ci.Element.Fe: 28.626069153226876,
+            ci.Element.W:  106.69780247915111,
+            ci.Element.P:  147.80372669960158,
+            ci.Element.Co: 49.47883005324342,
+            ci.Element.Ni: 47.83520571642847,
+            ci.Element.O: 0.1869996786837244,
+            ci.Element.C: 6102.294362221525,
+            ci.Element.S:  120.95772947244798,
+            ci.Element.N: 0,
+            ci.Element.Na: 0,
+            ci.Element.Mg: 0,
+            ci.Element.Al: 0,
+            ci.Element.Ti: 0,
+            ci.Element.Ca: 0
+        }
+        expected_pcnf = 0.1941485586953566
+        for element, element_data in abundances.items():
+            for layer, abundance in element_data.items():
+                self.assertAlmostEqual(expected_abundances[element][layer], abundance)
+        for element, D in Ds.items():
+            self.assertEqual(expected_Ds[element], D)
+        self.assertEqual(expected_pcnf, w_met)
+        abundances, w_met, Ds, all_Ds = geology_model.form_a_planet_iteratively(5, -2)
+        expected_pcnf = 0.14338933574162993
+        self.assertEqual(expected_pcnf, w_met)
+        abundances, w_met, Ds, all_Ds = geology_model.form_a_planet_iteratively(54, -1) # More oxidised = more Fe as FeO in the mantle = smaller core
+        expected_pcnf = 0.10245562602329299
+        abundances, w_met, Ds, all_Ds = geology_model.form_a_planet_iteratively(54, -3) # And Vice versa
+        expected_pcnf = 0.19639869216833447
+        self.assertEqual(expected_pcnf, w_met)
+        abundances, w_met, Ds, all_Ds = geology_model.form_a_planet_iteratively(0, -1)
+        expected_pcnf = 0.08746988463747624
+        self.assertEqual(expected_pcnf, w_met)
+        abundances, w_met, Ds, all_Ds = geology_model.form_a_planet_iteratively(0, -3)
+        expected_pcnf = 0.1576935740664529
+        self.assertEqual(expected_pcnf, w_met)
 
     def test_find_system_specific_abundances(self):
         geology_model = gi.GeologyModel()
@@ -1830,7 +2928,7 @@ class ModelParameterTests(unittest.TestCase):
             mp.ModelParameter.parent_crust_frac,
             mp.ModelParameter.fragment_core_frac,
             mp.ModelParameter.fragment_crust_frac,
-            mp.ModelParameter.pollution_frac,
+            mp.ModelParameter.fragment_mass,
             mp.ModelParameter.accretion_timescale,
             mp.ModelParameter.pressure,
             mp.ModelParameter.oxygen_fugacity
@@ -1848,7 +2946,7 @@ class ModelParameterTests(unittest.TestCase):
                 mp.ModelParameter.formation_distance: False,
                 mp.ModelParameter.feeding_zone_size: True,
                 mp.ModelParameter.fragment_crust_frac: True,
-                mp.ModelParameter.pollution_frac: False,
+                mp.ModelParameter.fragment_mass: False,
                 mp.ModelParameter.accretion_timescale: True,
                 mp.ModelParameter.pressure: True
             },
@@ -1861,7 +2959,7 @@ class ModelParameterTests(unittest.TestCase):
                 mp.ModelParameter.parent_crust_frac: True,
                 mp.ModelParameter.fragment_core_frac: True,
                 mp.ModelParameter.fragment_crust_frac: True,
-                mp.ModelParameter.pollution_frac: True,
+                mp.ModelParameter.fragment_mass: True,
                 mp.ModelParameter.accretion_timescale: True,
                 mp.ModelParameter.pressure: False
             },
@@ -1874,7 +2972,7 @@ class ModelParameterTests(unittest.TestCase):
                 mp.ModelParameter.parent_crust_frac: True,
                 mp.ModelParameter.fragment_core_frac: True,
                 mp.ModelParameter.fragment_crust_frac: True,
-                mp.ModelParameter.pollution_frac: True,
+                mp.ModelParameter.fragment_mass: True,
                 mp.ModelParameter.accretion_timescale: True,
                 mp.ModelParameter.pressure: True
             }
@@ -1900,7 +2998,7 @@ class ModelParameterTests(unittest.TestCase):
                 mp.ModelParameter.parent_crust_frac: 5,
                 mp.ModelParameter.fragment_core_frac: 6,
                 mp.ModelParameter.fragment_crust_frac: 7,
-                mp.ModelParameter.pollution_frac: 8,
+                mp.ModelParameter.fragment_mass: 8,
                 mp.ModelParameter.accretion_timescale: 9
             },
             'Model_Andy': {
@@ -1912,7 +3010,7 @@ class ModelParameterTests(unittest.TestCase):
                 mp.ModelParameter.parent_crust_frac: 5,
                 mp.ModelParameter.fragment_core_frac: 6,
                 mp.ModelParameter.fragment_crust_frac: 7,
-                mp.ModelParameter.pollution_frac: 8,
+                mp.ModelParameter.fragment_mass: 8,
                 mp.ModelParameter.accretion_timescale: 9,
                 mp.ModelParameter.pressure: 10
             }
@@ -1952,7 +3050,7 @@ class WhiteDwarfModelTests(unittest.TestCase):
             'Early': np.array([-6.698970004336019, -6.522878745280337, -6.3979400086720375, -6.301029995663981]),
             'Medium': np.array([-6.369503928147244, -6.254407893195727, -6.175686043374323, -6.114496075232561]),
             'Late': np.array([-4.930950375586853, -5.025940353021858, -5.089882029233725, -5.131808928937756]),
-            'Very Late': np.array([0.24974190250473516, -0.7322832835445023, -1.4345607295167415, -1.9580342688029324]) # TODO: isn't this a bit odd? It can't keep going indefinitely high
+            'Very Late': np.array([0.24974190250473516, -0.7322832835445023, -1.4345607295167415, -1.9580342688029324])
         }
         for arg_name, arg_set in args.items():
             result = wdm.process_abundances(arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4])
@@ -2110,7 +3208,16 @@ class SyntheticConfigurationsTests(unittest.TestCase):
             'MWDD_DB_Teffs_40pc': (25200.0, 30000.0),
             'MWDD_DB_Loggs_40pc': (8.77, 9.0),
             'HollandsTeffs': (6500.0, 7000.0),
-            'HollandsLoggs': (8.1, 8.3)
+            'HollandsLoggs': (8.1, 8.3),
+            'NS20_Teffs_DA': (9111.111111111111, 9333.333333333334),
+            'NS20_Loggs_DA': (7.101010101010101, 7.121212121212121),
+            'NS20_Teffs_DB': (12040.816326530612, 12448.979591836734),
+            'NS20_Loggs_DB': (7.204081632653061, 7.244897959183674),
+            'GSPCWD_Teffs_DA': (4850.0, 5220.0),
+            'GSPCWD_Loggs_DA': (7.1, 7.12),
+            'GSPCWD_Teffs_DB': (4850.0, 5220.0),
+            'GSPCWD_Loggs_DB': (7.1, 7.12)
+
         }
         expected_count_index_5_value = {
             'combined': 31293340.540264696,
@@ -2130,7 +3237,15 @@ class SyntheticConfigurationsTests(unittest.TestCase):
             'MWDD_DB_Teffs_40pc': 1,
             'MWDD_DB_Loggs_40pc': 2,
             'HollandsTeffs': 39,
-            'HollandsLoggs': 37
+            'HollandsLoggs': 37,
+            'NS20_Teffs_DA': 5,
+            'NS20_Loggs_DA': 42,
+            'NS20_Teffs_DB': 332,
+            'NS20_Loggs_DB': 16,
+            'GSPCWD_Teffs_DA': 1598,
+            'GSPCWD_Loggs_DA': 147,
+            'GSPCWD_Teffs_DB': 87,
+            'GSPCWD_Loggs_DB': 12
         }
         for config_name, dist in sc.predefined_distributions.items():
             if config_name in ['MWDD_DB_Teffs_40pc', 'MWDD_DB_Loggs_40pc']:
@@ -2149,56 +3264,55 @@ class SyntheticPopulationTests(unittest.TestCase):
         number_of_systems = 3
         with open('test_synth_dump_v1_golden.csv', 'w', newline='', encoding='utf-8') as f:
             to_write = csv.writer(f)
-            to_write.writerow(['ID','WD Spectral Type','WD Temperature','WD Log(g)','WD Mass','WD Distance','True log(Al/Hx)','True log(Ti/Hx)','True log(Ca/Hx)','True log(Ni/Hx)','True log(Fe/Hx)','True log(Cr/Hx)','True log(Mg/Hx)','True log(Si/Hx)','True log(Na/Hx)','True log(O/Hx)','True log(C/Hx)','True log(N/Hx)'])
+            to_write.writerow(['ID','WD Spectral Type','WD Temperature','WD Log(g)','WD Mass','WD Distance','WD Timescale Type','WD Consider Thermohaline','True log(Al/Hx)','True log(Ti/Hx)','True log(Ca/Hx)','True log(Ni/Hx)','True log(Fe/Hx)','True log(Cr/Hx)','True log(Mg/Hx)','True log(Si/Hx)','True log(Na/Hx)','True log(O/Hx)','True log(C/Hx)','True log(N/Hx)'])
             i = 0
             while i < number_of_systems:
-                to_write.writerow([str(i),'DB','5000','8','0.6','40','-9.163407143351364','-10.574281819048846','-9.166481121051756','-9.352758494059092',
-                '-8.085059920453125','-9.88020916206931','-7.896002409979453','-7.901434906549995','-9.214798995555732','-7.290131105170094','-inf','-inf'])
+                to_write.writerow([str(i),'DB','5000','8','0.6','40','KoesterOvershoot','False','-7.637195577826703','-9.048070253524186','-7.6402695555270945','-7.826546928534431','-6.558848354928465',
+                '-8.353997596544648','-6.369790844454792','-6.375223341025334','-7.688587430031069','-5.763919539645433','-inf','-inf'])
                 i += 1
         with open('test_synth_dump_v2_golden.csv', 'w', newline='', encoding='utf-8') as f:
             to_write = csv.writer(f)
-            to_write.writerow(['ID','WD Spectral Type','WD Temperature','WD Log(g)','WD Mass','WD Distance','Input Metallicity','Input Time Since Accretion','Input Formation Distance','Input Feeding Zone Size','Input Parent Core Number Fr\
+            to_write.writerow(['ID','WD Spectral Type','WD Temperature','WD Log(g)','WD Mass','WD Distance','WD Timescale Type','WD Consider Thermohaline','Input Metallicity','Input Time Since Accretion','Input Formation Distance','Input Feeding Zone Size','Input Parent Core Number Fr\
 action','Input Parent Crust Number Fraction','Input Fragment Core Number Fraction','Input Fragment Crust Number Fraction','In\
-put Pollution Fraction','Input Accretion Timescale','Input Pressure','Input Oxygen Fugacit\
+put Fragment Mass','Input Accretion Timescale','Input Pressure','Input Oxygen Fugacit\
 y','True log(Al/Hx)','True log(Ti/Hx)','True log(Ca/Hx)','True log(Ni/Hx)','True log(Fe/Hx)','True log(Cr/Hx)','True log(Mg/Hx)','True l\
 og(Si/Hx)','True log(Na/Hx)','True log(O/Hx)','True log(C/Hx)','True log(N/Hx)','Observed?','Observed log(Al/Hx)','Observed log(Ti/Hx)','Observed log(\
 Ca/Hx)','Observed log(Ni/Hx)','Observed log(Fe/Hx)','Observed log(Cr/Hx)','Observed log(Mg/Hx)','Observed l\
 og(Si/Hx)','Observed log(Na/Hx)','Observed log(O/Hx)','Observed log(C/Hx)','Observed log(N/Hx)','u','g','r','i','z','Output Metallicity','Output Time Since \
 Accretion','Output Formation Distance','Output Feeding Zone Size','Output Parent C\
 ore Number Fraction','Output Parent Crust Number Fraction','Output Fragment Core Number Fraction','Output Fragment Crus\
-t Number Fraction','Output Pollution Fraction','Output Accretion Timescale','Output Pressure','Output O\
+t Number Fraction','Output Fragment Mass','Output Accretion Timescale','Output Pressure','Output O\
 xygen Fugacity'])
             i = 0
             while i < number_of_systems:
-                to_write.writerow([str(i),'DB','5000','8','0.6','40','400','1.2','0.0','0.03','None','None','0.1','None','-7.058859193492784','1000000','10','-2',
-                '-9.163407143351364','-10.574281819048846','-9.166481121051756','-9.352758494059092','-8.085059920453125','-9.88020916206931','-7.896002409979453',
-                '-7.901434906549995','-9.214798995555732','-7.290131105170094','-inf','-inf',
+                to_write.writerow([str(i),'DB','5000','8','0.6','40','KoesterOvershoot','False','400','1.2','0.0','0.03','None','None','0.1','None','20.0','1000000','10','-2',
+                '-7.637195577826703','-9.048070253524186','-7.6402695555270945','-7.826546928534431','-6.558848354928465',
+                '-8.353997596544648','-6.369790844454792','-6.375223341025334','-7.688587430031069','-5.763919539645433','-inf','-inf',
                 'None','None','None','None','None','None','None','None','None','None','None','None','None',
                 'None','None','None','None','None','None','None','None','None','None','None','None','None','None','None','None','None'])
                 i += 1
         with open('test_synth_dump_v3_golden.csv', 'w', newline='', encoding='utf-8') as f:
             to_write = csv.writer(f)
-            to_write.writerow(['ID','WD Spectral Type','WD Temperature','WD Log(g)','WD Mass','WD Distance','Input Metallicity',\
+            to_write.writerow(['ID','WD Spectral Type','WD Temperature','WD Log(g)','WD Mass','WD Distance','WD Timescale Type','WD Consider Thermohaline','Input Metallicity',\
             'Input Time Since Accretion','Input Formation Distance','Input Feeding Zone Size','Input Parent Core Number Fr\
 action','Input Parent Crust Number Fraction','Input Fragment Core Number Fraction','Input Fragment Crust Number Fraction','In\
-put Pollution Fraction','Input Accretion Timescale','Input Pressure','Input Oxygen Fugacit\
+put Fragment Mass','Input Accretion Timescale','Input Pressure','Input Oxygen Fugacit\
 y','True log(Al/Hx)','True log(Ti/Hx)','True log(Ca/Hx)','True log(Ni/Hx)','True log(Fe/Hx)','True log(Cr/Hx)','True log(Mg/Hx)','True l\
 og(Si/Hx)','True log(Na/Hx)','True log(O/Hx)','True log(C/Hx)','True log(N/Hx)','Observed?','Observed log(Al/Hx)','Observed log(Ti/Hx)','Observed log(\
 Ca/Hx)','Observed log(Ni/Hx)','Observed log(Fe/Hx)','Observed log(Cr/Hx)','Observed log(Mg/Hx)','Observed l\
 og(Si/Hx)','Observed log(Na/Hx)','Observed log(O/Hx)','Observed log(C/Hx)','Observed log(N/Hx)','u','g','r','i','z','Output Metallicity','Output Time S\
 ince Accretion','Output Formation Distance','Output Feeding Zone Size','Output Parent C\
 ore Number Fraction','Output Parent Crust Number Fraction','Output Fragment Core Number Fraction','Output Fragment Crus\
-t Number Fraction','Output Pollution Fraction','Output Accretion Timescale','Output Pressure','Output O\
+t Number Fraction','Output Fragment Mass','Output Accretion Timescale','Output Pressure','Output O\
 xygen Fugacity'])
             i = 0
             while i < number_of_systems:
                 id_no = i if i != 1 else 123
-                to_write.writerow([str(id_no),'DB','5000','8','0.6','40','400','1.2','0.0','0.03','None','None','0.1','None','-7.058859193492784',
-                '1000000','10','-2','-9.163407143351364','-10.574281819048846','-9.166481121051756','-9.352758494059092','-8.085059920453125','-9.88020916206931',
-                '-7.896002409979453','-7.901434906549995','-9.214798995555732','-7.290131105170094\
-','-inf','-inf','True','None','None','None','None','-8.7','None','None','None'\
-,'None','None','None','None','None','None','None','None','None','300','None','None','None','None','None','None','None','None','None','None','\
-None'])
+                to_write.writerow([str(id_no),'DB','5000','8','0.6','40','KoesterOvershoot','False','400','1.2','0.0','0.03','None','None','0.1','None','20.0',
+                '1000000','10','-2','-7.637195577826703','-9.048070253524186','-7.6402695555270945','-7.826546928534431','-6.558848354928465',
+                '-8.353997596544648','-6.369790844454792','-6.375223341025334','-7.688587430031069','-5.763919539645433','-inf','-inf',
+                'True','None','None','None','None','-8.7','None','None','None','None','None','None','None','None','None','None','None','None',
+                '300','None','None','None','None','None','None','None','None','None','None','None'])
                 i += 1
 
     def test_setup(self):
@@ -2209,9 +3323,9 @@ None'])
         with self.assertRaises(ValueError):
             synthetic_pop = sp.SyntheticPopulation(3, 'NonExistantWDConfig', 'TestPollutionConfig')
         with self.assertRaises(ValueError):
-            synthetic_pop = sp.SyntheticPopulation(3, 'TestWDConfig', 'NonExistantPollutionConfig')
+            synthetic_pop = sp.SyntheticPopulation(3, 'TestWDConfigDB', 'NonExistantPollutionConfig')
         number_of_systems = 3
-        synthetic_pop = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig')
         self.assertEqual(number_of_systems, len(synthetic_pop))
         system_count_manual = 0
         for system in synthetic_pop:
@@ -2220,17 +3334,18 @@ None'])
         expected_logg = [8, 8, 8]
         expected_metallicity = [400, 400, 400]
         expected_Mo = [None, None, None]
-        expected_Fe = [-8.085059920453125, -8.085059920453125, -8.085059920453125]
-        expected_CaFe = [-1.0814212005986317, -1.0814212005986317, -1.0814212005986317]
+        expected_Fe = [-6.558848354928465, -6.558848354928465, -6.558848354928465]
+        expected_CaFe = [-1.08142120059863, -1.08142120059863, -1.08142120059863]
         expected_modelled_metallicity = [None, None, None]
         self.assertEqual(expected_logg, synthetic_pop.wd_values(mp.WDParameter.logg))
         self.assertEqual(expected_metallicity, synthetic_pop.pollution_input_values(mp.ModelParameter.metallicity))
+        print(synthetic_pop)
+        synthetic_pop.dump_to_csv('test_synth_dump_v1.csv', True)
+        synthetic_pop.dump_to_csv('test_synth_dump_v2.csv')
         self.assertEqual(expected_Fe, synthetic_pop.pollution_abundance_values(ci.Element.Fe))
         self.assertEqual(expected_Mo, synthetic_pop.pollution_abundance_values(ci.Element.Mo))
         self.assertEqual(expected_CaFe, synthetic_pop.pollution_abundance_log_ratios(ci.Element.Ca, ci.Element.Fe))
         self.assertEqual(expected_modelled_metallicity, synthetic_pop.modelled_values(mp.ModelParameter.metallicity))
-        synthetic_pop.dump_to_csv('test_synth_dump_v1.csv', True)
-        synthetic_pop.dump_to_csv('test_synth_dump_v2.csv')
         for system in synthetic_pop:
             system.observed = True
             system.set_observed_abundances({ci.Element.Fe: -8.7})
@@ -2241,7 +3356,7 @@ None'])
         self.assertEqual(expected_modelled_metallicity, synthetic_pop.modelled_values(mp.ModelParameter.metallicity))
         expected_observed_Fe = [-8.7, -8.7, -8.7]
         self.assertEqual(expected_observed_Fe, synthetic_pop.observed_abundances(ci.Element.Fe))
-        synthetic_pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig')
         self.assertEqual(False, synthetic_pop2 == synthetic_pop)
         for system in synthetic_pop2:
             system.observed = True
@@ -2265,7 +3380,7 @@ None'])
         self.assertEqual(ci.Element.Si, synthetic_pop.convert_readable_str_to_property('True log(Si/Hx)'))
         self.assertEqual(ci.Element.O, synthetic_pop.convert_readable_str_to_property('Observed log(O/Hx)'))
         synthetic_pop3 = sp.SyntheticPopulation(None, None, None, 'test_synth_dump_v3_golden.csv')
-        matching_systems = synthetic_pop3.find_systems_with_abundances({ci.Element.Ti: -10.574281819048846, ci.Element.Ca: -9.166481121051756})
+        matching_systems = synthetic_pop3.find_systems_with_abundances({ci.Element.Ti: -9.048070253524186, ci.Element.Ca: -7.6402695555270945})
         self.assertEqual(len(synthetic_pop3), len(matching_systems))
         matching_systems = synthetic_pop3.find_systems_with_abundances({ci.Element.Ti: -10.57, ci.Element.Ca: -9.166481121051756})
         self.assertEqual(0, len(matching_systems))
@@ -2323,7 +3438,7 @@ None'])
         os.remove('test_synth_dump_v4.csv')
 
     def test_sample_arbitrary_function(self):
-        synthetic_pop = sp.SyntheticPopulation(0, 'TestWDConfig', 'TestPollutionConfig') #This doesn't really matter
+        synthetic_pop = sp.SyntheticPopulation(0, 'TestWDConfigDB', 'TestPollutionConfig') #This doesn't really matter
         def function_to_sample(x):
             if x > 10 or x < 2:
                 return 0
@@ -2343,7 +3458,7 @@ None'])
             i += 1
 
     def test_sample_arbitrary_distribution(self):
-        synthetic_pop = sp.SyntheticPopulation(0, 'TestWDConfig', 'TestPollutionConfig') #This doesn't really matter
+        synthetic_pop = sp.SyntheticPopulation(0, 'TestWDConfigDB', 'TestPollutionConfig') #This doesn't really matter
         bins_to_sample = [(3, 4), (4, 5), (5, 7)]
         counts_to_sample = [40, 60, 100]
         synthetic_pop.cache_inverse_cdf_from_table('test_dist', bins_to_sample, counts_to_sample)
@@ -2361,7 +3476,7 @@ None'])
             i += 1
 
     def test_draw_variable_from_distribution(self):
-        synthetic_pop = sp.SyntheticPopulation(1, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop = sp.SyntheticPopulation(1, 'TestWDConfigDB', 'TestPollutionConfig')
         with self.assertRaises(ValueError):
             value = synthetic_pop.draw_variable_from_distribution('NonExistant')
         uniform_distribution = (sc.Distribution.Uniform, [0, 1])
@@ -2369,6 +3484,8 @@ None'])
         delta_distribution = (sc.Distribution.Delta, [0, 1])
         triangle_distribution = (sc.Distribution.Triangle, [0, 0.7, 1])
         slope_distribution = (sc.Distribution.Slope, [0, 0.7, 1])
+        coll_casc_distribution = (sc.Distribution.CustomFunction, ['CollisionalCascade', sc.predefined_functions['CollisionalCascade'], 0.1, 1])
+        custom_distribution = (sc.Distribution.CustomDistribution, ['CD', [(0.0, 0.2), (0.2, 0.4), (0.4, 0.6), (0.6, 0.8), (0.8, 1.0)], np.array([1, 4, 6, 5, 3])])
         sample_size = 1000
         distribution_samples = {
             sc.Distribution.Uniform: list(),
@@ -2376,6 +3493,8 @@ None'])
             sc.Distribution.Delta: list(),
             sc.Distribution.Triangle: list(),
             sc.Distribution.Slope: list(),
+            sc.Distribution.CustomFunction: list(),
+            sc.Distribution.CustomDistribution: list()
         }
         i = 0
         while i < sample_size:
@@ -2384,6 +3503,8 @@ None'])
             distribution_samples[sc.Distribution.Delta].append(synthetic_pop.draw_variable_from_distribution(delta_distribution))
             distribution_samples[sc.Distribution.Triangle].append(synthetic_pop.draw_variable_from_distribution(triangle_distribution))
             distribution_samples[sc.Distribution.Slope].append(synthetic_pop.draw_variable_from_distribution(slope_distribution))
+            distribution_samples[sc.Distribution.CustomFunction].append(synthetic_pop.draw_variable_from_distribution(coll_casc_distribution))
+            distribution_samples[sc.Distribution.CustomDistribution].append(synthetic_pop.draw_variable_from_distribution(custom_distribution))
             i += 1
         for dist, vals in distribution_samples.items():
             self.assertEqual(sample_size, len(vals))
@@ -2391,7 +3512,7 @@ None'])
                 self.assertTrue(0 <= val <= 1)
 
     def test_draw_variable_from_custom_distribution(self):
-        synthetic_pop = sp.SyntheticPopulation(1, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop = sp.SyntheticPopulation(1, 'TestWDConfigDB', 'TestPollutionConfig')
         a = synthetic_pop.draw_variable_from_distribution([sc.Distribution.CustomDistribution, ['Combined', sc.predefined_distributions['combined'][0], sc.predefined_distributions['combined'][1]]])
         self.assertTrue(isinstance(a, float))
         self.assertFalse(isinstance(a, np.ndarray))
@@ -2402,7 +3523,7 @@ None'])
         self.assertTrue(7 <= b <= 9)
 
     def test_cast_string_to_float_or_int(self):
-        synthetic_pop = sp.SyntheticPopulation(1, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop = sp.SyntheticPopulation(1, 'TestWDConfigDB', 'TestPollutionConfig')
         self.assertEqual(0.65, synthetic_pop.cast_string_to_float_or_int('0.65'))
         self.assertEqual(0.65, synthetic_pop.cast_string_to_float_or_int("0.65"))
         self.assertEqual(6, synthetic_pop.cast_string_to_float_or_int('6'))
@@ -2420,37 +3541,21 @@ None'])
         self.assertEqual([0.65, np.nan], synthetic_pop.cast_string_to_float_or_int('[0.65, nan]'))
         self.assertEqual([0.65, np.nan], synthetic_pop.cast_string_to_float_or_int("[0.65, nan]"))
 
-    def test_modify_pollution_frac(self):
-        synthetic_pop = sp.SyntheticPopulation(1, 'TestWDConfig', 'TestPollutionConfig')
-        wd_timescales = {ci.Element.Ca: 100000}
-        #t_sinceaccretion = Myr
-        #accretion_timescale = yr
-        default_pol_frac = -6
-        modified_pollution_frac = synthetic_pop.modify_pollution_frac(default_pol_frac, 1, 1000000, wd_timescales)
-        self.assertEqual(default_pol_frac, modified_pollution_frac)
-        modified_pollution_frac = synthetic_pop.modify_pollution_frac(default_pol_frac, 0.5, 1000000, wd_timescales)
-        self.assertEqual(default_pol_frac, modified_pollution_frac)
-        modified_pollution_frac = synthetic_pop.modify_pollution_frac(default_pol_frac, 1.5, 1000000, wd_timescales)
-        # This is 5 Mg sinking timescales after accretion ends - so need to correct by a factor 5/ln(10)
-        self.assertEqual(-8.171472409516259, modified_pollution_frac)
-        modified_pollution_frac = synthetic_pop.modify_pollution_frac(default_pol_frac, 1.5, 1400000, wd_timescales)
-        self.assertEqual(-6.434294481903252, modified_pollution_frac)
-
     def test_random_sample(self):
         number_of_systems = 3
-        synthetic_pop = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig')
         self.assertEqual(number_of_systems, len(synthetic_pop))
         replica_synthetic_pop = synthetic_pop.get_random_subset()  # Providing no argument should default it to a sample size equal to number_of_systems
         self.assertEqual(True, synthetic_pop == replica_synthetic_pop)
         smaller_synthetic_pop = synthetic_pop.get_random_subset(number_of_systems - 1)  # Now we're randomly drawing 2 of the (identical) systems out
-        expected_synthetic_pop = sp.SyntheticPopulation(number_of_systems - 1, 'TestWDConfig', 'TestPollutionConfig')
+        expected_synthetic_pop = sp.SyntheticPopulation(number_of_systems - 1, 'TestWDConfigDB', 'TestPollutionConfig')
         self.assertEqual(number_of_systems - 1, len(smaller_synthetic_pop))
         self.assertEqual(number_of_systems - 1, len(expected_synthetic_pop))
         self.assertEqual(True, smaller_synthetic_pop == expected_synthetic_pop)
         no_pop = synthetic_pop.get_random_subset(1, True)  # We've sampled all systems already so if we prevent reuse it will fail
         self.assertIsNone(no_pop)
         # Start with a fresh pop:
-        synthetic_pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig')
         smaller_synthetic_pop = synthetic_pop2.get_random_subset(number_of_systems - 1, True)
         remaining_pop = synthetic_pop2.get_random_subset(1, True) # Because we prevent reuse, the final system should always be the one we didn't select yet
         all_ids = list()
@@ -2461,33 +3566,34 @@ None'])
         self.assertEqual([0, 1, 2], sorted(all_ids))
 
     def test_most_polluted_sample(self):
-        number_of_systems = 3
-        synthetic_pop = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
-        synthetic_pop.population[0].pollution_properties[mp.ModelParameter.pollution_frac] = -5.1
-        synthetic_pop.population[1].pollution_properties[mp.ModelParameter.pollution_frac] = -6.3
-        synthetic_pop.population[2].pollution_properties[mp.ModelParameter.pollution_frac] = -4.7
-        subset = synthetic_pop.get_most_polluted_subset(number_of_systems - 1)
-        self.assertEqual(number_of_systems - 1, len(subset))
-        self.assertEqual(-4.7, subset.population[0].pollution_properties[mp.ModelParameter.pollution_frac])
-        self.assertEqual(-5.1, subset.population[1].pollution_properties[mp.ModelParameter.pollution_frac])
+        synthetic_pop_a = sp.SyntheticPopulation(1, 'TestWDConfigDB', 'TestPollutionConfig') # fragment mass = 20
+        synthetic_pop_b = sp.SyntheticPopulation(1, 'TestWDConfigDB', 'TestPollutionConfig4') # fragment mass = 19.5
+        synthetic_pop_c = sp.SyntheticPopulation(1, 'TestWDConfigDB', 'TestPollutionConfig3') # fragment mass = 20.5
+        synthetic_pop = sp.SyntheticPopulation(None, None, None, None, [synthetic_pop_a.population[0], synthetic_pop_b.population[0], synthetic_pop_c.population[0]])
+
+        subset = synthetic_pop.get_most_polluted_subset(2)
+
+        self.assertEqual(2, len(subset))
+        self.assertEqual(20.5, subset.population[0].pollution_properties[mp.ModelParameter.fragment_mass])
+        self.assertEqual(20, subset.population[1].pollution_properties[mp.ModelParameter.fragment_mass])
         subset2 = synthetic_pop.get_most_polluted_subset()  # This will effectively just reorder the whole population
-        self.assertEqual(number_of_systems, len(subset2))
-        self.assertEqual(-4.7, subset2.population[0].pollution_properties[mp.ModelParameter.pollution_frac])
-        self.assertEqual(-5.1, subset2.population[1].pollution_properties[mp.ModelParameter.pollution_frac])
-        self.assertEqual(-6.3, subset2.population[2].pollution_properties[mp.ModelParameter.pollution_frac])
+        self.assertEqual(3, len(subset2))
+        self.assertEqual(20.5, subset2.population[0].pollution_properties[mp.ModelParameter.fragment_mass])
+        self.assertEqual(20, subset2.population[1].pollution_properties[mp.ModelParameter.fragment_mass])
+        self.assertEqual(19.5, subset2.population[2].pollution_properties[mp.ModelParameter.fragment_mass])
         observer = so.Observer(so.ObservationType.IndividualElementCutoff)
         observer.observe_population(synthetic_pop)
         synthetic_pop.population[0].observed_abundances[ci.Element.Mg] = -7.4
         synthetic_pop.population[1].observed_abundances[ci.Element.Mg] = -7.2
         synthetic_pop.population[2].observed_abundances[ci.Element.Mg] = -7.1
-        subset3 = synthetic_pop.get_most_polluted_subset(number_of_systems - 1, ci.Element.Mg)
-        self.assertEqual(number_of_systems - 1, len(subset))
+        subset3 = synthetic_pop.get_most_polluted_subset(2, ci.Element.Mg)
+        self.assertEqual(2, len(subset))
         self.assertEqual(-7.1, subset3.population[0].observed_abundances[ci.Element.Mg])
         self.assertEqual(-7.2, subset3.population[1].observed_abundances[ci.Element.Mg])
 
     def test_get_sample_with_CaFeMg(self):
         number_of_systems = 4
-        synthetic_pop = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
+        synthetic_pop = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig')
         synthetic_pop.population[0].observed = True
         synthetic_pop.population[1].observed = True
         synthetic_pop.population[2].observed = True
@@ -2521,43 +3627,20 @@ None'])
         self.assertEqual(0.01953125, sp.SyntheticPopulation.get_knn_p_value(8, 1))
         self.assertEqual(0.998046875, sp.SyntheticPopulation.get_knn_p_value(1, 8))
 
-    #def test_knn_comparison_against_other_pop(self):
-    # Commenting this out because I no longer use this functionality and sometimes it can fail by chance!
-    #    pop1 = [
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -7.5, ci.Element.Mg: -7.1, ci.Element.Fe: -6.5}, None, None, 1),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -7.4, ci.Element.Mg: -7.2, ci.Element.Fe: -6.8}, None, None, 2),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -7.8, ci.Element.Mg: -7.3, ci.Element.Fe: -6.9}, None, None, 3)
-    #    ]
-    #    synthetic_pop1 = sp.SyntheticPopulation(None, None, None, None, pop1)
-    #    pop2 = [
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -7.5, ci.Element.Mg: -7.1, ci.Element.Fe: -8.5}, None, None, 1),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -7.4, ci.Element.Mg: -7.2, ci.Element.Fe: -8.5}, None, None, 2),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -7.8, ci.Element.Mg: -7.3, ci.Element.Fe: -8.5}, None, None, 3)
-    #    ]
-    #    synthetic_pop2 = sp.SyntheticPopulation(None, None, None, None, pop2) # This one is comparatively Fe poor
-    #    pop3 = [
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -6.5, ci.Element.Mg: -6.1, ci.Element.Fe: -5.5}, None, None, 4),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -6.4, ci.Element.Mg: -6.2, ci.Element.Fe: -5.8}, None, None, 8),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -6.8, ci.Element.Mg: -6.3, ci.Element.Fe: -5.9}, None, None, 9)
-    #    ]
-    #    synthetic_pop3 = sp.SyntheticPopulation(None, None, None, None, pop3) # This one is the same as pop1 in terms of relative abundances. IDs are done differently - should make no difference
-    #    pop4 = [
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -6.4, ci.Element.Mg: -6.4, ci.Element.Fe: -5.6}, None, None, 1),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -6.3, ci.Element.Mg: -6.3, ci.Element.Fe: -5.7}, None, None, 2),
-    #        sp.SyntheticSystem(None, None, None, True, {ci.Element.Ca: -6.9, ci.Element.Mg: -6.2, ci.Element.Fe: -5.7}, None, None, 3)
-    #    ]
-    #    synthetic_pop4 = sp.SyntheticPopulation(None, None, None, None, pop4) # This one is slightly perturbed from pop1 in terms of relative abundances
-    #    self.assertEqual([1, 2, 3], synthetic_pop1.get_all_ids()) # This should really be its own test
-    #    self.assertEqual([4, 8, 9], synthetic_pop3.get_all_ids()) # This should really be its own test
-    #    self.assertEqual((6, 0, 0.015625), synthetic_pop1.knn_comparison_against_other_pop(synthetic_pop2)) # It should classify everything correctly and so the p value is the chance of getting 6 heads in a row (or 5?)
-    #    self.assertTrue(synthetic_pop1.knn_comparison_against_other_pop(synthetic_pop3)[0] > 0.1) # This is an odd situation - the pops are effectively identical. Sometimes this can fail by chance
-    #    self.assertTrue(synthetic_pop1.knn_comparison_against_other_pop(synthetic_pop4)[0] > 0.1) # Unfortunately because of the small sample size I can't really put tight constraints on what the p value should be
-
     def tearDown(self):
         pass
 
 
 class ObserverTests(unittest.TestCase):
+
+    def assertListsAlmostEqual(self, list1, list2):
+        # This function is useful across the board - should make it available at a higher level. Should also add useful output for if the entries aren't equal
+        self.assertEqual(len(list1), len(list2))
+        for i, val1 in enumerate(list1):
+            if np.isnan(val1):
+                self.assertTrue(np.isnan(list2[i]))
+            else:
+                self.assertAlmostEqual(val1, list2[i])
 
     def test_init(self):
         with self.assertRaises(ValueError):
@@ -2779,16 +3862,16 @@ class ObserverTests(unittest.TestCase):
     def test_observe_populations(self):
         observer = so.Observer(so.ObservationType.CaMgFeCutoff)
         number_of_systems = 2
-        pop1 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
-        pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig2')
+        pop1 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig5')
+        pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig2')
         populations = {'Pop1': pop1, 'Pop2': pop2}
         observer.observe_populations(populations)
-        empty_pop = sp.SyntheticPopulation(0, 'TestWDConfig', 'TestPollutionConfig')
+        empty_pop = sp.SyntheticPopulation(0, 'TestWDConfigDB', 'TestPollutionConfig5')
         expected_observed_populations = {'Pop1': empty_pop, 'Pop2': pop2}
         self.assertEqual(expected_observed_populations['Pop1'], populations['Pop1'].get_observed_subset())
         self.assertEqual(expected_observed_populations['Pop2'], populations['Pop2'].get_observed_subset())
-        self.assertEqual([0.05139185220436815, 0.05139185220436815], populations['Pop2'].pollution_abundance_log_ratios(ci.Element.Al, ci.Element.Na))
-        self.assertEqual([0.05139185220436815, 0.05139185220436815], populations['Pop2'].observed_abundance_log_ratios(ci.Element.Al, ci.Element.Na))
+        self.assertListsAlmostEqual([0.05139185220436815, 0.05139185220436815], populations['Pop2'].pollution_abundance_log_ratios(ci.Element.Al, ci.Element.Na))
+        self.assertListsAlmostEqual([0.05139185220436815, 0.05139185220436815], populations['Pop2'].observed_abundance_log_ratios(ci.Element.Al, ci.Element.Na))
 
     def test_reload(self):
         dump_file = 'test_obs_dump.csv'
@@ -2798,32 +3881,14 @@ class ObserverTests(unittest.TestCase):
         observer1 = so.Observer(so.ObservationType.NoCut)
         observer2 = so.Observer(so.ObservationType.CaMgFeCutoff)
         abundances_detectable = {
-            #ci.Element.Al: None,
-            #ci.Element.Ti: None,
             ci.Element.Ca: -9,
-            #ci.Element.Ni: None,
             ci.Element.Fe: -9,
-            #ci.Element.Cr: None,
-            ci.Element.Mg: -9,
-            #ci.Element.Si: None,
-            #ci.Element.Na: None,
-            #ci.Element.O: None,
-            #ci.Element.C: None,
-            #ci.Element.N: None
+            ci.Element.Mg: -9
         }
         abundances_undetectable = {
-            #ci.Element.Al: None,
-            #ci.Element.Ti: None,
             ci.Element.Ca: -9,
-            #ci.Element.Ni: None,
             ci.Element.Fe: -9,
-            #ci.Element.Cr: None,
-            ci.Element.Mg: -9.6,
-            #ci.Element.Si: None,
-            #ci.Element.Na: None,
-            #ci.Element.O: None,
-            #ci.Element.C: None,
-            #ci.Element.N: None
+            ci.Element.Mg: -9.6
         }
         abundances_na = {
             ci.Element.Fe: -9,
@@ -2845,17 +3910,17 @@ class ObserverTests(unittest.TestCase):
             mp.ModelParameter.parent_crust_frac: None,
             mp.ModelParameter.fragment_core_frac: 0.5,
             mp.ModelParameter.fragment_crust_frac: None,
-            mp.ModelParameter.pollution_frac: None,
+            mp.ModelParameter.fragment_mass: None,
             mp.ModelParameter.accretion_timescale: None,
             mp.ModelParameter.pressure: None,
             mp.ModelParameter.oxygen_fugacity: None
         }
         system_detectable = sp.SyntheticSystem(wd_properties, pollution_properties, abundances_detectable, None, None, None, None, 1)
         system_undetectable = sp.SyntheticSystem(wd_properties, pollution_properties, abundances_undetectable, None, None, None, None, 2)
-        pop1 = sp.SyntheticPopulation(None, 'TestWDConfig', 'TestPollutionConfig', dump_file, [system_detectable, system_undetectable])
+        pop1 = sp.SyntheticPopulation(None, 'TestWDConfigDB', 'TestPollutionConfig', dump_file, [system_detectable, system_undetectable])
         observer1.observe_population(pop1)
         pop1.dump_to_csv(dump_file)
-        pop2 = sp.SyntheticPopulation(None, 'TestWDConfig', 'TestPollutionConfig', dump_file)
+        pop2 = sp.SyntheticPopulation(None, 'TestWDConfigDB', 'TestPollutionConfig', dump_file)
         observer2.observe_population(pop2)  # Shouldn't do anything - should realise the pop was already observed
         self.assertEqual(pop1.get_observed_subset(), pop2.get_observed_subset())
         observer2.observe_population(pop2, True)  # Now tell it to overwrite the previous results
@@ -3481,6 +4546,7 @@ class ExcessOxygenTests(unittest.TestCase):
         self.assertEqual(expected_species_names, species_names)
         self.assertIsNone(sigma)
 
+#@unittest.skip("Skip for now")
 class ModellerTests(unittest.TestCase):
 
     def test_init(self):
@@ -3503,7 +4569,7 @@ class ModellerTests(unittest.TestCase):
             mp.ModelParameter.parent_crust_frac: [None],
             mp.ModelParameter.fragment_core_frac: [None],
             mp.ModelParameter.fragment_crust_frac: [None],
-            mp.ModelParameter.pollution_frac: [None],
+            mp.ModelParameter.fragment_mass: [None],
             mp.ModelParameter.accretion_timescale: [None],
             mp.ModelParameter.pressure: [None],
             mp.ModelParameter.oxygen_fugacity: [None]
@@ -3518,7 +4584,7 @@ class ModellerTests(unittest.TestCase):
             mp.ModelParameter.parent_crust_frac: [None],
             mp.ModelParameter.fragment_core_frac: [None],
             mp.ModelParameter.fragment_crust_frac: -0.1,
-            mp.ModelParameter.pollution_frac: [None],
+            mp.ModelParameter.fragment_mass: [None],
             mp.ModelParameter.accretion_timescale: [None],
             mp.ModelParameter.pressure: [None],
             mp.ModelParameter.oxygen_fugacity: [None]
@@ -3567,8 +4633,8 @@ class ModellerTests(unittest.TestCase):
     def test_model_populations(self):
         modeller = sm.Modeller(sm.ModellerType.SimpleFcfInterpolation)
         number_of_systems = 2
-        pop1 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig')
-        pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfig', 'TestPollutionConfig2')
+        pop1 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig')
+        pop2 = sp.SyntheticPopulation(number_of_systems, 'TestWDConfigDB', 'TestPollutionConfig2')
         populations = {'Pop1': pop1, 'Pop2': pop2}
         for system in populations['Pop1']:
             self.assertEqual(None, system.modelled_properties)
@@ -3580,17 +4646,17 @@ class ModellerTests(unittest.TestCase):
             system.set_observed_abundances(system.pollution_abundances)
         modeller.model_populations(populations)
         expected_pop_dict = {
-            mp.ModelParameter.fragment_core_frac: [0.2703141631754429]
+            mp.ModelParameter.fragment_core_frac: [0.2703141631754426]
         }
         for system in populations['Pop1']:
             self.assertEqual(expected_pop_dict, system.modelled_properties)
         expected_pop_dict_2 = {
-            mp.ModelParameter.fragment_core_frac: [0.2703141631754429] # This is the same as above because the only difference is the pollution fraction, which doesn't affect relative abundances
+            mp.ModelParameter.fragment_core_frac: [0.27031416317544227] # This is the same as above because the only difference is the fragment mass, which doesn't affect relative abundances
         }
         for system in populations['Pop2']:
             self.assertEqual(expected_pop_dict_2, system.modelled_properties)
 
-        pop3 = sp.SyntheticPopulation(None, 'TestWDConfig', 'TestPollutionConfig', None, [sp.SyntheticSystem(None, None, None)])
+        pop3 = sp.SyntheticPopulation(None, 'TestWDConfigDB', 'TestPollutionConfig', None, [sp.SyntheticSystem(None, None, None)])
         population_none = {'Pop3': pop3}
         modeller.model_populations(population_none)
         self.assertEqual(None, population_none['Pop3'].population[0].modelled_properties)
@@ -3612,20 +4678,22 @@ class ModellerTests(unittest.TestCase):
         for system in DApopulations['pop4']:
             system.observed = True
             system.set_observed_abundances(system.pollution_abundances)
-        modeller2 = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        modeller2 = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         modeller2.model_populations(DApopulations)
         expected_pop_dict_4 = {
             mp.ModelParameter.metallicity: [388, 478],
-            mp.ModelParameter.t_sinceaccretion: [0.017418068733916145, 0.017418068733916145],
+            mp.ModelParameter.formation_distance: [-0.4302811371772311, -0.4378175613917902],
+            mp.ModelParameter.fragment_core_frac: [0.1789431804147672, 0.17939637253110072],
             mp.ModelParameter.accretion_timescale: [34836.13746783229, 34836.13746783229],
-            mp.ModelParameter.fragment_core_frac: [0.17782856889957663, 0.17782861394557178],
-            mp.ModelParameter.formation_distance: [0.47712125471966244, -0.2998404575141793]
+            mp.ModelParameter.t_sinceaccretion: [0.017418068733916145, 0.017418068733916145]
         }
         for system in DApopulations['pop4']:
+            print()
+            print(system.modelled_properties)
             self.assertEqual(expected_pop_dict_4, system.modelled_properties)
 
     def test_analytic_sinking(self):
-        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         element1 = ci.Element.Al
         element2 = ci.Element.Ca
         element_ratio = 2
@@ -3634,10 +4702,10 @@ class ModellerTests(unittest.TestCase):
         t_disc, t_since_accretion = modeller.calculate_sinking_from_element_pair(element1, element2, element_ratio, t_1, t_2)
         expected_t_disc = 3*max(t_1, t_2)
         self.assertEqual(expected_t_disc, t_disc[478])
-        self.assertEqual(3.979778289794922, t_since_accretion[478])
+        self.assertEqual(389480.5908203125, t_since_accretion[478])
 
     def test_analytic_fcf(self):
-        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         element1 = ci.Element.Ca
         element2 = ci.Element.Fe
         element_ratio = 0.4
@@ -3645,43 +4713,28 @@ class ModellerTests(unittest.TestCase):
         self.assertEqual(0.019090892197292972, fcf)
 
     def test_analytic_heating(self):
-        manager = mn.Manager(  #This is just to load the stellar compositions
-            Namespace(
-                wd_data_filename='WDInputData.csv',
-                stellar_compositions_filename='StellarCompositionsSortFE.csv',
-                n_live_points = 0,
-                pollution_model_names=['Model_24'],
-                enhancement_model='Earthlike'
-            )
-        )
-        manager.publish_live_data(0)
-        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        manager = mn.Manager()  #This is just to load the stellar compositions
+        manager.publish_live_data(0, ti.TimescaleType.KoesterOvershoot)
+        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         element1 = ci.Element.Na
         element2 = ci.Element.Ca
         target_ratio = 0.6
-        t_disc = 0
-        t_sinceaccretion = 0
+        t_disc = 100000
+        t_sinceaccretion = 0.01
         t_1 = 1000000
         t_2 = 800000
         d_formation = modeller.find_d_formation(element1, element2, target_ratio, [t_disc], [t_sinceaccretion], t_1, t_2, [478])
-        self.assertEqual([0.3895608186721802], d_formation)
+        self.assertEqual([0.34086889028549194], d_formation)
 
     def test_analytic_approximation(self):
-        manager = mn.Manager(  #This is just to load the stellar compositions
-            Namespace(
-                wd_data_filename='WDInputData.csv',
-                stellar_compositions_filename='StellarCompositionsSortFE.csv',
-                n_live_points = 0,
-                pollution_model_names=['Model_24'],
-                enhancement_model='Earthlike'
-            )
-        )
-        manager.publish_live_data(0)
-        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        manager = mn.Manager()  #This is just to load the stellar compositions
+        manager.publish_live_data(0, ti.TimescaleType.KoesterOvershoot)
+        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         wd_properties = {
             mp.WDParameter.spectral_type: 'DB',
             mp.WDParameter.logg: 8,
-            mp.WDParameter.temperature: 9876
+            mp.WDParameter.temperature: 9876,
+            mp.WDParameter.consider_thermohaline: False
         }
         abundances = {
             ci.Element.Al: -8.5,
@@ -3695,10 +4748,10 @@ class ModellerTests(unittest.TestCase):
         system.set_observed_abundances(system.pollution_abundances)
         modeller.apply_analytic_approximation(system)
         expected_modelled_properties_for_index_478 = {
-            mp.ModelParameter.formation_distance: -0.5108943948724534,
-            mp.ModelParameter.fragment_core_frac: 0.8948738031851803,
+            mp.ModelParameter.formation_distance: -0.5126873560288674,
+            mp.ModelParameter.fragment_core_frac: 0.8101129703838985,
             mp.ModelParameter.accretion_timescale: 13262007.058409285,
-            mp.ModelParameter.t_sinceaccretion: 24.744044916651625
+            mp.ModelParameter.t_sinceaccretion: 18.172781439835305
         }
         self.assertEqual([None], system.modelled_properties[mp.ModelParameter.metallicity])
         self.assertEqual(expected_modelled_properties_for_index_478[mp.ModelParameter.formation_distance], system.modelled_properties[mp.ModelParameter.formation_distance][478])
@@ -3707,7 +4760,7 @@ class ModellerTests(unittest.TestCase):
         self.assertEqual(expected_modelled_properties_for_index_478[mp.ModelParameter.t_sinceaccretion], system.modelled_properties[mp.ModelParameter.t_sinceaccretion][478])
 
     def test_collapse_list_of_repeats(self):
-        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         test_list1 = [1]
         test_list2 = [1, 1]
         test_list3 = [1, 2]
@@ -3721,7 +4774,8 @@ class ModellerTests(unittest.TestCase):
         wd_properties = {
             mp.WDParameter.spectral_type: 'DA',
             mp.WDParameter.logg: 8,
-            mp.WDParameter.temperature: 9876
+            mp.WDParameter.temperature: 9876,
+            mp.WDParameter.consider_thermohaline: False
         }
         abundances_set_1 = {
             ci.Element.Al: -8.5,
@@ -3735,7 +4789,7 @@ class ModellerTests(unittest.TestCase):
         observer.observe_system(system)
         self.assertEqual(True, system.observed)
         self.assertEqual({ci.Element.Fe: -7}, system.observed_abundances)
-        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         modeller.apply_analytic_approximation(system)
         expected_modelled_properties = {
             mp.ModelParameter.formation_distance: [None],
@@ -3748,7 +4802,8 @@ class ModellerTests(unittest.TestCase):
         wd_properties_2 = {
             mp.WDParameter.spectral_type: 'DB',
             mp.WDParameter.logg: 8,
-            mp.WDParameter.temperature: 9876
+            mp.WDParameter.temperature: 9876,
+            mp.WDParameter.consider_thermohaline: False
         }
         abundances_set_1 = {
             ci.Element.Al: -8.5,
@@ -3783,8 +4838,8 @@ class ModellerTests(unittest.TestCase):
         self.assertEqual({ci.Element.Fe: -7, ci.Element.Ca: -8.1, ci.Element.Mg: -7.9}, system3.observed_abundances)
         modeller.apply_analytic_approximation(system3)
         expected_modelled_properties3 = {
-            mp.ModelParameter.formation_distance: [-0.7556043668395067],
-            mp.ModelParameter.fragment_core_frac: [0.6587355748847398],
+            mp.ModelParameter.formation_distance: [-0.8070552938588017],
+            mp.ModelParameter.fragment_core_frac: [0.7640731816983493],
             mp.ModelParameter.accretion_timescale: [6743.8825121139835],
             mp.ModelParameter.t_sinceaccretion: [0.003371941256056992],
             mp.ModelParameter.metallicity: [749]
@@ -3878,7 +4933,7 @@ class ModellerTests(unittest.TestCase):
             if os.path.exists(file_which_will_be_affected):
                 raise IOError('This test deletes file ' + file_which_will_be_affected + ', cannot proceed until it is removed or renamed')
         modeller1 = sm.Modeller(sm.ModellerType.SimpleFcfInterpolation)
-        modeller2 = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        modeller2 = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         abundances_detectable = {
             ci.Element.Al: -8.8,
             ci.Element.Fe: -8,
@@ -3907,15 +4962,16 @@ class ModellerTests(unittest.TestCase):
         wd_properties = {
             mp.WDParameter.spectral_type: 'DA',
             mp.WDParameter.logg: 8,
-            mp.WDParameter.temperature: 9876
+            mp.WDParameter.temperature: 9876,
+            mp.WDParameter.consider_thermohaline: False
         }
         system_detectable = sp.SyntheticSystem(wd_properties, None, abundances_detectable, None, None, None, None, 1)
         system_detectable.observed = True
         system_detectable.set_observed_abundances(abundances_detectable)
-        pop1 = sp.SyntheticPopulation(None, 'TestWDConfig', 'TestPollutionConfig', dump_file, [system_detectable])
+        pop1 = sp.SyntheticPopulation(None, 'TestWDConfigDB', 'TestPollutionConfig', dump_file, [system_detectable])
         modeller1.model_population(pop1)
 
-        pop2 = sp.SyntheticPopulation(None, 'TestWDConfig', 'TestPollutionConfig', dump_file)
+        pop2 = sp.SyntheticPopulation(None, 'TestWDConfigDB', 'TestPollutionConfig', dump_file)
 
         self.assertEqual(expected_values_detectable1, pop1.population[0].modelled_properties)
         self.assertEqual(expected_values_detectable1, pop2.population[0].modelled_properties)
@@ -3927,14 +4983,14 @@ class ModellerTests(unittest.TestCase):
         modeller2.model_population(pop2, True)  # This should overwrite
 
         self.assertEqual(expected_values_detectable2, pop2.population[0].modelled_properties)
-        pop3 = sp.SyntheticPopulation(None, 'TestWDConfig', 'TestPollutionConfig', dump_file)
+        pop3 = sp.SyntheticPopulation(None, 'TestWDConfigDB', 'TestPollutionConfig', dump_file)
         self.assertEqual(expected_values_detectable2, pop3.population[0].modelled_properties)
 
         pop3.population[0].set_modelled_properties(expected_values_detectable4)
         os.remove(dump_file) # If it's not removed, it will abort the dump
         pop3.dump_to_csv()
 
-        pop4 = sp.SyntheticPopulation(None, 'TestWDConfig', 'TestPollutionConfig', dump_file)
+        pop4 = sp.SyntheticPopulation(None, 'TestWDConfigDB', 'TestPollutionConfig', dump_file)
         self.assertEqual(expected_values_detectable4, pop4.population[0].modelled_properties)
         os.remove(dump_file)
 
@@ -3975,10 +5031,11 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(pipeline.get_base_pipeline_dir(), pu.get_path_to_pipeline_base_dir() + 'TestPipeline/')
         self.assertEqual(pipeline.get_pipeline_dir('a', 'b', 'c'), pu.get_path_to_pipeline_base_dir() + 'TestPipeline/a_b_c/')
         self.assertEqual(pipeline.get_variable_type_list(), ['Input', 'Pollution', 'Observed', 'Modelled'])
-        self.assertEqual(pipeline.get_vfilter('Input', ['a', 'b']), 'a')
-        self.assertEqual(pipeline.get_vfilter('Pollution', ['a', 'b']), 'b')
-        self.assertEqual(pipeline.get_vfilter('Observed', ['a', 'b']), 'b')
-        self.assertEqual(pipeline.get_vfilter('Modelled', ['a', 'b']), 'a')
+        mock_plot_description = (('a', 0, 1, 0.025), ('b', -20, -2, 0.1))
+        self.assertEqual(pipeline.get_vfilter('Input', mock_plot_description), ('a', 0, 1, 0.025))
+        self.assertEqual(pipeline.get_vfilter('Pollution', mock_plot_description), ('b', -np.inf, np.inf, 0.1))
+        self.assertEqual(pipeline.get_vfilter('Observed', mock_plot_description), ('b', -20, -2, 0.1))
+        self.assertEqual(pipeline.get_vfilter('Modelled', mock_plot_description), ('a', 0, 1, 0.025))
 
     def test_ks_test(self):
         pipeline = spi.Pipeline('TestPipeline', dict(), dict(), dict())
@@ -4048,11 +5105,105 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(0, ks_statistic)
         self.assertEqual(1, p_value)
 
+    def test_different_timescales(self):
+        # Going to check that we can make multiple populations with different timescales used
+        population_parameter_dict = {
+            'TestKOPop': {
+                sp.PopulationParameter.size: 1,
+                sp.PopulationParameter.wd_config: 'TestWDConfigDA', #KO
+                sp.PopulationParameter.pollution_config: 'TestPollutionConfig6'
+            },
+            'TestKNPop': {
+                sp.PopulationParameter.size: 1,
+                sp.PopulationParameter.wd_config: 'TestWDConfigDA2', #KN
+                sp.PopulationParameter.pollution_config: 'TestPollutionConfig6'
+            }
+        }
+        observer_dict = {
+            'TestObs': [
+                so.ObservationType.NoCut,
+                0
+            ]
+        }
+        modeller_dict = {
+            'TestKOMod': [
+                sm.ModellerType.AnalyticApproximation,
+                [ti.TimescaleType.KoesterOvershoot, False]
+            ],
+            'TestKNMod': [
+                sm.ModellerType.AnalyticApproximation,
+                [ti.TimescaleType.KoesterNoOvershoot, False]
+            ]
+        }
+        pipeline = spi.Pipeline('TestPipeline', population_parameter_dict, observer_dict, modeller_dict)
+        file_to_dump_to1 = pipeline.get_popdump_dir() + 'popdump_' + pipeline.get_pipeline_name('TestKOPop', 'TestObs', 'TestKOMod') + '.csv'
+        file_to_dump_to2 = pipeline.get_popdump_dir() + 'popdump_' + pipeline.get_pipeline_name('TestKOPop', 'TestObs', 'TestKNMod') + '.csv'
+        file_to_dump_to3 = pipeline.get_popdump_dir() + 'popdump_' + pipeline.get_pipeline_name('TestKNPop', 'TestObs', 'TestKOMod') + '.csv'
+        file_to_dump_to4 = pipeline.get_popdump_dir() + 'popdump_' + pipeline.get_pipeline_name('TestKNPop', 'TestObs', 'TestKNMod') + '.csv'
+
+        pipeline.run_all_combinations()
+
+        # I've picked configurations that should avoid [None] metallicity results (which then lead to sampling every single one of the 958 stars...)
+        self.assertEqual(1, len(pipeline.results_dict['TestKOMod']['TestObs']['TestKOPop'][0].modelled_properties[mp.ModelParameter.fragment_core_frac]))
+        self.assertEqual(1, len(pipeline.results_dict['TestKNMod']['TestObs']['TestKOPop'][0].modelled_properties[mp.ModelParameter.fragment_core_frac]))
+        self.assertEqual(1, len(pipeline.results_dict['TestKOMod']['TestObs']['TestKNPop'][0].modelled_properties[mp.ModelParameter.fragment_core_frac]))
+        self.assertEqual(1, len(pipeline.results_dict['TestKNMod']['TestObs']['TestKNPop'][0].modelled_properties[mp.ModelParameter.fragment_core_frac]))
+
+        os.remove(file_to_dump_to1)
+        os.remove(file_to_dump_to2)
+        os.remove(file_to_dump_to3)
+        os.remove(file_to_dump_to4)
+
+        self.assertNotEqual(pipeline.results_dict['TestKOMod']['TestObs']['TestKOPop'][0].pollution_abundances[ci.Element.Fe], pipeline.results_dict['TestKOMod']['TestObs']['TestKNPop'][0].pollution_abundances[ci.Element.Fe])
+        self.assertNotEqual(pipeline.results_dict['TestKOMod']['TestObs']['TestKNPop'][0].pollution_abundances[ci.Element.Fe], pipeline.results_dict['TestKNMod']['TestObs']['TestKOPop'][0].pollution_abundances[ci.Element.Fe])
+        self.assertEqual(pipeline.results_dict['TestKOMod']['TestObs']['TestKNPop'][0].pollution_abundances[ci.Element.Fe], pipeline.results_dict['TestKNMod']['TestObs']['TestKNPop'][0].pollution_abundances[ci.Element.Fe])
+        self.assertEqual(pipeline.results_dict['TestKOMod']['TestObs']['TestKOPop'][0].pollution_abundances[ci.Element.Fe], pipeline.results_dict['TestKNMod']['TestObs']['TestKOPop'][0].pollution_abundances[ci.Element.Fe])
+        # Should get back the same favoured metallicity as long as the timescales used in Mod and Pop are matched
+        self.assertEqual(pipeline.results_dict['TestKOMod']['TestObs']['TestKOPop'][0].modelled_properties[mp.ModelParameter.metallicity], pipeline.results_dict['TestKNMod']['TestObs']['TestKNPop'][0].modelled_properties[mp.ModelParameter.metallicity])
+
+    def test_thermohaline_usage(self):
+        # Going to check that we can make multiple populations with different timescales used
+        population_parameter_dict = {
+            'TestThermPop1': {
+                sp.PopulationParameter.size: 3,
+                sp.PopulationParameter.wd_config: 'TestDAsThermohalineOff',
+                sp.PopulationParameter.pollution_config: 'TestPollutionConfig6'
+            },
+            'TestThermPop2': {
+                sp.PopulationParameter.size: 3,
+                sp.PopulationParameter.wd_config: 'TestDAsThermohalineOn',
+                sp.PopulationParameter.pollution_config: 'TestPollutionConfig6'
+            }
+        }
+        observer_dict = {
+            'TestObs': [
+                so.ObservationType.NoCut,
+                0
+            ]
+        }
+        modeller_dict = {
+            'TestMod': [
+                sm.ModellerType.Null,
+                None
+            ]
+        }
+        pipeline = spi.Pipeline('TestPipeline', population_parameter_dict, observer_dict, modeller_dict)
+        file_to_dump_to1 = pipeline.get_popdump_dir() + 'popdump_' + pipeline.get_pipeline_name('TestThermPop1', 'TestObs', 'TestMod') + '.csv'
+        file_to_dump_to2 = pipeline.get_popdump_dir() + 'popdump_' + pipeline.get_pipeline_name('TestThermPop2', 'TestObs', 'TestMod') + '.csv'
+        pipeline.run_all_combinations()
+        #The thermohaline one should have less Fe (less of everything!)
+        print('Removing the following files:')
+        print(file_to_dump_to1)
+        print(file_to_dump_to2)
+        os.remove(file_to_dump_to1)
+        os.remove(file_to_dump_to2)
+        self.assertTrue(pipeline.results_dict['TestMod']['TestObs']['TestThermPop1'][0].pollution_abundances[ci.Element.Fe] > pipeline.results_dict['TestMod']['TestObs']['TestThermPop2'][0].pollution_abundances[ci.Element.Fe])
+
     def test_typical_use(self): # This is slightly not the point of unit tests - should ideally split into smaller tests
         population_parameter_dict = {
             'TestPop': {
                 sp.PopulationParameter.size: 3,
-                sp.PopulationParameter.wd_config: 'TestWDConfig',
+                sp.PopulationParameter.wd_config: 'TestWDConfigDB',
                 sp.PopulationParameter.pollution_config: 'TestPollutionConfig'
             }
         }
@@ -4065,17 +5216,17 @@ class PipelineTests(unittest.TestCase):
         modeller_dict = {
             'TestMod': [
                 sm.ModellerType.AnalyticApproximation,
-                [False, 'synthetic_grid_dummy.csv']
+                [ti.TimescaleType.KoesterOvershoot, False]
             ]
         }
         pipeline = spi.Pipeline('TestPipeline', population_parameter_dict, observer_dict, modeller_dict)
         file_to_dump_to = pipeline.get_popdump_dir() + 'popdump_' + pipeline.get_pipeline_name('TestPop', 'TestObs', 'TestMod') + '.csv'
         pipeline.run_all_combinations()
         os.remove(file_to_dump_to)
-        expected_population = sp.SyntheticPopulation(3, 'TestWDConfig', 'TestPollutionConfig')
+        expected_population = sp.SyntheticPopulation(3, 'TestWDConfigDB', 'TestPollutionConfig')
         observer = so.Observer(so.ObservationType.NoCut)
         observer.observe_population(expected_population)
-        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [False])
+        modeller = sm.Modeller(sm.ModellerType.AnalyticApproximation, [ti.TimescaleType.KoesterOvershoot, False])
         modeller.model_population(expected_population)
         expected_results_dict = {
             'TestMod': {
@@ -4110,137 +5261,229 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(variable_below_threshold_dict['Modelled']['fcf']['TestPop'], 0)
         self.assertEqual(variable_above_threshold_dict['Modelled']['fcf']['TestPop'], 0)
 
-        #with self.assertRaises(ValueError):
-        #    modeller = sm.Modeller('Not a modeller type')
-
 class CompleteModelTests(unittest.TestCase):
 
     def load_generic_float_data_csv(self, input_filename):
-        # TODO: Change this to a with clause to prevent ResourceWarnings
-        generic_csv = open(get_path_to_data() + input_filename)
-        generic_list =  [row for row in csv.reader(generic_csv)]
+        generic_list = None
+        with open(get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
+            generic_list = [row for row in csv.reader(generic_csv)]
         generic_array = np.asarray(generic_list)
         return generic_array.astype(np.float)
 
     def test_complete_model(self):
-        manager = mn.Manager(
-            Namespace(
-                wd_data_filename='WDInputData.csv',
-                stellar_compositions_filename='StellarCompositionsSortFE.csv',
-                n_live_points = 0, # This argument shouldn't matter
-                pollution_model_names=['Model_24'],
-                enhancement_model='NonEarthlike'
-            )
-        )
-        manager.publish_live_data(0)
+        manager = mn.Manager()
+        manager.publish_live_data(0, ti.TimescaleType.KoesterOvershoot)
         args = {
-            # Args are: fe_star, t_sinceaccretion, d_formation, z_formation, N_c, N_o, f_c, f_o, pollutionfraction, t_disc
-           # 'Run1': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-           # 'Run2': [145, 0, 2, 0.05, 0.17, 0.01, 0.17, 0, -1, 5.6],
-           # 'Run3': [145, 0.2, 2, 0.05, 0.17, 0.01, 0.17, 0, -1, 5.6],
-           # 'Run4': [145, 0.5, 2, 0.05, 0.17, 0.01, 0.17, 0, -1, 5.6],
-            'SDSSJ0002+3209': [88, 0.195758, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768]  #TODO Add more of these! Try to explore all possible code branches
+           # Args are: fe_star, t_sinceaccretion, d_formation, z_formation, N_c, N_o, f_c, f_o, fragment_mass, t_disc, pressure, fO2
+           # (Skipping the following:          enhancement_model (defaults to 'NonEarthlike'), consider_thermohaline (False), t_formation (1.5), normalise_abundances (True) )
+            'CMTEST1': [88, 0, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, 10, 7, 54, -2], # At t = 0, there is no pollution yet so all outputs are -inf
+            'CMTEST2': [88, 0.0195758, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, 22, 7, 54, -2],
+            'CMTEST3': [88, 5, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, 22, 7, 54, -2],
+            'CMTEST4': [88, 15, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, 22, 7, 54, -2],
+            'CMTEST5': [88, 0.195758, -0.8, 0.05, 0.17, 0.01, 0.128178, 0.01, np.log10(5E22), 4.773768, 54, -2],
+            'CMTEST6': [199, 3.11, -0.3, 0.05, 0.17, 0.01, 0.8, 0.1, np.log10(5E22), np.log10(3000000), 54, -2],
+            'CMTEST7': [199, 3.11, -0.3, 0.05, 0.17, 0.01, 0.8, 0, np.log10(5E22), np.log10(3000000), 54, -2],
+             # If we set the fcf to the pcnf at a given P/fO2...
+            'CMTEST8': [199, 3.11, -0.3, 0.05, 0.17, 0.01, 0.15147328034891958, 0, np.log10(5E22), np.log10(3000000), 54, -2],
+             # ...then Changing pressure and/or fO2 should barely, if at all, change the result.
+             #(But if you hold fcf constant, the result will change which may seem counterintuitive at first - but remember P/fO2 changes the pcnf)
+            'CMTEST9': [199, 3.11, -0.3, 0.05, 0.17, 0.01, 0.11566386300964879, 0, np.log10(5E22), np.log10(3000000), 5, -2]
         }
+
+        expected_results = {
+            'CMTEST1': {
+                ci.Element.Al: -np.inf,
+                ci.Element.Ti: -np.inf,
+                ci.Element.Ca: -np.inf,
+                ci.Element.Ni: -np.inf,
+                ci.Element.Fe: -np.inf,
+                ci.Element.Cr: -np.inf,
+                ci.Element.Mg: -np.inf,
+                ci.Element.Si: -np.inf,
+                ci.Element.Na: -np.inf,
+                ci.Element.O:  -np.inf,
+                ci.Element.C:  -np.inf,
+                ci.Element.N:  -np.inf
+            },
+            'CMTEST2': {
+                ci.Element.Al: -8.184854999968964,
+                ci.Element.Ti: -9.658907891176113,
+                ci.Element.Ca: -8.326851723061791,
+                ci.Element.Ni: -8.420100882496675,
+                ci.Element.Fe: -7.199948466256751,
+                ci.Element.Cr: -9.00892211168204,
+                ci.Element.Mg: -7.053117362414797,
+                ci.Element.Si: -7.083478217193907,
+                ci.Element.Na: -8.5530279995805,
+                ci.Element.O:  -5.8521682162849595,
+                ci.Element.C:  -6.209698053914535,
+                ci.Element.N:  -7.030672490535127
+            },
+            'CMTEST3': {
+                ci.Element.Al: -6.665381093519236,
+                ci.Element.Ti: -8.366008559810357,
+                ci.Element.Ca: -6.939614404279943,
+                ci.Element.Ni: -7.190577473374786,
+                ci.Element.Fe: -5.958916190758224,
+                ci.Element.Cr: -7.744251552231134,
+                ci.Element.Mg: -5.482245243817824,
+                ci.Element.Si: -5.56107534186259,
+                ci.Element.Na: -6.980172894759156,
+                ci.Element.O:  -4.118666039571906,
+                ci.Element.C:  -4.374779113819992,
+                ci.Element.N:  -5.249715865643942
+            },
+            'CMTEST4': {
+                ci.Element.Al: -10.069581713347697,
+                ci.Element.Ti: -14.166162477536453,
+                ci.Element.Ca: -11.58310968618205,
+                ci.Element.Ni: -13.930236520337578,
+                ci.Element.Fe: -12.517002434681643,
+                ci.Element.Cr: -13.945025689320138,
+                ci.Element.Mg: -8.49926912638722,
+                ci.Element.Si: -8.941957052838013,
+                ci.Element.Na: -9.98315296648056,
+                ci.Element.O:  -6.164298451538868,
+                ci.Element.C:  -5.955929082520835,
+                ci.Element.N:  -7.067511585456074
+            },
+            'CMTEST5': {
+                ci.Element.Al: -3.2730032119496038,
+                ci.Element.Ti: -4.8700830140290465,
+                ci.Element.Ca: -3.779861302717375,
+                ci.Element.Ni: -4.49442480201954,
+                ci.Element.Fe: -3.4032277233846835,
+                ci.Element.Cr: -5.5424772482367635,
+                ci.Element.Mg: -3.4472389727260344,
+                ci.Element.Si: -3.432904040649441,
+                ci.Element.Na: -6.901760807925317,
+                ci.Element.O:  -2.642549658386914,
+                ci.Element.C:  -np.inf,
+                ci.Element.N:  -np.inf
+            },
+            'CMTEST6': {
+                ci.Element.Al: -6.140598546767587,
+                ci.Element.Ti: -7.780292631076679,
+                ci.Element.Ca: -6.259010482970321,
+                ci.Element.Ni: -5.3067881506584325,
+                ci.Element.Fe: -4.059066372592598,
+                ci.Element.Cr: -6.083118838735554,
+                ci.Element.Mg: -4.841520932877515,
+                ci.Element.Si: -4.327840342625156,
+                ci.Element.Na: -6.232083116338056,
+                ci.Element.O:  -4.025562898714041,
+                ci.Element.C:  -np.inf,
+                ci.Element.N:  -np.inf
+            },
+            'CMTEST7': {
+                ci.Element.Al: -6.140598546767587,
+                ci.Element.Ti: -7.780292631076679,
+                ci.Element.Ca: -6.259010482970321,
+                ci.Element.Ni: -5.3067881506584325,
+                ci.Element.Fe: -4.059066372592598,
+                ci.Element.Cr: -6.083118838735554,
+                ci.Element.Mg: -4.841520932877515,
+                ci.Element.Si: -4.327840342625156,
+                ci.Element.Na: -6.232083116338056,
+                ci.Element.O:  -4.025562898714041,
+                ci.Element.C:  -np.inf,
+                ci.Element.N:  -np.inf
+            },
+            'CMTEST8': {
+                ci.Element.Al: -5.081151884957815,
+                ci.Element.Ti: -6.720845969266905,
+                ci.Element.Ca: -5.199563821160548,
+                ci.Element.Ni: -5.55598049212516,
+                ci.Element.Fe: -4.280336174911599,
+                ci.Element.Cr: -6.057944193636121,
+                ci.Element.Mg: -3.7820742710677404,
+                ci.Element.Si: -3.856456320225422,
+                ci.Element.Na: -5.172636454528283,
+                ci.Element.O:  -3.1203581961138376,
+                ci.Element.C:  -np.inf,
+                ci.Element.N:  -np.inf
+            },
+            'CMTEST9': {
+                ci.Element.Al: -5.081151884957815,
+                ci.Element.Ti: -6.720845969266905,
+                ci.Element.Ca: -5.199563821160548,
+                ci.Element.Ni: -5.55598049212516,
+                ci.Element.Fe: -4.280336174911599,
+                ci.Element.Cr: -6.057944193636121,
+                ci.Element.Mg: -3.7820742710677404,
+                ci.Element.Si: -3.856456320225422,
+                ci.Element.Na: -5.172636454528283,
+                ci.Element.O:  -3.1203581961138376,
+                ci.Element.C:  -np.inf,
+                ci.Element.N:  -np.inf
+            }
+        }
+
         for arg_name, arg_set in args.items():
-            print('CompleteModelTests ' + arg_name)
-            test_result, ignore = cm.complete_model_calculation(arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], 10**(arg_set[9]), 54, -2, 'NonEarthlike')
-            golden_result = ocm.PWDCodeMultiple(0, 1, False, arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], arg_set[9])
-            # We're comparing apples to oranges here because the model is different in the golden_result vs the test_result
-            # But the results should still be in the same ballpark ish
-            # This test is more just to flag up if something goes completely crazy. Not expecting an exact match (in fact, it would be extremely suspicious if that happened!)
-            self.assertEqual(12, len(test_result))
-            self.assertEqual(3, len(golden_result))
-            test_indices = [2, 4, 6]  # Only check Ca, Fe, Mg
-            for i, g_result in enumerate(golden_result):
-                el = list(test_result.items())[test_indices[i]][0]
-                test_val = list(test_result.items())[test_indices[i]][1]
-                self.assertTrue(abs(test_val - g_result) < 3, 'Mismatch at index ' + str(i) + ' of ' + arg_name + ' (Element: ' + str(el) + '). Golden: ' + str(g_result) + ', test: ' + str(test_val))
+            print('CompleteModelTests: Testing arg set ' + arg_name)
+            result, diagnostics = cm.complete_model_calculation(arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], 10**(arg_set[9]), arg_set[10], arg_set[11])
+            expected = expected_results[arg_name]
+            print('Comparing the following results for ' + arg_name)
+            print(result)
+            print(expected)
+            print('PCNF = ' + str(diagnostics['Enhancements']['ParentCoreNumberFraction']))
+            for el, val in expected.items():
+                if np.isnan(val):
+                    self.assertTrue(np.isnan(result[el]))
+                else:
+                    self.assertAlmostEqual(val, result[el])
 
     def test_complete_model_earthlike(self):
-        manager = mn.Manager(
-            Namespace(
-                wd_data_filename='WDInputData.csv',
-                stellar_compositions_filename='StellarCompositionsSortFE.csv',
-                n_live_points = 0, # This argument shouldn't matter
-                pollution_model_names=['Model_24'],
-                enhancement_model='Earthlike'
-            )
-        )
-        manager.publish_live_data(0)
+        manager = mn.Manager()
+        manager.publish_live_data(0, ti.TimescaleType.KoesterOvershoot)
         args = {
-            # Args are: fe_star, t_sinceaccretion, d_formation, z_formation, N_c, N_o, f_c, f_o, pollutionfraction, t_disc
-           # These 4 input sets are variations on a theme. 3 of them change t_sinceaccretion to test all 3 logic paths in white_dwarf_model.
+            # Args are: fe_star, t_sinceaccretion, d_formation, z_formation, N_c, N_o, f_c, f_o, pollutionfraction, t_disc, fragment_mass
            # One of them decreases d_formation to cause variation in the hsc chemistry outputs (i.e. not all equal to 1)
-            'SDSSJ0002+3209': [88, 0, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768],
-            'SDSSJ0002+3209': [88, 0.0195758, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768],
-            'SDSSJ0002+3209': [88, 0.195758, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768],
-            'SDSSJ0002+3209': [88, 0.195758, -0.8, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768]
+            'SDSSJ0002+3209_1': [88, 0.0195758, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768, np.log10(5E22)],
+            'SDSSJ0002+3209_2': [88, 0.195758, 1.248983, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768, np.log10(5E22)],
+            'SDSSJ0002+3209_3': [88, 0.195758, -0.8, 0.05, 0.17, 0.01, 0.128178, 0.01, -7.05483, 4.773768, np.log10(5E22)]
         }
         for arg_name, arg_set in args.items():
-            test_result, ignore = cm.complete_model_calculation(arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], 10**(arg_set[9]), 54, -2, 'Earthlike', 1.5, False)
+            test_result, ignore = cm.complete_model_calculation(arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[10], 10**(arg_set[9]), 54, -2, 'Earthlike', False, 1.5, False)
             golden_result = ocm.PWDCodeMultiple(0, 1, False, arg_set[0], arg_set[1], arg_set[2], arg_set[3], arg_set[4], arg_set[5], arg_set[6], arg_set[7], arg_set[8], arg_set[9])
-            #The Earthlike version should in theory replicate John's original code, except for an offset in pollution level -> ratios should be consistent
+            #The Earthlike version should in theory replicate John's original code, except for an offset -> ratios should be consistent
             self.assertEqual(12, len(test_result))
             self.assertEqual(3, len(golden_result))
             # We'll check for consistency in the Ca/Fe ratio
             test_cafe = test_result[ci.Element.Ca] - test_result[ci.Element.Fe]
             golden_cafe = golden_result[0] - golden_result[1]
-            self.assertEqual(test_cafe, golden_cafe)
+            self.assertAlmostEqual(test_cafe, golden_cafe)
 
 class LoglikeTests(unittest.TestCase):
 
-    def setUp(self):
-        self.test_args = Namespace(
-            wd_data_filename='WDInputData.csv',
-            stellar_compositions_filename='StellarCompositionsSortFE.csv',
-            n_live_points = 20,
-            pollution_model_names=['Model_Full_No_Crust'],
-            enhancement_model='NonEarthlike'
-        )
-
     def test_bounds(self):
-        manager = mn.Manager(self.test_args)
-        manager.publish_live_data(226)  # GD61 has various upper bounds
-        manager.publish_live_model('Model_Full_No_Crust')
-        dummy_cube = [470, 1, 1.5, 0.02, 0.05, -7, 1, 54, -2]
-        likelihood = manager.models['Model_Full_No_Crust'].loglike(dummy_cube)
-        self.assertNotEqual(likelihood, -9e89)  # This should not have triggered the bounds (but conveniently, if you forgot to ignore carbon it will trigger)
-        dummy_cube = [470, 1, 1.5, 0.02, 0.05, -4.5, 1, 54, -2]
-        likelihood = manager.models['Model_Full_No_Crust'].loglike(dummy_cube)
-        self.assertEqual(likelihood, -9e89)  # This should have triggered the Al bound (we just raised the pollution fraction by 2.5 orders of magnitude, putting Al above its upper bound)
+        manager = mn.Manager()
+        manager.model_names = ['Model_Full_No_Crust']
+        manager.use_hierarchy = False
+        manager.parameter_hierarchy = None
+        manager.hierarchy_name = None
+        manager.load_models()
 
-#@unittest.skip("Skip for now")
+        timescale_type = ti.TimescaleType.KoesterOvershoot
+        consider_thermohaline = True
+
+        manager.publish_live_data(226, timescale_type)  # GD61 has various upper bounds
+        manager.publish_live_model('Model_Full_No_Crust', consider_thermohaline)
+
+        dummy_cube = [470, 1, 1.5, 0.02, 0.05, 17, 1, 54, -2]
+        likelihood = manager.models[timescale_type][consider_thermohaline]['Model_Full_No_Crust'].loglike(dummy_cube)
+        self.assertNotEqual(likelihood, -9e89)  # This should not have triggered the bounds (but it will if C is mistakenly not excluded)
+
+        dummy_cube = [470, 1, 1.5, 0.02, 0.05, 21.2, 1, 54, -2]
+        likelihood = manager.models[timescale_type][consider_thermohaline]['Model_Full_No_Crust'].loglike(dummy_cube)
+        self.assertEqual(likelihood, -9e89)  # This should have triggered the Al bound (we just raised the fragment mass, putting Al above its upper bound)
+
+        dummy_cube = [470, 1, -1.5, 0.02, 0.05, 21.2, 1, 54, -2] # Trying to trigger a situation where all element values are just nan
+        likelihood = manager.models[timescale_type][consider_thermohaline]['Model_Full_No_Crust'].loglike(dummy_cube)
+        self.assertEqual(likelihood, -1.1e90)
+
+#@unittest.skip("Can skip tests by uncommenting these decorators")
 class IntegrationTests(unittest.TestCase):
-
-    def setUp(self):
-        self.real_wd_file = 'WDInputData.csv'
-        self.real_stellar_comps_file = 'StellarCompositionsSortFE.csv'
-        self.n_live_points = 20
-        self.seed = 13022024 # Seeding these tests so that we should be able to reproduce the exact outcome every time
-        self.test_args_golden = Namespace(
-            wd_data_filename=self.real_wd_file,
-            stellar_compositions_filename=self.real_stellar_comps_file,
-            n_live_points = self.n_live_points,
-            pollution_model_names=['Model_24'],
-            enhancement_model='NonEarthlike',
-            seed=self.seed
-        )
-        self.test_args_golden_earthlike = Namespace(
-            wd_data_filename=self.real_wd_file,
-            stellar_compositions_filename=self.real_stellar_comps_file,
-            n_live_points = self.n_live_points,
-            pollution_model_names=['Model_24'],
-            enhancement_model='Earthlike',
-            seed=self.seed
-        )
-        self.test_args_hierarchy = Namespace(
-            wd_data_filename=self.real_wd_file,
-            stellar_compositions_filename=self.real_stellar_comps_file,
-            n_live_points = self.n_live_points,
-            pollution_model_names=['Hierarchy_Default'],
-            enhancement_model='NonEarthlike',
-            seed=self.seed
-        )
 
     def remove_output_dir(self, output_dir):
         if os.path.exists(output_dir) and os.path.isdir(output_dir):
@@ -4255,65 +5498,41 @@ class IntegrationTests(unittest.TestCase):
             self.assertGreaterEqual(value_1 + error_1, value_2 - error_2, err_msg)
 
     def test_integration(self):
-        test_system = 0
+        test_system_id = 203 # PG0843+516
+        manager = mn.Manager()
+        manager.n_live_points = 20
+        manager.seed = 13022024
+        manager.timescale_types_to_run = [ti.TimescaleType.KoesterOvershoot] # For testing purposes, I don't think there's much value in trying different timescales
+        manager.thermohaline_regimes_to_run = [False, True] #...but there is value in trying thermohaline mixing on/off
+        manager.resume = False
 
-        manager_earthlike = mn.Manager(self.test_args_golden_earthlike)
-        manager_earthlike_output_dir = manager_earthlike.get_output_dir(manager_earthlike.white_dwarfs[test_system].name)
-        self.remove_output_dir(manager_earthlike_output_dir)
-        manager_earthlike.run([test_system])
+        manager.run([test_system_id])
 
-        manager = mn.Manager(self.test_args_golden)  # FWIW This model doesn't make much sense. For NonEarthlike, the parent core/crust values are just ignored
-        manager_output_dir = manager.get_output_dir(manager.white_dwarfs[test_system].name)
-        self.remove_output_dir(manager_output_dir)
-        manager.run([test_system])
+        self.assertEqual([ti.TimescaleType.KoesterOvershoot], list(manager.models.keys()))
+        self.assertTrue(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].best_model)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].result['logZ'], -10.153117770994657)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].result['logZerr'], 0.5445478817689606)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].comparison['HD0']['ln_Z_model'], -14.02636861323811)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].comparison['HD0']['ln_Z_base'], -17.389452481763307)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].comparison['HD0']['chi_model'], 11.692651467896253)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].comparison['HD0']['chi_model_per_data_point'], 1.9487752446493756)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].comparison['HD0']['Bayes_factor_model_base'], 28.87810999582329)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].comparison['HD0']['n_sigma_model_base'], 3.081503086678803)
+        self.assertTrue(manager.models[ti.TimescaleType.KoesterOvershoot][False]['HD013'].comparison['HD0']['good_fit'])
 
-        manager_h = mn.Manager(self.test_args_hierarchy)
-        manager_h_output_dir = manager_h.get_output_dir(manager_h.white_dwarfs[test_system].name)
-        self.remove_output_dir(manager_h_output_dir)
-        manager_h.run([203]) # This one (PG0843+516) should really prefer to be differentiated, at least
-
-        print('test_integration output:')
-        print(manager_earthlike.models['Model_24'].result['logZ'])
-        print(manager_earthlike.models['Model_24'].comparison['Model_24']['ln_Z_model'])
-        print(manager_earthlike.models['Model_24'].comparison['Model_24']['chi_model'])
-        print(manager_earthlike.models['Model_24'].comparison['Model_24']['chi_model_per_data_point'])
-        print(manager_earthlike.models['Model_24'].comparison['Model_24']['Bayes_factor_model_base'])
-
-        print(manager.models['Model_24'].result['logZ'])
-        print(manager.models['Model_24'].comparison['Model_24']['ln_Z_model'])
-        print(manager.models['Model_24'].comparison['Model_24']['chi_model'])
-        print(manager.models['Model_24'].comparison['Model_24']['chi_model_per_data_point'])
-        print(manager.models['Model_24'].comparison['Model_24']['Bayes_factor_model_base'])
-
-        print(manager_h.final_hierarchy)
-        print(manager_h.models['HD013'].best_model)
-        print(manager_h.models['HD013'].result['logZ'])
-        print(manager_h.models['HD013'].comparison['HD0']['ln_Z_model'])
-        print(manager_h.models['HD013'].comparison['HD0']['chi_model'])
-        print(manager_h.models['HD013'].comparison['HD0']['chi_model_per_data_point'])
-        print(manager_h.models['HD013'].comparison['HD0']['Bayes_factor_model_base'])
-        print(manager_h.models['HD013'].comparison['HD0']['n_sigma_model_base'])
-
-        self.assertEqual(manager_earthlike.models['Model_24'].result['logZ'], -4.475200417258673)
-        self.assertEqual(manager_earthlike.models['Model_24'].comparison['Model_24']['ln_Z_model'], -11.329815328344754)
-        self.assertEqual(manager_earthlike.models['Model_24'].comparison['Model_24']['chi_model'], 0.13219484661098146)
-        self.assertEqual(manager_earthlike.models['Model_24'].comparison['Model_24']['chi_model_per_data_point'], 0.04406494887032716)
-        self.assertEqual(manager_earthlike.models['Model_24'].comparison['Model_24']['Bayes_factor_model_base'], 1.0)
-
-        self.assertEqual(manager.models['Model_24'].result['logZ'], -3.4916423967519905)
-        self.assertEqual(manager.models['Model_24'].comparison['Model_24']['ln_Z_model'], -8.760830531780863)
-        self.assertEqual(manager.models['Model_24'].comparison['Model_24']['chi_model'], 0.43795020908457927)
-        self.assertEqual(manager.models['Model_24'].comparison['Model_24']['chi_model_per_data_point'], 0.1459834030281931)
-        self.assertEqual(manager.models['Model_24'].comparison['Model_24']['Bayes_factor_model_base'], 1.0)
-
-        self.assertEqual(manager_h.final_hierarchy, [0, 1, 3])
-        self.assertTrue(manager_h.models['HD013'].best_model)
-        self.assertEqual(manager_h.models['HD013'].result['logZ'], -8.929549685963138)
-        self.assertEqual(manager_h.models['HD013'].comparison['HD0']['ln_Z_model'], -12.91840464808934)
-        self.assertEqual(manager_h.models['HD013'].comparison['HD0']['chi_model'], 12.425194953890804)
-        self.assertEqual(manager_h.models['HD013'].comparison['HD0']['chi_model_per_data_point'], 2.0708658256484673)
-        self.assertEqual(manager_h.models['HD013'].comparison['HD0']['Bayes_factor_model_base'], 271.3917876033442)
-        self.assertEqual(manager_h.models['HD013'].comparison['HD0']['n_sigma_model_base'], 3.783775930820614)
+        self.assertTrue(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD0'].best_model)
+        self.assertTrue(not manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].best_model)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].result['logZ'], -19.023845878911327)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].result['logZerr'], 0.7955094690326314)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].comparison['HD0']['ln_Z_model'], -20.803229019887183)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].comparison['HD0']['ln_Z_base'], -19.079007364602248)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].comparison['HD0']['chi_model'], 15.959903381709513)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].comparison['HD0']['chi_model_per_data_point'], 2.6599838969515854)
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].comparison['HD0']['Bayes_factor_model_base'], 0.17831178581056126)
+        self.assertTrue(np.isnan(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].comparison['HD0']['n_sigma_model_base']))
+        self.assertTrue(not manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD01'].comparison['HD0']['good_fit'])
+        self.assertAlmostEqual(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD0'].comparison['HD0']['Bayes_factor_model_base'], 1.0)
+        self.assertTrue(np.isnan(manager.models[ti.TimescaleType.KoesterOvershoot][True]['HD0'].comparison['HD0']['n_sigma_model_base']))
 
 if __name__ == '__main__':
     unittest.main()

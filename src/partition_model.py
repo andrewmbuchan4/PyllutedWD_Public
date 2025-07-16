@@ -37,16 +37,16 @@ import chemistry_info as ci
 import geology_info as gi # gi imports this file - ideally remove circularity
 
 class PartitionModel:
-    
+
     def __init__(self, file_params, file_interactions, file_composition, file_es=None):
 
         # non-bridging oxygens over tetrahedral cations
         self.nbot = 2.7
-        
+
         # fixed activity coefficient of Fe in silicate (Rudge 2010, just above equation G.3)
         # (Actually FeO rather than Fe!)
         self.log10_gammaFe_sil = np.log10(3.0)
-        
+
         self.partitioners = [
             ci.Element.Hf,
             ci.Element.U,
@@ -69,15 +69,14 @@ class PartitionModel:
             ci.Element.O,
             ci.Element.C,
             ci.Element.S
-            
-            # New for Jonny:
+
             #ci.Element.Pt,
             #ci.Element.Pd,
             #ci.Element.Rh,
             #ci.Element.Re,
             #ci.Element.Ru
         ]
-        
+
         self.non_partitioners = [ # We will assume these are all purely lithophilic
             ci.Element.N,
             ci.Element.Na,
@@ -86,15 +85,15 @@ class PartitionModel:
             ci.Element.Ti,
             ci.Element.Ca
         ]
-        
+
         self.ele_set = self.partitioners + self.non_partitioners
-        
+
         self.load_partition_parameters(file_params)
-        
+
         self.load_activity_coefficients(file_interactions)
 
         self.load_default_alloy_composition(file_composition)
-        
+
         self.load_fischer_es(file_es)
 
     def load_partition_parameters(self, file_params):
@@ -118,7 +117,7 @@ class PartitionModel:
         # get activity coefficients for elements as a function of T (assuming comp)
         with open(file_interactions, encoding='utf-8') as csvfile:
             read = csv.reader(csvfile, delimiter=' ')
-        
+
             i = 0
             for row in read:
                 if i == 0:
@@ -161,17 +160,17 @@ class PartitionModel:
                         if (el_i not in forbidden_e_els) and (el_j not in forbidden_e_els):
                             self.fischer_es[(el_i, el_j)] = float(row[j])
                 i += 1
-            
+
     def load_default_alloy_composition(self, file_composition):
         with open(file_composition, encoding='utf-8') as csvfile:
             read = csv.reader(csvfile, delimiter=' ')
-    
+
             self.alloy = np.array([])
             self.alloy_els = list()
             for row in read:
                 self.alloy_els.append(ci.Element[row[0]])
                 self.alloy = np.append(self.alloy, np.array(float(row[1])))
-    
+
     def calculate_gammas(self, T=None, composition=None):
         if T is None:
             T = self.T0
@@ -189,14 +188,14 @@ class PartitionModel:
             one_over_1_minus_xk = 1/(1-xk)
             eps_xj2_xk2 = eps * xj**2 * xk**2
             one = np.sum( np.diag(eps)*(x + np.log(1-x)) )
-            
+
             two = - eps*xk*xj * (1 + log_1_minus_xj_over_xj + log_1_minus_xk_over_xk) + \
                   0.5 * eps_xj2_xk2 * (one_over_1_minus_xj + one_over_1_minus_xk - 1)
 
             two[np.isnan(two)] = 0.
             two = np.triu(two,1)
             two = np.sum(two)
-            
+
             three = eps*xj*xk*(1+ log_1_minus_xk_over_xk -1/(1-xj)) - \
                     eps_xj2_xk2 * (one_over_1_minus_xj + one_over_1_minus_xk + xj/(2.*(1-xj)**2) - 1)
             three[np.isnan(three)] = 0.
@@ -222,7 +221,7 @@ class PartitionModel:
             i = self.logg0name.index(el_i)
             j = self.logg0name.index(el_j)
             eps[i][j] = self.calculate_eps_from_e(el_i, el_j, T)
-        
+
         # Damp Si/O interaction above certain core concentrations:
         # This causes convergence problems! Disabling it for now
         damping = False
@@ -237,23 +236,23 @@ class PartitionModel:
             eps[si_index_2][o_index_2] *= damping_factor
             eps[o_index_2][si_index_2] *= damping_factor
         return eps
-    
+
     def interaction_damping_function(self, X_Si_core, X_O_core):
         # How much to damp interactions between Si and O
         # This is arbitrary
         # Should return a value from 0 to 1
         total_SiO = X_Si_core + X_O_core
         return max(0, 1 - (4*total_SiO))
-    
+
     def calculate_eps_from_e(self, el_i, el_j, T):
         # Fischer+ 2015 equation 4
         e = self.fischer_es[(el_i, el_j)]
         M_j = ci.get_element_mass(el_j) # Needs to be the upper index
         return ((e*M_j*self.e_T0)/(0.242*T)) - (M_j/55.85) + 1
-    
+
     def calculate_D(self, P, T, dIW, nbot, log10_gammaFe_sil, core_composition=None, mantle_composition=None, params=None):
         first_iteration = core_composition is None # This should be a functional proxy
-        
+
         if core_composition is None:
             alloy_composition = self.alloy
             core_composition = dict()
@@ -261,7 +260,7 @@ class PartitionModel:
                 core_composition[el] = alloy_composition[el_index]
         else:
             alloy_composition = self.convert_core_composition_to_alloy_composition(core_composition)
-        
+
         gammas = self.calculate_gammas(T, alloy_composition)
         els_to_iterate_over = [el for el in self.partitioners if el in self.logg0name + [ci.Element.Fe]]  # Filter out elements that we don't have partitioning info for
         d_dict = dict()
@@ -282,9 +281,9 @@ class PartitionModel:
                 elif e == ci.Element.S:
                     # See Boujibar+ 2014 eqs 6 and 11
                     # gammas not needed - but they are used for how other elements interact with S
-                    
+
                     # Maybe replace this with Terry-Ann Suer's 2017 paper! (equation 8 of https://www.sciencedirect.com/science/article/pii/S0012821X17301954)
-                    
+
                     if mantle_composition is None:
                         # Use a very rough approximation of Earth. Doesn't matter much - this is just an initial guess
                         X_FeO = 0.06
@@ -302,10 +301,10 @@ class PartitionModel:
                         # This can probably afford to be v. rough: it's only to do part of the calculation for Sulfur after all
                         X_O = mantle_composition[ci.Element.O]
                         oxygen_modifier = 1/(1-X_O)
-                        
+
                         # If these are not present in the dict at this stage, it means they are not present
                         # in the bulk composition. Hence a default value of 0
-                        
+
                         X_FeO = oxygen_modifier*mantle_composition.get(ci.Element.Fe, 0)
                         X_CaO = oxygen_modifier*mantle_composition.get(ci.Element.Ca, 0)
                         X_MgO = oxygen_modifier*mantle_composition.get(ci.Element.Mg, 0)
@@ -317,19 +316,19 @@ class PartitionModel:
                         # and taking the constant from cells K3 and G3 here: https://www.researchgate.net/publication/308404683_Sulfur_partitioning_calculator
                         # This is potentially inaccurate
                         X_FeO_sil_wt_percent = 127.5862069*X_FeO
-                    
+
                     core_composition_by_mass = self.convert_composition_to_mass(core_composition)
                     X_Si = core_composition_by_mass[ci.Element.Si]
                     X_C = core_composition_by_mass[ci.Element.C]
                     X_Fe = core_composition_by_mass[ci.Element.Fe]
                     X_Ni = core_composition_by_mass[ci.Element.Ni]
                     X_O = core_composition_by_mass[ci.Element.O]
-                    
-                    
-                    
+
+
+
                     logCs = self.calculate_logCs(X_FeO, X_CaO, X_MgO, X_TiO2, X_Na2O, X_K2O)
                     S_interactions = self.calculate_S_interactions(X_Si, X_C, X_Fe, X_Ni, X_O)
-                    
+
                     logD = np.log10(X_FeO_sil_wt_percent) - logCs + logkd_app + S_interactions
                     d_dict[e] = 10**logD
                 else:
@@ -346,7 +345,7 @@ class PartitionModel:
                 d_dict[e] = 10**logdfe
                 #mkdSd_o[e] = (10**(logdfe + sigma_log_dfe_2), 10**(logdfe - sigma_log_dfe_2))
         return d_dict
-        
+
     # NB: Corgne+ 2008 parametrise KD_app as shown here, but Fischer+ 2015 actually parametrise KD instead, which is why the fischer_update corrections exist
     def calculate_logKD_app(self, P, T, nbot, e, params=None):
         # allow parameters to be updated to propagate error through model
@@ -363,17 +362,17 @@ class PartitionModel:
         logkd_app = p_a[e] + p_b[e]/T + p_c[e]*P/T + p_d[e]*nbot
         sigma_logkd_app_2 = self.siga[e]**2 + nbot**2*self.sigd[e]**2 + self.sigb[e]**2*(1/T**2) + self.sigc[e]**2*(P/T)**2  # Error squared
         return logkd_app, sigma_logkd_app_2
-        
+
     def calculate_logDFe(self, log10_gammaFe_sil, dIW, loggammaFe):
         # From Equation G.1 in Rudge 2010:
         # dIW := 2log10(gammaFe_sil/gammaFe) + 2log10(1/D_Fe) --> 0.5dIW = log10(gammaFe_sil) - loggammaFe - logD_Fe --> logD_Fe = log10(gammaFe_sil) - 0.5*dIW - loggammaFe
         logdfe = log10_gammaFe_sil - ((0.5*dIW) + loggammaFe)
         return logdfe
-        
+
     def calculate_logCs(self, X_FeO, X_CaO, X_MgO, X_TiO2, X_Na2O, X_K2O): # Args are all number fractions in the silicate
         #Boujibar+ 2014 eq 6
         return (3.15*X_FeO) + (2.65*X_CaO) + (0.12*X_MgO) + (0.77*X_TiO2) + (0.75*(X_Na2O + X_K2O)) - 5.704
-        
+
     def calculate_S_interactions(self, X_Si, X_C, X_Fe, X_Ni, X_O): # Args are all mass fractions in metal
         d = 32
         e = 181
@@ -386,7 +385,7 @@ class PartitionModel:
         si_terms = d*np.log10(1 - X_Si) + e*((np.log10(1 - X_Si))**2) + f*((np.log10(1 - X_Si))**3)
         toret = si_terms + g*np.log10(1 - X_C) + h*np.log10(1 - X_Fe) + i*np.log10(1 - X_Ni) + j*np.log10(1 - X_O) + k
         return toret
-        
+
     def peridotite_liquidus(self, P):
         # Schaefer 2016 ApJ construction
         # built on fitting Hirschmann 2000 data (high P, >3.8785673242673817 GPa, corresponds to 100km depth)
@@ -399,7 +398,7 @@ class PartitionModel:
         a_lp = 104.42
         b_lp = 1420.0
         liquidus_minus_solidus = 600
-        
+
         pc = (b_hp - b_lp)/a_lp
         if P > pc:
             T = b_hp + (a_hp*(P - pc))
@@ -407,19 +406,19 @@ class PartitionModel:
             T = b_lp + (a_lp*P)
         T += liquidus_minus_solidus
         return T
-        
+
         #return 1621 + (38.415*P) + (0.00038369*P*P*P) - (0.1958*P*P)   # eqn. 7 in Badro 2015 appendix
-        
+
         #return 2022 + (54.21*P) + (0.00090747*P*P*P) - (0.34*P*P)  # eqn 8
-        
+
         #return 1940*((1+(P/29))**(1/1.9))  # eqn 9
-        
+
         #a = 2022 + (54.21*P) + (0.00090747*P*P*P) - (0.34*P*P)
         #b = 1940*((1+(P/29))**(1/1.9))
         #return 0.5*(a + b)  # eqn 10
-        
+
         #return 1973 + (28.57*P)  # Eqn H.1 in Rudge 2010
-    
+
     def calculate_partition_coefficients(self, pressure, fO2, core_composition=None, mantle_composition=None, temp=None, nbot=None):
         # for now assume that T is fixed at the pressure of ...
         T = self.peridotite_liquidus(pressure) if temp is None else temp
@@ -434,7 +433,7 @@ class PartitionModel:
         for element in self.non_partitioners:
             Ds[element] = 0
         return Ds
-    
+
     def convert_abundance_dict_to_layer_composition(self, layer, abundances=None):
         if abundances is None or len(abundances) == 0:
             return None
@@ -446,11 +445,11 @@ class PartitionModel:
                 # This means that the layer information is missing for some/all elements. i.e. there is None
                 return None
         return composition
-    
+
     def convert_core_composition_to_alloy_composition(self, core_composition):
         alloy = np.array([core_composition.get(element, 0) for element in self.alloy_els])
         return alloy
-        
+
     def convert_composition_to_mass(self, composition):
         # Converts a composition by number to a composition by mass
         # TODO add a test for this
@@ -461,3 +460,25 @@ class PartitionModel:
         for el, number_frac in composition.items():
             toret[el] = (number_frac*ci.get_element_mass(el))/total_mass
         return toret
+
+def example():
+    import pwd_utils as pu
+    pamela = PartitionModel(
+        pu.get_path_to_feni() + 'data/part_param_fischer_blanchard_epsilon_update.dat',
+        pu.get_path_to_feni() + 'data/int_param_fischer_blanchard_update.dat',
+        pu.get_path_to_feni() + 'data/composition.dat',
+        pu.get_path_to_feni() + 'data/e_param_fischer_epsilon_update.dat'
+    )
+    pressure = 10
+    fO2 = -2
+    abundances = {} # Needed for interaction parameters, but can just leave blank apparently
+    temp = None # None will make it calculate a temperature based on peridotite liquidus
+    nbot = 2.7
+    Ds = pamela.get_all_partition_coefficients(pressure, fO2, abundances, temp, nbot)
+    print(Ds)
+
+def main():
+    example()
+
+if __name__ == '__main__':
+    main()

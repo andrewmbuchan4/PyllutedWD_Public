@@ -12,12 +12,11 @@ import matplotlib.transforms as transforms
 import numpy as np
 from enum import Enum
 from matplotlib import ticker
-from ternary_diagram import TernaryDiagram
+#from ternary_diagram import TernaryDiagram
 plt.rcParams['text.usetex'] = 'True'
 plt.rcParams['mathtext.fontset'] = 'stix'
 plt.rcParams['font.family'] = 'STIXGeneral'
 #plt.rcParams["text.latex.preamble"].append(r"\usepackage{mathabx}")
-# TODO: Add comments. Remove repeated strings. Think of an alternative to the big if/elif/else blocks. Decide whether it's color or colour!
 
 class SeriesType(Enum):
     function_2d = 0
@@ -36,12 +35,12 @@ class SeriesType(Enum):
     hist2d = 13
     bar = 14
     pie = 15
-    ternary_scatter = 16 # Could remove this and make scatter_3d function as a ternary_scatter if the subplottype is ternary?!? Already done something similar for text. TODO
+    ternary_scatter = 16
 
 class SubplotType(Enum):
     cartesian = 0
     ternary = 1
-    polar = 2 #TODO!
+    polar = 2
 
 class DictPlotter:
 
@@ -115,10 +114,8 @@ class Plot:
                     subplot.ax.yaxis.set_tick_params(direction='inout')
                     subplot.ax.yaxis.set_label_text(None)
             else:
-                subplot.draw(self.fig, self.gridspec, self.subplots[subplot.twin_subplot])  # TODO: This does assume we've already plotted the twin, which is not guaranteed
+                subplot.draw(self.fig, self.gridspec, self.subplots[subplot.twin_subplot])
         plt.tight_layout()
-        #self.fig.subplots_adjust(wspace=0)
-        #self.fig.subplots_adjust(hspace=0)
 
     def yield_output(self, output_dir=None, dump=True, close=True):
         if output_dir is not None:
@@ -128,22 +125,15 @@ class Plot:
                 os.makedirs(output_dir)
             except FileExistsError:
                 pass
-        if self.show:
-            plt.show()
-        if self.filenames is not None:
-            for filename in self.filenames:
-                if output_dir is None:
-                    print('Attempting to save to ' + filename)
-                    self.fig.savefig(filename, dpi=self.dpi, bbox_inches='tight', pad_inches=0.1)
-                else:
-                    print('Attempting to save to: ' + output_dir + filename)
-                    self.fig.savefig(output_dir + filename, dpi=self.dpi, bbox_inches='tight', pad_inches=0.1)
         if dump:
-            s = pprint.pformat(self.raw_input_dict)
+            # Dump first in case something goes wrong with the plot!
+            import numpy as np
+            import sys
+            np.set_printoptions(threshold=sys.maxsize)
+            s = pprint.pformat(self.raw_input_dict, sort_dicts=False)
             s = s.replace('array', 'np.array')
             s = s.replace('nan', 'np.nan')
             s = s.replace('inf', 'np.inf')
-            # TODO: Do this logic by cycling through all possible enum values? Might be hard to read
             s = s.replace('<SeriesType.function_2d: 0>', 'dp.SeriesType.function_2d')
             s = s.replace('<SeriesType.scatter_2d: 1>', 'dp.SeriesType.scatter_2d')
             s = s.replace('<SeriesType.function_3d: 2>', 'dp.SeriesType.function_3d')
@@ -171,6 +161,16 @@ class Plot:
             with open(destination, 'w') as dump_file:
                 print(s, file=dump_file)
             print('Dumped text version to ' + destination)
+        if self.show:
+            plt.show()
+        if self.filenames is not None:
+            for filename in self.filenames:
+                if output_dir is None:
+                    print('Attempting to save to ' + filename)
+                    self.fig.savefig(filename, dpi=self.dpi, bbox_inches='tight', pad_inches=0.1)
+                else:
+                    print('Attempting to save to: ' + output_dir + filename)
+                    self.fig.savefig(output_dir + filename, dpi=self.dpi, bbox_inches='tight', pad_inches=0.1)
         if close:
             plt.clf()
             plt.close(self.fig)
@@ -189,22 +189,10 @@ class Subplot:
         self.legend_coord_y = input_dict.get('legend_coord_y')
         self.legend_text_size = input_dict.get('legend_text_size')
         self.title_text = input_dict.get('title_text')
-        #try:
-        #    self.title_text = self.title_text.replace('_', '\_')
-        #except AttributeError:
-        #    pass
         self.title_fontsize = input_dict.get('title_fontsize')
         self.title_fontweight = input_dict.get('title_fontweight')
         self.xlabel_text = input_dict.get('xlabel_text')
-        #try:
-        #    self.xlabel_text = input_dict.get('xlabel_text').replace('_', '\_') # Is this broken??
-        #except AttributeError:
-        #    self.xlabel_text = None
         self.ylabel_text = input_dict.get('ylabel_text')
-        #try:
-        #    self.ylabel_text = input_dict.get('ylabel_text').replace('_', '\_')
-        #except AttributeError:
-        #    self.ylabel_text = None
         self.xlabel_fontsize = input_dict.get('xlabel_fontsize')
         self.xlabel_fontweight = input_dict.get('xlabel_fontweight')
         self.ylabel_fontsize = input_dict.get('ylabel_fontsize')
@@ -220,15 +208,7 @@ class Subplot:
         self.y_scale = input_dict.get('y_scale')
         self.font = input_dict.get('font')
         self.x_tick_labels = input_dict.get('x_tick_labels')
-        #try:
-        #    self.x_tick_labels = self.x_tick_labels.replace('_', '\_')
-        #except AttributeError:
-        #    pass
         self.y_tick_labels = input_dict.get('y_tick_labels')
-        #try:
-        #    self.y_tick_labels = self.y_tick_labels.replace('_', '\_')
-        #except AttributeError:
-        #    pass
         self.x_tick_locations = input_dict.get('x_tick_locations')
         self.y_tick_locations = input_dict.get('y_tick_locations')
         self.x_tick_fontsize = input_dict.get('x_tick_fontsize')
@@ -239,7 +219,7 @@ class Subplot:
         self.y_label_colour = input_dict.get('y_label_colour')
         self.z_label_colour = input_dict.get('z_label_colour')
         self.twin_subplot = input_dict.get('twin_subplot')
-        self.twin_on_x = input_dict.get('twin_on_x')  # Sorry that this setup is a bit silly. TODO: Fix
+        self.twin_on_x = input_dict.get('twin_on_x')  # Sorry that this setup is a bit silly
         self.sharex_subplot = input_dict.get('sharex_subplot')
         self.sharey_subplot = input_dict.get('sharey_subplot')
         self.gridspec_index = input_dict.get('gridspec_index')
@@ -315,7 +295,7 @@ class Subplot:
             else:
                 try:
                     # Assume the subplot region is a 3-tuple or list of len >= 3...
-                    #TODO: This is a bit buggy. 5, 2, 9 doesn't appear!
+                    # This is a bit buggy. 5, 2, 9 doesn't appear!
                     self.ax = figure.add_subplot(self.subplot_region[0], self.subplot_region[1], self.subplot_region[2], sharex=sharex_subplot.ax, sharey=sharey_subplot.ax)
                 except (TypeError, IndexError) as e:
                     # ...But if not, assume we just want to use the int version of this function
@@ -388,12 +368,10 @@ class Subplot:
         if self.x_tick_fontsize is not None:
             self.ax.xaxis.set_tick_params(labelsize=self.x_tick_fontsize)
         if self.x_tick_labels is not None:
-            #self.ax.set_xticks(list(range(0, len(self.x_tick_labels)))) # Not sure why this is here? This silently messes with your tick locations
             self.ax.set_xticklabels(self.x_tick_labels)
         if self.y_tick_fontsize is not None:
             self.ax.yaxis.set_tick_params(labelsize=self.y_tick_fontsize)
         if self.y_tick_labels is not None:
-            #self.ax.set_yticks(list(range(0, len(self.y_tick_labels))))
             self.ax.set_yticklabels(self.y_tick_labels)
         if self.x_tick_locations is not None:
             self.ax.set_xticks(self.x_tick_locations)
@@ -409,7 +387,6 @@ class Subplot:
             self.ax.yaxis.label.set_color(self.y_label_colour)
         if self.x_hide_ticks is not None:
             for x_tick_index in self.x_hide_ticks:
-                #self.ax.xaxis.ticks[x_tick_index].set_visible(False)
                 plt.setp(self.ax.get_xticklabels()[x_tick_index], visible=False)
         if self.y_hide_ticks is not None:
             for y_tick_index in self.y_hide_ticks:
@@ -512,7 +489,7 @@ class Series:
         self.unpack_input_dict(input_dict)
 
     def unpack_input_dict(self, input_dict):
-        self.plot_type = input_dict['type']  #TODO: Error handling
+        self.plot_type = input_dict['type']
         self.function = input_dict.get('function')
         self.function_args = input_dict.get('function_args')
         self.line_color = input_dict.get('line_color')
@@ -612,7 +589,7 @@ class Series:
                 missing_mandatory_args.append(ma)
         if len(missing_mandatory_args) > 0:
             mma_string = ', '.join(missing_mandatory_args)
-            raise TypeError('Missing the following mandatory args: ' + mma_string)  # TODO: this should be passed upwards to create an overall report
+            raise TypeError('Missing the following mandatory args: ' + mma_string)
 
     def call_2d_function(self, x, func_args=None):
         if func_args is None:
@@ -692,7 +669,7 @@ class Series:
                 contours = ax.contourf(self.x_data, self.y_data, self.z_data, locator=self.tick_locator, levels=self.levels, colors=self.colours, cmap=cmap, vmin=self.colour_map_min, vmax=self.colour_map_max)
             else:
                 contours = ax.contour(self.x_data, self.y_data, self.z_data, locator=self.tick_locator, levels=self.levels, colors=self.colours, cmap=cmap, vmin=self.colour_map_min, vmax=self.colour_map_max)
-            # TODO This bit doesn't work:
+            # This next bit doesn't work properly yet!
             if self.colour_below_min is not None:
                 contours.get_cmap().set_under(self.colour_below_min)
             if self.colour_above_max is not None:
@@ -715,7 +692,7 @@ class Series:
                 contours = ax.tricontourf(self.x_data, self.y_data, self.z_data, locator=self.tick_locator, levels=self.levels, colors=self.colours)
             else:
                 contours = ax.tricontour(self.x_data, self.y_data, self.z_data, locator=self.tick_locator, levels=self.levels, colors=self.colours)
-            # TODO This bit doesn't work:
+            # This next bit doesn't work properly yet!
             if self.colour_below_min is not None:
                 contours.get_cmap().set_under(self.colour_below_min)
             if self.colour_above_max is not None:

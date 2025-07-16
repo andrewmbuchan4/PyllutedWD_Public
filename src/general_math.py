@@ -34,7 +34,7 @@ def normcdf(x, mu, sigma):
     return y
 
 @jit(nopython=True)
-def fznd(d_formation, z_formation):
+def fznd(d_formation, z_formation): # In principle, this function is not a function of d_formation, it's just finding the appropriate weights of bins of a gaussian distribution with width z_formation, where the bins are centred on the same centre as the gaussian and go 3AU either side
     d_spread = 3  # How far we will move from d_formation on each side
     steps_in_each_direction = 300 # How many steps d_spread will be divided into
     #In principle, the next 3 variables should be calculated dynamically, but for now I'm just fixing them for performance testing purposes
@@ -48,8 +48,16 @@ def fznd(d_formation, z_formation):
         new_normcdf = normcdf(i+half_step_length, d_formation, z_formation)
         x[s] = new_normcdf - prev_normcdf
         prev_normcdf = new_normcdf
-        i += step_length  
+        i += step_length
     x[301:601] = x[0:300][::-1]
-    #for s in frange(steps_in_each_direction + 1, total_steps, 1):
-    #    x[s] = x[(total_steps - 1) - s]
     return x
+
+def main():
+    a = fznd(2, 0.05)
+    b = fznd(0.08, 0.05)
+    print(a)
+    print(b)
+
+
+if __name__ == '__main__':
+    main()

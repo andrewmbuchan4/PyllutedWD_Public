@@ -15,16 +15,7 @@ import model_parameters as mp
 import pwd_utils as pu
 
 def load_manager():
-    manager = mn.Manager(  #This is just to load the stellar compositions
-        Namespace(
-            wd_data_filename='WDInputData.csv',
-            stellar_compositions_filename='StellarCompositionsSortFE.csv',
-            n_live_points = 0,
-            pollution_model_names=['Model_24'],
-            enhancement_model='Earthlike',
-            base_dir=pu.get_path_to_data()
-        )
-    )
+    manager = mn.Manager()  #This is just to load the stellar compositions
     return manager
 
 def get_hollands_ids():

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import collections as cn
+import corner
 import matplotlib.pyplot as plt
 import math
 import numpy as np
@@ -123,7 +124,7 @@ class GraphFactory:
                 toret.append(original_abundances[element] - original_abundances[ci.Element.Mg] - ld._geo_model.solar_abundances[element])  # Technically this should also bear stellar Mg in mind. Can afford to ignore here because it's always 0 (since we report relative to Mg)
                 elements_present.append(element)
                 if original_errors is not None:
-                    # Absolute errors should add in quadriture for addition. TODO: Add error on solar abundance
+                    # Absolute errors should add in quadriture for addition.
                     if element == ci.Element.Mg:
                         toret_errs.append(original_errors[ci.Element.Mg])
                     else:
@@ -349,7 +350,7 @@ class GraphFactory:
                     fit_key_to_use = fit_key[:-6]
                 else:
                     fit_key_to_use = fit_key
-                series_dict[fit_key_to_use + ' 1 Sigma CI'] = { #TODO: unabbreviate CI? Confusing withCI chondrite
+                series_dict[fit_key_to_use + ' 1 Sigma CI'] = {
                     'type': dp.SeriesType.shade,
                     #'x_data': range(0, len(observations)),
                     'x_data': x_axis,
@@ -495,7 +496,7 @@ class GraphFactory:
         else:
             plotter.yield_output(self.output_dir)
 
-    def make_composition_plot_mk3(self, white_dwarf, elements_to_plot, fit_dict=None, reference_element=None, model_name=None, extra_text_dict=None, video=False, hack_legend_to_only_show_pressure=False):
+    def make_composition_plot_mk3(self, white_dwarf, elements_to_plot, fit_dict=None, reference_element=None, model_name=None, extra_text_dict=None, video=False, fit_dict_prescaled=True, hack_legend_to_only_show_pressure=False):
         #extra_text_dict expected args: long, short, x_pos, y_pos
 
         # Format of fit_dict is meant to be:
@@ -514,19 +515,39 @@ class GraphFactory:
             True
         )
 
+        print()
+        print(elements_plotted)
+
         elements_plotted, reference_element_used, excluded_values, excluded_upper_errors, excluded_lower_errors, excluded_upper_bounds_bools, excluded_lower_bounds_bools = white_dwarf.get_plottable_points(
             elements_to_plot,
             reference_element,
             False,
             True
         )
+
+        print(elements_plotted)
+
         x_axis = [str(el) for el in elements_plotted]
-        obs_data_series_name = self.strip_system_suffix(white_dwarf.name)
-        obs_data_series_name += ' Observational Data'
+        obs_data_series_name = self.strip_system_suffix(white_dwarf.system_name)
+
+        if obs_data_series_name == 'Example':
+            obs_data_series_name = 'Example ' + str(white_dwarf.get_atmospheric_type().value) + '-dominated WD (T = ' + str(int(white_dwarf.get_teff().value)) + 'K, log(g) = ' + str(white_dwarf.get_logg().value) + ')'
+        else:
+            obs_data_series_name += ' Abundances'
+
         series_dict = dict()
 
-        series_dict = {
-            obs_data_series_name: {
+        if video:
+            series_dict[obs_data_series_name] = {
+                'type': dp.SeriesType.text,
+                'fontsize': 16,
+                'horizontalalignment': 'right',
+                'position_text_relative_to_plot': True,
+                'text_string': obs_data_series_name,
+                'x_pos': 0.95,
+                'y_pos': 0.93
+            }
+            series_dict[obs_data_series_name + ' Data'] = {
                 'type': dp.SeriesType.scatter_2d_error,
                 #'x_data': range(0, len(observations)),
                 'x_data': x_axis,
@@ -538,9 +559,23 @@ class GraphFactory:
                 'capthick': 1,
                 'legend': True,
                 'upper_limits': included_upper_bounds_bools,
-                'lower_limits': included_lower_bounds_bools
+                'lower_limits': included_lower_bounds_bools,
             }
-        }
+        else:
+            series_dict[obs_data_series_name] = {
+                'type': dp.SeriesType.scatter_2d_error,
+                #'x_data': range(0, len(observations)),
+                'x_data': x_axis,
+                'y_data': included_values,
+                'y_error_data': [included_lower_errors, included_upper_errors],
+                'line_type': 'ko',
+                'line_linewidth': 1,
+                'capsize': 2,
+                'capthick': 1,
+                'legend': True,
+                'upper_limits': included_upper_bounds_bools,
+                'lower_limits': included_lower_bounds_bools,
+            }
         series_dict[obs_data_series_name + ' (excluded)'] = {
             'type': dp.SeriesType.scatter_2d_error,
             #'x_data': range(0, len(observations)),
@@ -572,9 +607,9 @@ class GraphFactory:
             }
         else:
             if model_name is None:
-                base_file_name = white_dwarf.name + '_composition_rel_' + str(reference_element_used)
+                base_file_name = white_dwarf.full_name() + '_composition_rel_' + str(reference_element_used)
             else:
-                base_file_name = white_dwarf.name + '_' + model_name + 'composition_rel_' + str(reference_element_used)
+                base_file_name = white_dwarf.full_name() + '_' + model_name + 'composition_rel_' + str(reference_element_used)
 
         colours = self.colour_list
         colour_index = 0
@@ -590,10 +625,43 @@ class GraphFactory:
                     fit_values = fit_data
                     upper_errors = None
                     lower_errors = None
+
+                offset = 0
+                if fit_key.startswith('Fragment') and reference_element_used in [ci.Element.H, ci.Element.He]:
+                    #Then we'll offset this to match the WD's Mg, since the fragment's composition is normalised to Mg
+                    wd_Mg = included_values[elements_plotted.index(ci.Element.Mg)]
+                    offset = fit_values[ci.Element.Mg] - wd_Mg
+
+                if fit_dict_prescaled:
+                    scaled_fit_values = fit_values
+                    scaled_upper_errors = upper_errors
+                    scaled_lower_errors = lower_errors
+                else:
+                    # then we need to scale all this to solar!
+                    # fit_values are given as X/Hx. We want [X/R] where R is reference element
+                    # [X/R] = (X/R)_fit - (X/R)_solar
+                    #       = (X/Hx)_fit - (R/Hx)_fit - (X/R)_solar
+                    scaled_fit_values = sa.scale_abundances_to_solar(fit_values, reference_element_used)
+                    print(scaled_fit_values)
+                    print(white_dwarf)
+                    scaled_upper_errors = sa.scale_abundances_to_solar(upper_errors, reference_element_used)
+                    scaled_lower_errors = sa.scale_abundances_to_solar(lower_errors, reference_element_used)
+
+                if video:
+                    series_dict[fit_key + ' fktext'] = {
+                        'fontsize': 22,
+                        'horizontalalignment': 'right',
+                        'legend': False,
+                        'position_text_relative_to_plot': True,
+                        'text_string': fit_key,
+                        'type': dp.SeriesType.text,
+                        'x_pos': 0.95,
+                        'y_pos': 0.85
+                    }
                 series_dict[fit_key] = {
                     'type': dp.SeriesType.scatter_2d,
                     'x_data': x_axis,
-                    'y_data': [fit_values[el] for el in elements_plotted],
+                    'y_data': [scaled_fit_values[el] - offset for el in elements_plotted],
                     'line_color': colours[colour_index],
                     #'line_marker': 'x',
                     'line_style': '-',
@@ -618,8 +686,8 @@ class GraphFactory:
                         'type': dp.SeriesType.shade,
                         #'x_data': range(0, len(observations)),
                         'x_data': x_axis,
-                        'y_data': [lower_errors[el] for el in elements_plotted],
-                        'y_shade_data': [upper_errors[el] for el in elements_plotted],
+                        'y_data': [scaled_lower_errors[el] - offset for el in elements_plotted],
+                        'y_shade_data': [scaled_upper_errors[el] - offset for el in elements_plotted],
                         'shade_colour': colours[colour_index],
                         'shade_alpha': 0.5,
                         'zorder': 2,
@@ -629,74 +697,77 @@ class GraphFactory:
         except AttributeError:
             pass # Happens if fit_dict was None
 
-        series_dict['Solar Composition'] = {
-            'type': dp.SeriesType.hline,
-            'y_start': 0,
-            'x_min': -100,
-            'x_max': 100,
-            'colours': 'k',
-            'line_styles': '--',
-            'line_linewidth': 1,
-            'zorder': 1,
-            'legend': True
-        }
+        if not video:
+            series_dict['Solar Composition'] = {
+                'type': dp.SeriesType.hline,
+                'y_start': 0,
+                'x_min': -100,
+                'x_max': 100,
+                'colours': 'k',
+                'line_styles': '--',
+                'line_linewidth': 1,
+                'zorder': 1,
+                'legend': True
+            }
         if reference_element_used in sa.lower_X_ratiod_to_solar and reference_element_used in sa.upper_X_ratiod_to_solar:
             lower_abundances_for_plot = list()
             upper_abundances_for_plot = list()
             for el in elements_plotted:
                 lower_abundances_for_plot.append(sa.lower_X_ratiod_to_solar[reference_element_used].get(el, np.nan))
                 upper_abundances_for_plot.append(sa.upper_X_ratiod_to_solar[reference_element_used].get(el, np.nan))
-            series_dict['Stellar 98\% Composition Range'] = {
-                'type': dp.SeriesType.shade,
-                #'x_data': range(0, len(observations)),
-                'x_data': x_axis,
-                'y_data': lower_abundances_for_plot,
-                'y_shade_data': upper_abundances_for_plot,
-                'shade_colour': 'silver',
-                'line_linewidth': 1,
-                'zorder': 1,
-                'legend': True
+            if not video:
+                series_dict['Stellar 98\% Composition Range'] = {
+                    'type': dp.SeriesType.shade,
+                    #'x_data': range(0, len(observations)),
+                    'x_data': x_axis,
+                    'y_data': lower_abundances_for_plot,
+                    'y_shade_data': upper_abundances_for_plot,
+                    'shade_colour': 'silver',
+                    'line_linewidth': 1,
+                    'zorder': 1,
+                    'legend': True
+                }
+        if elements_plotted == ci.usual_elements: # If not, who knows whether these labels will apply
+            series_dict['Lithophiles Text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': 0.06,
+                'y_pos': -0.18,
+                'text_string': 'Lithophiles',
+                'horizontalalignment': 'left',
+                'fontsize': 22,
+                'position_text_relative_to_plot': True,
+                'legend': False
             }
-        series_dict['Lithophiles Text'] = {
-            'type': dp.SeriesType.text,
-            'x_pos': 0.06,
-            'y_pos': -0.18,
-            'text_string': 'Lithophiles',
-            'horizontalalignment': 'left',
-            'fontsize': 22,
-            'position_text_relative_to_plot': True,
-            'legend': False
-        }
-        series_dict['Siderophiles Text'] = {
-            'type': dp.SeriesType.text,
-            'x_pos': 0.325,
-            'y_pos': -0.18,
-            'text_string': 'Siderophiles',
-            'horizontalalignment': 'left',
-            'fontsize': 22,
-            'position_text_relative_to_plot': True,
-            'legend': False
-        }
-        series_dict['VLithophiles Text'] = {
-            'type': dp.SeriesType.text,
-            'x_pos': 0.555,
-            'y_pos': -0.18,
-            'text_string': 'Volatile Lith.',
-            'horizontalalignment': 'left',
-            'fontsize': 22,
-            'position_text_relative_to_plot': True,
-            'legend': False
-        }
-        series_dict['Atmophiles Text'] = {
-            'type': dp.SeriesType.text,
-            'x_pos': 0.785,
-            'y_pos': -0.18,
-            'text_string': 'Atmophiles',
-            'horizontalalignment': 'left',
-            'fontsize': 22,
-            'position_text_relative_to_plot': True,
-            'legend': False
-        }
+            series_dict['Siderophiles Text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': 0.325,
+                'y_pos': -0.18,
+                'text_string': 'Siderophiles',
+                'horizontalalignment': 'left',
+                'fontsize': 22,
+                'position_text_relative_to_plot': True,
+                'legend': False
+            }
+            series_dict['VLithophiles Text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': 0.555,
+                'y_pos': -0.18,
+                'text_string': 'Volatile Lith.',
+                'horizontalalignment': 'left',
+                'fontsize': 22,
+                'position_text_relative_to_plot': True,
+                'legend': False
+            }
+            series_dict['Atmophiles Text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': 0.785,
+                'y_pos': -0.18,
+                'text_string': 'Atmophiles',
+                'horizontalalignment': 'left',
+                'fontsize': 22,
+                'position_text_relative_to_plot': True,
+                'legend': False
+            }
         extension = ['.png'] if video else ['.pdf', '.png']
         title_text = r'Composition of ' + obs_data_series_name + ' pollutant'
         plot_dict = {
@@ -709,8 +780,8 @@ class GraphFactory:
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
-                        'legend': True,
-                        'legend_loc': 'best',
+                        'legend': not video,
+                        'legend_loc': 'best' if not video else 'lower right',
                         'legend_text_size': 12,
                         #'title_text': title_text,
                         'title_fontsize': 16,
@@ -727,8 +798,8 @@ class GraphFactory:
                         'ylabel_pad': 0,
                         'x_min': -0.5,
                         'x_max': len(x_axis) - 0.5,
-                        #'y_min': -10,
-                        #'y_max': 1.5,
+                        'y_min': -3 if video else None,
+                        'y_max': 0 if video else None,
                         'font': 'STIXGeneral',
                         'series': series_dict
                     }
@@ -737,10 +808,7 @@ class GraphFactory:
         }
         plotter = dp.DictPlotter(plot_dict)
         plotter.draw()
-        if video:
-            plotter.yield_output(pu.get_path_to_output_graphs_dir())
-        else:
-            plotter.yield_output(self.output_dir)
+        plotter.yield_output(self.output_dir, not video)
 
     def strip_system_suffix(self, system_name):
         obs_data_series_name = system_name
@@ -1299,6 +1367,139 @@ class GraphFactory:
                         'font': 'STIXGeneral',
                         'series': series_dict
                     }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+
+    def plot_element_dropout(self, d_formation_vals, T_vals, element_abundance_vals, z_formation):
+        series_dict = dict()
+        for element, abundance_vals in element_abundance_vals.items():
+            series_dict[str(element)] = {
+                'type': dp.SeriesType.scatter_2d,
+                #'x_data': range(0, len(observations)),
+                #'x_data': d_formation_vals,
+                'x_data': T_vals,
+                'y_data': abundance_vals,
+                'line_type': '-',
+                'line_linewidth': 1,
+                'legend': True
+            }
+        extensions = ['.pdf', '.png']
+        plot_dict = {
+            'edplot': {
+                'show': False,
+                'filenames': ['element_dropout_plot_' + str(z_formation) + e for e in extensions],
+                'fig_height': 5,
+                'fig_width': 10,
+                'dpi': 300,
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': True,
+                        'legend_loc': 'best',
+                        'legend_text_size': 12,
+                        #'title_text': title_text,
+                        'title_fontsize': 16,
+                        'title_fontweight': 'bold',
+                        #'xlabel_text': 'Lithophiles | Siderophiles | Volatile Lithophiles | Atmophiles',
+                        #'xlabel_fontsize': 22,
+                        #'xlabel_fontweight': 'bold',
+                        'xlabel_text': 'Temperature /K',
+                        'ylabel_text': 'Number abundance',
+                        'ylabel_fontsize': 26,
+                        'xlabel_fontsize': 26,
+                        'ylabel_fontweight': 'bold',
+                        'x_tick_fontsize': 24,
+                        'y_tick_fontsize': 22,
+                        'ylabel_pad': 0,
+                        #'y_min': -10,
+                        #'y_max': 1.5,
+                        'font': 'STIXGeneral',
+                        'y_scale': 'log',
+                        'series': series_dict
+                    }
+                    #'subplot1_twin': {
+                    #    'subplot_region': 111,
+                    #    'xlabel_text': 'bla',
+                    #    'x_tick_locations': [0.2, 0.3, 0.5,0.9],#d_formation_vals,
+                    #    'x_tick_labels': [10, 9, 8, 7],#T_vals,
+                    #    #'x_max': additional_x_axis_dict['x_max'],
+                    #    'xlabel_fontsize': 22,
+                    #    'x_tick_fontsize': 18,
+                    #    #'series': None,
+                    #    'twin_subplot': 'subplot1',
+                    #    'twin_on_x': True
+                    #}
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+
+    def plot_element_dropout_ratio(self, d_formation_vals, T_vals, element_abundance_vals, element1, element2, z_formation):
+        to_plot = list()
+        for i, T in enumerate(T_vals):
+            to_plot.append(element_abundance_vals[element1][i]/element_abundance_vals[element2][i])
+        series_dict = dict()
+        series_dict[str(element1) + '/' + str(element2)] = {
+            'type': dp.SeriesType.scatter_2d,
+            #'x_data': range(0, len(observations)),
+            #'x_data': d_formation_vals,
+            'x_data': T_vals,
+            'y_data': to_plot,
+            'line_type': '-',
+            'line_linewidth': 1,
+            'legend': True
+        }
+        extensions = ['.pdf', '.png']
+        plot_dict = {
+            'edplot': {
+                'show': False,
+                'filenames': ['element_dropout_plot_' + str(element1) + '_' + str(element2) + '_' + str(z_formation) + e for e in extensions],
+                'fig_height': 5,
+                'fig_width': 10,
+                'dpi': 300,
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': True,
+                        'legend_loc': 'best',
+                        'legend_text_size': 12,
+                        #'title_text': title_text,
+                        'title_fontsize': 16,
+                        'title_fontweight': 'bold',
+                        #'xlabel_text': 'Lithophiles | Siderophiles | Volatile Lithophiles | Atmophiles',
+                        #'xlabel_fontsize': 22,
+                        #'xlabel_fontweight': 'bold',
+                        'xlabel_text': 'Temperature /K',
+                        'ylabel_text': str(element1) + '/' + str(element2),
+                        'ylabel_fontsize': 26,
+                        'xlabel_fontsize': 26,
+                        'ylabel_fontweight': 'bold',
+                        'x_tick_fontsize': 24,
+                        'y_tick_fontsize': 22,
+                        'ylabel_pad': 0,
+                        #'y_min': -10,
+                        #'y_max': 1.5,
+                        'font': 'STIXGeneral',
+                        'series': series_dict
+                    }
+                    #'subplot1_twin': {
+                    #    'subplot_region': 111,
+                    #    'xlabel_text': 'bla',
+                    #    'x_tick_locations': [0.2, 0.3, 0.5,0.9],#d_formation_vals,
+                    #    'x_tick_labels': [10, 9, 8, 7],#T_vals,
+                    #    #'x_max': additional_x_axis_dict['x_max'],
+                    #    'xlabel_fontsize': 22,
+                    #    'x_tick_fontsize': 18,
+                    #    #'series': None,
+                    #    'twin_subplot': 'subplot1',
+                    #    'twin_on_x': True
+                    #}
                 }
             }
         }
@@ -4365,7 +4566,7 @@ class GraphFactory:
         plotter.draw()
         plotter.yield_output(self.output_dir)
 
-    def plot_timesince_v_accretiontime(self, x_data, y_data, system_name, file_prefix, t_Mg):
+    def plot_timesince_v_accretiontime(self, x_data, y_data, full_name, system_name, file_prefix, t_Mg):
         series_dict = dict()
         xy_min = 0
         xy_max = 8
@@ -4475,7 +4676,7 @@ class GraphFactory:
         plot_dict = {
             'time_since_plot': {
                 'show': False,
-                'filenames': [system_name + '_' + file_prefix + 'timesince_v_accretiontime.pdf'],
+                'filenames': [full_name + '_' + file_prefix + 'timesince_v_accretiontime.pdf'],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -4500,7 +4701,7 @@ class GraphFactory:
         plotter.draw()
         plotter.yield_output(self.output_dir)
 
-    def plot_pressure_v_oxygen_fugacity(self, x_data, y_data, system_name, file_prefix):
+    def plot_pressure_v_oxygen_fugacity(self, x_data, y_data, full_name, system_name, file_prefix):
         series_dict = dict()
         #x_bins = [0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60]
         x_bins = [0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57,60]
@@ -4525,7 +4726,7 @@ class GraphFactory:
         plot_dict = {
             'p_fO2_plot': {
                 'show': False,
-                'filenames': [system_name + '_' + file_prefix + 'pressure_v_fO2.pdf', system_name + '_' + file_prefix + 'pressure_v_fO2.png'],
+                'filenames': [full_name + '_' + file_prefix + 'pressure_v_fO2.pdf', full_name + '_' + file_prefix + 'pressure_v_fO2.png'],
                 'dpi': 300,
                 'subplots': {
                     'subplot1': {
@@ -4794,18 +4995,6 @@ class GraphFactory:
             r_value_string = 'r = N/A'
         # r_value is now the Pearson correlation coefficient
         series_dict = {
-            'Ideal': {
-                'type': dp.SeriesType.function_2d,
-                'function': lambda x: x,
-                'x_start': min_val,
-                'x_end': max_val,
-                'x_points': 1000,
-                'line_color': 'grey',
-                'line_markersize': 1,
-                'line_linewidth': 1,
-                'line_style': '--',
-                'legend': True
-            },
             'Scatter': {
                 'type': dp.SeriesType.scatter_2d,
                 'x_data': expanded_input_values,
@@ -4819,10 +5008,22 @@ class GraphFactory:
             'Correlation Text': {
                 'type': dp.SeriesType.text,
                 'x_pos': 0.075,
-                'y_pos': 0.95,
+                'y_pos': 0.9,
                 'legend': False,
                 'text_string': r_value_string,
-                'fontsize': 14
+                'fontsize': 18
+            },
+            '1:1': {
+                'type': dp.SeriesType.function_2d,
+                'function': lambda x: x,
+                'x_start': min_val,
+                'x_end': max_val,
+                'x_points': 1000,
+                'line_color': 'r',
+                'line_markersize': 1,
+                'line_linewidth': 2,
+                'line_style': '--',
+                'legend': True
             }
         }
         series_dict_hist = {
@@ -4852,18 +5053,18 @@ class GraphFactory:
                         'title_fontsize': 12,
                         'title_fontweight': 'bold',
                         'xlabel_text': 'Input ' + variable_string,
-                        'xlabel_fontsize': 14,
+                        'xlabel_fontsize': 24,
                         'xlabel_fontweight': 'bold',
                         'ylabel_text': 'Output ' + variable_string,
-                        'ylabel_fontsize': 14,
+                        'ylabel_fontsize': 17,
                         'ylabel_fontweight': 'bold',
                         'font': 'STIXGeneral',
                         'x_min': min_val,
                         'x_max': max_val,
                         'y_min': min_val,
                         'y_max': max_val,
-                        'x_tick_fontsize': 14,
-                        'y_tick_fontsize': 14,
+                        'x_tick_fontsize': 20,
+                        'y_tick_fontsize': 20,
                         'series': series_dict
                     }
                 }
@@ -5185,25 +5386,47 @@ class GraphFactory:
         plotter.yield_output(self.output_dir)
         return plot_dict
 
-    def make_dprob_v_N_plot(self, N_values, dprob_values_dict, parameter, pop1_name, pop2_name, y_axis_title=None):
+    def make_dprob_v_N_plot(self, N_values, dprob_values_dict, parameter, pop1_name, pop2_name, y_axis_title=None, mv_mode=False):
         i = 0
         series_dict = dict()
-        for error, dprob_values in dprob_values_dict.items():
-            series_dict['Error = '+ str(error) + ' dex'] = {
-                'type': dp.SeriesType.scatter_2d,
-                'x_data': N_values,
-                'y_data': dprob_values,
-                'legend': True,
-                'line_color': self.colour_list[i],
-                'line_marker': None,
-                'line_markersize': 5,
-                'line_style': '-'
-            }
-            i += 1
+        if not mv_mode:
+            for error, dprob_values in dprob_values_dict.items():
+                series_dict['Error = '+ str(error) + ' dex'] = {
+                    'type': dp.SeriesType.scatter_2d,
+                    'x_data': N_values,
+                    'y_data': dprob_values,
+                    'legend': True,
+                    'line_color': self.colour_list[i],
+                    'line_marker': None,
+                    'line_markersize': 5,
+                    'line_style': '-'
+                }
+                i += 1
+        else:
+            for test_type, error_dict in dprob_values_dict.items():
+                for error, dprob_values in error_dict.items():
+                    series_dict[test_type.get_display_string() + ', Error = '+ str(error) + ' dex'] = {
+                        'type': dp.SeriesType.scatter_2d,
+                        'x_data': N_values,
+                        'y_data': dprob_values,
+                        'legend': True,
+                        'line_color': self.colour_list[i],
+                        'line_marker': None,
+                        'line_markersize': 5,
+                        'line_style': '-'
+                    }
+                    i += 1
+        if mv_mode:
+            basename = 'pipeline_mv_dprob_N_comparison_'
+            variable_str = ''
+        else:
+            basename = 'pipeline_dprob_N_comparison_'
+            variable_str = '_' + parameter.name
+        file_base_str = basename + pop1_name + '_' + pop2_name + variable_str
         plot_dict = {
             'dprob_plot': {
                 'show': False,
-                'filenames': ['pipeline_dprob_N_comparison_' + pop1_name + '_' + pop2_name + '_' + parameter.name + '.pdf'],
+                'filenames': [file_base_str + '.pdf', file_base_str + '.png'],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -6290,6 +6513,800 @@ class GraphFactory:
         plotter.draw()
         plotter.yield_output(self.output_dir)
 
+    def plot_chi_squared_v_t_and_t_disc(self, wd_name, comparison_name, t_values, t_disc_values, chi_sq_values):
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': t_values,
+                'y_data': t_disc_values,
+                'z_data': chi_sq_values,
+                'fill': True,
+                'cbar_label': 'chi sq red',
+                #'levels': np.linspace(deltaT_array.min(), deltaT_array.max(), 20),
+                #'cbar_ticks': np.linspace(1.5, 6.5, 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25
+            }
+        }
+        filename = 'chisquared_v_tt_' + wd_name + '_' + comparison_name
+        extensions = ['.pdf', '.png']
+        plot_dict = {
+            'gpe_dt_plot': {
+                'show': False,
+                'filenames': [filename + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'T disc',
+                        'ylabel_fontsize': 10,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Time since acc',
+                        'xlabel_fontsize': 10,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'x_min': -8,
+                        #'x_max': 0.05,
+                        #'y_min': 0,
+                        #'y_max': 1,
+                        #'x_min': 0,
+                        #'x_max': ox_strat_no,
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+
+    def plot_therm_factors(self, Teff_vals, logg_vals, logMdot, therm_factors, reference_systems, background_systems):
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': Teff_vals,
+                'y_data': logg_vals,
+                'z_data': therm_factors,
+                'fill': True,
+                'cbar_label': r'$\Delta$ log(Mass), $\dot M$ = $10^{' + str(logMdot) + '}$ g/s',
+                #'levels': [0.8, 1, 1.2],
+                #'cbar_ticks': np.linspace(ratio_data.min(), ratio_data.max(), 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25,
+                #'levels': [0.5, 1, 1.5],
+                'colour_map_colours': ['#ff0000', '#ffffff'],
+                #'colour_map_min': cmap_min,
+                #'colour_map_max': cmap_max,
+                #'levels': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'cbar_labelfontsize': 18,
+                #'cbar_shrink': 0.9,
+                #'cbar_labelpad': 15,
+                'cbar_labelrotation': 90,
+                #'cbar_ticks': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'colour_map_colours': ['#bc9a63', '#fc6a03', '#ce4732', '#b6354b', '#9e2363', '#87117b', '#87117c']
+            }
+        }
+
+        for system_name, coord_tuple in background_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': '#aaaaaa',
+                'line_marker': '.',
+                'line_style': None,
+                'line_markersize': 2
+            }
+
+        system_count = 0
+        for system_name, coord_tuple in reference_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': 'k',
+                'line_marker': 'x',
+                'line_style': None,
+                'line_markersize': 10
+            }
+            series_dict[system_name + '_text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': coord_tuple[0] + 50,
+                'y_pos': coord_tuple[1] - 0.01,
+                'text_string': system_name.replace('&', '+'),
+                'fontsize': 8,
+                'legend': False
+            }
+            system_count += 1
+
+        extensions = ['.pdf', '.png']
+        plot_dict = {
+            'therm_plot': {
+                'show': False,
+                'filenames': ['therm_factors_' + str(logMdot) + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'log(g)',
+                        'ylabel_fontsize': 16,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Teff /K',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'y_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'title_text': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                        'x_min': 5457.3,
+                        'x_max': 20502,
+                        'y_min': 7.5,
+                        'y_max': 8.5,
+                        #'x_min': 0,
+                        #'x_max': ox_strat_no,
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
+    def plot_discrepancy_metric(self, Teff_vals, logg_vals, DM_vals, timescale_type1, timescale_type2, Hx, reference_systems, background_systems, weighted=False):
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': Teff_vals,
+                'y_data': logg_vals,
+                'z_data': DM_vals,
+                'fill': True,
+                'cbar_label': 'Metric' if not weighted else 'Density weighted metric',
+                #'levels': [0.8, 1, 1.2],
+                #'cbar_ticks': np.linspace(ratio_data.min(), ratio_data.max(), 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25,
+                #'levels': [0.5, 1, 1.5],
+                'colour_map_colours': ['#ffffff', '#ff0000'],
+                #'colour_map_min': cmap_min,
+                #'colour_map_max': cmap_max,
+                #'levels': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'cbar_labelfontsize': 18,
+                #'cbar_shrink': 0.9,
+                #'cbar_labelpad': 15,
+                'cbar_labelrotation': 90,
+                #'cbar_ticks': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'colour_map_colours': ['#bc9a63', '#fc6a03', '#ce4732', '#b6354b', '#9e2363', '#87117b', '#87117c']
+            }
+        }
+
+        for system_name, coord_tuple in background_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': '#aaaaaa',
+                'line_marker': '.',
+                'line_style': None,
+                'line_markersize': 2
+            }
+
+        system_count = 0
+        for system_name, coord_tuple in reference_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': 'k',
+                'line_marker': 'x',
+                'line_style': None,
+                'line_markersize': 10
+            }
+            series_dict[system_name + '_text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': coord_tuple[0] + 50,
+                'y_pos': coord_tuple[1] - 0.01,
+                'text_string': system_name.replace('&', '+'),
+                'fontsize': 8,
+                'legend': False
+            }
+            system_count += 1
+
+        extensions = ['.pdf', '.png']
+        weight_desc = 'unweighted' if not weighted else 'weighted'
+        try:
+            timescale_str_1 = timescale_type1.short_str()
+        except AttributeError:
+            timescale_str_1 = timescale_type1
+        try:
+            timescale_str_2 = timescale_type2.short_str()
+        except AttributeError:
+            timescale_str_2 = timescale_type2
+        plot_dict = {
+            'dm_plot': {
+                'show': False,
+                'filenames': ['discrepancy_metric' + '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'log(g)',
+                        'ylabel_fontsize': 16,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Teff /K',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'y_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'title_text': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                        'x_min': min(Teff_vals),
+                        'x_max': max(Teff_vals),
+                        'y_min': min(logg_vals),
+                        'y_max': max(logg_vals),
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
+    def plot_discrepancy_metric_as_percentage_above_threshold(self, Teff_vals, logg_vals, PAT_vals, timescale_type1, timescale_type2, Hx, reference_systems, background_systems, metric_threshold, weighted=False):
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': Teff_vals,
+                'y_data': logg_vals,
+                'z_data': PAT_vals,
+                'fill': True,
+                'cbar_label': 'Fraction of systems potentially affected' if not weighted else 'Density weighted fraction pot. affected',
+                #'levels': [0.8, 1, 1.2],
+                #'cbar_ticks': np.linspace(ratio_data.min(), ratio_data.max(), 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25,
+                #'levels': [0.5, 1, 1.5],
+                'colour_map_colours': ['#ffffff', '#ff0000'],
+                #'colour_map_min': cmap_min,
+                #'colour_map_max': cmap_max,
+                #'levels': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'cbar_labelfontsize': 18,
+                #'cbar_shrink': 0.9,
+                #'cbar_labelpad': 15,
+                'cbar_labelrotation': 90,
+                #'cbar_ticks': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'colour_map_colours': ['#bc9a63', '#fc6a03', '#ce4732', '#b6354b', '#9e2363', '#87117b', '#87117c']
+            }
+        }
+
+        for system_name, coord_tuple in background_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': '#aaaaaa',
+                'line_marker': '.',
+                'line_style': None,
+                'line_markersize': 2
+            }
+
+        system_count = 0
+        for system_name, coord_tuple in reference_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': 'k',
+                'line_marker': 'x',
+                'line_style': None,
+                'line_markersize': 10
+            }
+            series_dict[system_name + '_text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': coord_tuple[0] + 50,
+                'y_pos': coord_tuple[1] - 0.01,
+                'text_string': system_name.replace('&', '+'),
+                'fontsize': 8,
+                'legend': False
+            }
+            system_count += 1
+
+        extensions = ['.pdf', '.png']
+        weight_desc = 'unweighted' if not weighted else 'weighted'
+        try:
+            timescale_str_1 = timescale_type1.short_str()
+        except AttributeError:
+            timescale_str_1 = timescale_type1
+        try:
+            timescale_str_2 = timescale_type2.short_str()
+        except AttributeError:
+            timescale_str_2 = timescale_type2
+        plot_dict = {
+            'dm_plot': {
+                'show': False,
+                'filenames': ['discrepancy_metric_pat' +  '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + '_' + str(metric_threshold) + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'log(g)',
+                        'ylabel_fontsize': 16,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Teff /K',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'y_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'title_text': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                        'x_min': min(Teff_vals),
+                        'x_max': max(Teff_vals),
+                        'y_min': min(logg_vals),
+                        'y_max': max(logg_vals),
+                        #'x_min': 0,
+                        #'x_max': ox_strat_no,
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
+    def plot_discrepancy_metric_as_proxy_percentage_above_threshold(self, Teff_vals, logg_vals, PROXYPAT_vals, timescale_type1, timescale_type2, Hx, reference_systems, background_systems, weighted=False):
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': Teff_vals,
+                'y_data': logg_vals,
+                'z_data': PROXYPAT_vals,
+                'fill': True,
+                'cbar_label': 'Fraction of systems potentially affected' if not weighted else 'Density weighted fraction pot. affected',
+                #'levels': [0.8, 1, 1.2],
+                #'cbar_ticks': np.linspace(ratio_data.min(), ratio_data.max(), 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25,
+                #'levels': [0.5, 1, 1.5],
+                'colour_map_colours': ['#ffffff', '#ff0000'],
+                #'colour_map_min': cmap_min,
+                #'colour_map_max': cmap_max,
+                #'levels': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'cbar_labelfontsize': 18,
+                #'cbar_shrink': 0.9,
+                #'cbar_labelpad': 15,
+                'cbar_labelrotation': 90,
+                #'cbar_ticks': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'colour_map_colours': ['#bc9a63', '#fc6a03', '#ce4732', '#b6354b', '#9e2363', '#87117b', '#87117c']
+            }
+        }
+
+        for system_name, coord_tuple in background_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': '#aaaaaa',
+                'line_marker': '.',
+                'line_style': None,
+                'line_markersize': 2
+            }
+
+        system_count = 0
+        for system_name, coord_tuple in reference_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': 'k',
+                'line_marker': 'x',
+                'line_style': None,
+                'line_markersize': 10
+            }
+            series_dict[system_name + '_text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': coord_tuple[0] + 50,
+                'y_pos': coord_tuple[1] - 0.01,
+                'text_string': system_name.replace('&', '+'),
+                'fontsize': 8,
+                'legend': False
+            }
+            system_count += 1
+
+        extensions = ['.pdf', '.png']
+        weight_desc = 'unweighted' if not weighted else 'weighted'
+        try:
+            timescale_str_1 = timescale_type1.short_str()
+        except AttributeError:
+            timescale_str_1 = timescale_type1
+        try:
+            timescale_str_2 = timescale_type2.short_str()
+        except AttributeError:
+            timescale_str_2 = timescale_type2
+        plot_dict = {
+            'dm_plot': {
+                'show': False,
+                'filenames': ['discrepancy_metric_proxy_pat' +  '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'log(g)',
+                        'ylabel_fontsize': 16,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Teff /K',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'y_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'title_text': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                        'x_min': min(Teff_vals),
+                        'x_max': max(Teff_vals),
+                        'y_min': min(logg_vals),
+                        'y_max': max(logg_vals),
+                        #'x_min': 0,
+                        #'x_max': ox_strat_no,
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
+    def plot_modellable_wd_density(self, Teff_vals, logg_vals, density_vals, Hx):
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': Teff_vals,
+                'y_data': logg_vals,
+                'z_data': density_vals,
+                'fill': True,
+                'cbar_label': 'Density',
+                #'levels': [0.8, 1, 1.2],
+                #'cbar_ticks': np.linspace(ratio_data.min(), ratio_data.max(), 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25,
+                #'levels': [0.5, 1, 1.5],
+                'colour_map_colours': ['#ffffff', '#ff0000'],
+                #'colour_map_min': cmap_min,
+                #'colour_map_max': cmap_max,
+                #'levels': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'cbar_labelfontsize': 18,
+                #'cbar_shrink': 0.9,
+                #'cbar_labelpad': 15,
+                'cbar_labelrotation': 90,
+                #'cbar_ticks': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'colour_map_colours': ['#bc9a63', '#fc6a03', '#ce4732', '#b6354b', '#9e2363', '#87117b', '#87117c']
+            }
+        }
+
+        extensions = ['.pdf', '.png']
+        plot_dict = {
+            'dm_plot': {
+                'show': False,
+                'filenames': ['local_density_' + str(Hx) + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'log(g)',
+                        'ylabel_fontsize': 16,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Teff /K',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'y_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'title_text': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                        'x_min': min(Teff_vals),
+                        'x_max': max(Teff_vals),
+                        'y_min': min(logg_vals),
+                        'y_max': max(logg_vals),
+                        #'x_min': 0,
+                        #'x_max': ox_strat_no,
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
+    def plot_timescale_type_ratios(self, element1, element2, timescale_type1, timescale_type2, Hx, correction_type, Teff_vals, logg_vals, ratio_data, reference_systems, background_systems, grid_range_to_plot):
+        print(grid_range_to_plot)
+        print(Teff_vals)
+        min_teff_index = math.floor((grid_range_to_plot[0][0] - Teff_vals[0])/(Teff_vals[1] - Teff_vals[0]))
+        max_teff_index = math.ceil((grid_range_to_plot[0][1] - Teff_vals[0])/(Teff_vals[1] - Teff_vals[0]))
+        min_logg_index = math.floor((grid_range_to_plot[1][0] - logg_vals[0])/(logg_vals[1] - logg_vals[0]))
+        max_logg_index = math.ceil((grid_range_to_plot[1][1] - logg_vals[0])/(logg_vals[1] - logg_vals[0]))
+        ratio_data_in_range = ratio_data[min_logg_index:max_logg_index+1,min_teff_index:max_teff_index+1]
+        max_ratio = ratio_data_in_range.max()
+        min_ratio = ratio_data_in_range.min()
+        max_dist_from_0 = max(abs(max_ratio), abs(min_ratio))
+        cmap_scaling_factor = 1.2 # Just want to make sure we don't actually reach full colour saturation
+        cmap_min = -cmap_scaling_factor*max_dist_from_0
+        cmap_max = cmap_scaling_factor*max_dist_from_0 # Making sure the min and max are equally spaced so that 0 is white
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': Teff_vals[min_teff_index:max_teff_index+1],
+                'y_data': logg_vals[min_logg_index:max_logg_index+1],
+                'z_data': ratio_data_in_range,
+                'fill': True,
+                'cbar_label': r'$\Delta $' + str(element1) + '/' + str(element2),
+                #'levels': [0.8, 1, 1.2],
+                #'cbar_ticks': np.linspace(ratio_data_in_range.min(), ratio_data_in_range.max(), 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25,
+                #'levels': [0.5, 1, 1.5],
+                'colour_map_colours': ['#0000ff', '#ffffff', '#ff0000'],
+                'colour_map_min': cmap_min,
+                'colour_map_max': cmap_max,
+                #'levels': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'cbar_labelfontsize': 18,
+                #'cbar_shrink': 0.9,
+                #'cbar_labelpad': 15,
+                #'cbar_labelrotation': 90,
+                #'cbar_ticks': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'colour_map_colours': ['#bc9a63', '#fc6a03', '#ce4732', '#b6354b', '#9e2363', '#87117b', '#87117c']
+            },
+            'titletext': {
+                'type': dp.SeriesType.text,
+                'x_pos': min(Teff_vals) + 200,
+                'y_pos': max(logg_vals) - 0.03,
+                'text_string': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                'horizontalalignment': 'left',
+                'verticalalignment': 'top',
+                'fontsize': 14
+            }
+        }
+        for system_name, coord_tuple in background_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': '#aaaaaa',
+                'line_marker': '.',
+                'line_style': None,
+                'line_markersize': 2
+            }
+
+        system_count = 0
+        for system_name, coord_tuple in reference_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': 'k',
+                'line_marker': 'x',
+                'line_style': None,
+                'line_markersize': 10
+            }
+            series_dict[system_name + '_text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': coord_tuple[0] + 50,
+                'y_pos': coord_tuple[1] - 0.01,
+                'text_string': system_name.replace("&", ""),
+                'fontsize': 8,
+                'legend': False
+            }
+            system_count += 1
+
+        extensions = ['.pdf', '.png']
+        plot_dict = {
+            'timescale_type_plot': {
+                'show': False,
+                'filenames': ['timescale_type_comparison_' + str(element1) + '_' + str(element2) + '_' + timescale_type1.short_str() + '_' + timescale_type2.short_str() + '_' + str(Hx) + '_' + correction_type + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'log(g)',
+                        'ylabel_fontsize': 16,
+                        'y_tick_fontsize': 14,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Teff /K',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'title_text': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                        'x_min': grid_range_to_plot[0][0],
+                        'x_max': grid_range_to_plot[0][1],
+                        'y_min': grid_range_to_plot[1][0],
+                        'y_max': grid_range_to_plot[1][1],
+                        #'x_min': 0,
+                        #'x_max': ox_strat_no,
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
+    def plot_timescale_type_benchmark(self, element1, element2, timescale_type1, timescale_type2, timescale_benchmark, Hx, correction_type, Teff_vals, logg_vals, data_to_plot, reference_systems, background_systems, grid_range_to_plot):
+        min_teff_index = math.floor((grid_range_to_plot[0][0] - Teff_vals[0])/(Teff_vals[1] - Teff_vals[0]))
+        max_teff_index = math.ceil((grid_range_to_plot[0][1] - Teff_vals[0])/(Teff_vals[1] - Teff_vals[0]))
+        min_logg_index = math.floor((grid_range_to_plot[1][0] - logg_vals[0])/(logg_vals[1] - logg_vals[0]))
+        max_logg_index = math.ceil((grid_range_to_plot[1][1] - logg_vals[0])/(logg_vals[1] - logg_vals[0]))
+        data_in_range = data_to_plot[min_logg_index:max_logg_index+1,min_teff_index:max_teff_index+1]
+        max_value = data_in_range.max()
+        min_value = data_in_range.min()
+        max_dist_from_0 = max(abs(max_value), abs(min_value))
+        cmap_scaling_factor = 1.2 # Just want to make sure we don't actually reach full colour saturation
+        cmap_min = -cmap_scaling_factor*max_dist_from_0
+        cmap_max = cmap_scaling_factor*max_dist_from_0 # Making sure the min and max are equally spaced so that 0 is white
+        series_dict = {
+            '3dscatter': {
+                'type': dp.SeriesType.contour_scatter,
+                'x_data': Teff_vals[min_teff_index:max_teff_index+1],
+                'y_data': logg_vals[min_logg_index:max_logg_index+1],
+                'z_data': data_in_range,
+                'fill': True,
+                'cbar_label': r'$\Delta $' + str(element1) + '/' + str(element2),
+                #'levels': [0.8, 1, 1.2],
+                #'cbar_ticks': np.linspace(ratio_data_in_range.min(), ratio_data_in_range.max(), 6),
+                'cbar_labelfontsize': 12,
+                'cbar_shrink': 0.9,
+                'cbar_labelpad': 25,
+                #'levels': [0.5, 1, 1.5],
+                'colour_map_colours': ['#0000ff', '#ffffff', '#ff0000'],
+                'colour_map_min': cmap_min,
+                'colour_map_max': cmap_max,
+                #'levels': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'cbar_labelfontsize': 18,
+                #'cbar_shrink': 0.9,
+                #'cbar_labelpad': 15,
+                #'cbar_labelrotation': 90,
+                #'cbar_ticks': [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1],
+                #'colour_map_colours': ['#bc9a63', '#fc6a03', '#ce4732', '#b6354b', '#9e2363', '#87117b', '#87117c']
+            },
+            'titletext': {
+                'type': dp.SeriesType.text,
+                'x_pos': min(Teff_vals) + 200,
+                'y_pos': max(logg_vals) - 0.03,
+                'text_string': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', benchmarked against ' + str(timescale_benchmark) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                'horizontalalignment': 'left',
+                'verticalalignment': 'top',
+                'fontsize': 14
+            }
+        }
+        for system_name, coord_tuple in background_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': '#aaaaaa',
+                'line_marker': '.',
+                'line_style': None,
+                'line_markersize': 2
+            }
+
+        system_count = 0
+        for system_name, coord_tuple in reference_systems.items():
+            series_dict[system_name] = {
+                'type': dp.SeriesType.scatter_2d,
+                'x_data': [coord_tuple[0]],
+                'y_data': [coord_tuple[1]],
+                'legend': False,
+                #'line_color': self.colour_list[system_count],
+                'line_color': 'k',
+                'line_marker': 'x',
+                'line_style': None,
+                'line_markersize': 10
+            }
+            series_dict[system_name + '_text'] = {
+                'type': dp.SeriesType.text,
+                'x_pos': coord_tuple[0] + 50,
+                'y_pos': coord_tuple[1] - 0.01,
+                'text_string': system_name.replace("&", ""),
+                'fontsize': 8,
+                'legend': False
+            }
+            system_count += 1
+
+        extensions = ['.pdf', '.png']
+        plot_dict = {
+            'timescale_type_plot': {
+                'show': False,
+                'filenames': ['timescale_type_benchmark_' + str(element1) + '_' + str(element2) + '_' + timescale_type1.short_str() + '_' + timescale_type2.short_str() + '_' + timescale_benchmark.short_str() + '_' + str(Hx) + '_' + correction_type + e for e in extensions],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': False,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'ylabel_text': 'log(g)',
+                        'ylabel_fontsize': 16,
+                        'y_tick_fontsize': 14,
+                        'ylabel_fontweight': 'bold',
+                        'xlabel_text': 'Teff /K',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'title_text': str(timescale_type1) + ' vs ' + str(timescale_type2) + ', ' + str(Hx) + ' dominated ' + correction_type + ' correction',
+                        'x_min': grid_range_to_plot[0][0],
+                        'x_max': grid_range_to_plot[0][1],
+                        'y_min': grid_range_to_plot[1][0],
+                        'y_max': grid_range_to_plot[1][1],
+                        #'x_min': 0,
+                        #'x_max': ox_strat_no,
+                        #'x_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
     def make_dprob_N_error_heatmap(self, sample_sizes, errors, dprob_grid, model_parameter, base_pop1_name, base_pop2_name):
         series_dict = {
             '3dscatter': {
@@ -6336,6 +7353,11 @@ class GraphFactory:
         plotter = dp.DictPlotter(plot_dict)
         plotter.draw()
         plotter.yield_output(self.output_dir)
+
+    def make_corner_plot(self, weighted_posteriors, parameter_labels, file_name_prefix):
+        #corner.corner(weighted_posteriors, labels=parameter_labels, label_kwargs=dict(fontsize=12), levels = (0.39346934,0.86466472,0.988891), smooth=True)
+        corner.corner(weighted_posteriors, labels=parameter_labels, label_kwargs=dict(fontsize=12), smooth=True)
+        plt.savefig(self.output_dir + file_name_prefix + 'corner.pdf')
 
     def make_samplesize_polrate_heatmap(self, sample_sizes, pol_rate, pvalue_grid):
         series_dict = {
@@ -6641,6 +7663,65 @@ class GraphFactory:
         plotter.yield_output(self.output_dir)
         return plot_dict
 
+    def make_pol_frac_v_t_event_plot(self, t_event_vals, pol_frac_DA_vals, pol_frac_DB_vals):
+        series_dict = {
+            'H-dominated': {
+                'type': dp.SeriesType.scatter_2d,
+                #'x_data': range(0, len(observations)),
+                'x_data': t_event_vals,
+                'y_data': pol_frac_DA_vals,
+                'line_type': '-',
+                'line_linewidth': 3,
+                'legend': True
+            },
+            'He-dominated': {
+                'type': dp.SeriesType.scatter_2d,
+                #'x_data': range(0, len(observations)),
+                'x_data': t_event_vals,
+                'y_data': pol_frac_DB_vals,
+                'line_type': '-',
+                'line_linewidth': 3,
+                'legend': True
+            }
+        }
+        plot_dict = {
+            'figure': {
+                'show': False,
+                'filenames': ['pol_frac_v_t_event.pdf', 'pol_frac_v_t_event.png'],
+                'subplots': {
+                    'subplot': {
+                        'subplot_region': 111,
+                        'legend': True,
+                        'legend_loc': 'best',
+                        'legend_text_size': 12,
+                        #'title_text': str(parameter),
+                        #'title_fontsize': 14,
+                        #'title_fontweight': 'bold',
+                        'xlabel_text': 'Duration of accretion events / log yr',
+                        'xlabel_fontsize': 16,
+                        'x_tick_fontsize': 14,
+                        'xlabel_fontweight': 'bold',
+                        'ylabel_text': 'Fraction of WDs which are polluted',
+                        'ylabel_fontsize': 16,
+                        'y_tick_fontsize': 14,
+                        'ylabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'x_scale': 'log',
+                        #'y_scale': 'log',
+                        'x_min': min(t_event_vals),
+                        'x_max': max(t_event_vals),
+                        'y_min': 0,
+                        'y_max': 1,
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        plotter.draw()
+        plotter.yield_output(self.output_dir)
+        return plot_dict
+
     def make_detection_thresholds_plot(self, threshold_dict, element, wd_data, wd_upper_bounds, min_teff, max_teff, show_legend=False, yield_output=False):
         # expect threshold_dict to be threshold_dict[element][spectral_type][name] = (m, c)
         def linear(x, m_c_tuple):
@@ -6676,8 +7757,7 @@ class GraphFactory:
                     if spectral_type == 'DA':
                         series_name = 'H-dominated threshold'
                     if spectral_type == 'DB':
-                        continue
-                        #series_name = 'He-dominated threshold'
+                        series_name = 'He-dominated threshold'
                 if threshold_name == '560mA':
                     if spectral_type == 'DA':
                         series_name = 'H-dominated (Low Res)'
@@ -6702,7 +7782,8 @@ class GraphFactory:
             if spectral_type == 'DA':
                 series_name = 'H-dominated WDs'
             if spectral_type == 'DB':
-                series_name = 'Cool DZs'
+                series_name = 'He-dominated WDs'
+                #series_name = 'Cool DZs'
             if wd_data[spectral_type] is not None:
                 series_dict[series_name] = {
                     'type': dp.SeriesType.scatter_2d,
@@ -6725,7 +7806,7 @@ class GraphFactory:
                     'line_markersize': 3,
                     'line_style': 'None'
                 }
-        HorHe = 'He'
+        HorHe = 'Hx'
         plot_dict = {
             'dt_plot_' + str(element): {
                 'show': False,

@@ -92,7 +92,6 @@ class SyntheticSystem:
                 return False
         return True
 
-
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             wd_properties_match = self.compare_dicts_ignoring_None(self.wd_properties, other.wd_properties)
@@ -151,6 +150,12 @@ class SyntheticSystem:
 
     def set_observed_abundances(self, observed_abundances):
         self.observed_abundances = observed_abundances
+
+    def get_pollution_level(self, elements_to_consider=ci.all_elements):
+        list_of_abundances_for_pol_frac = list()
+        for el in elements_to_consider:
+            list_of_abundances_for_pol_frac.append(self.pollution_abundances.get(el, -np.inf))
+        return np.log10(sum([10**(a) for a in list_of_abundances_for_pol_frac]))
 
     def pollution_abundance_log_ratio(self, element1, element2):
         el1 = self.pollution_abundances.get(element1)
@@ -216,9 +221,48 @@ class SyntheticSystem:
         total_distance = np.sqrt(total_distance)
         return total_distance
 
+    def water_content(self, excess_oxygen_calculator, oxidation_strategy, consider_thermohaline=False):
+        # An estimate of the water content associated with the pollutant, based on the true abundances (i.e., not the observed ones)
+        # So in principle we're using the pollution_abundances. But actually it makes more sense to just rerun the forward model using the pollution parameters
+        # (We can then just pull out the DiscAbundances. otherwise, need to rewind differential sinking)
+        #input_dict = {'Dummy': {el: 10**val for el,val in self.pollution_abundances.items()}} # Doesn't have to be normalised, the eoc does that
+        #wd_timescales = self.timescale_interpolator.extract_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)[timescale_type_to_use]
+        # This is just copied and pasted from the create_system function - bit messy, this should really be defined elsewhere
+        enhancement_model = 'NonEarthlike'
+        t_formation = 1.5
+        normalise_abundances = True
+        # In principle consider_thermohaline should be set something like this:
+        #wd_config_dict = sc.wd_configurations[wd_config_to_use]
+        #consider_thermohaline = wd_config_dict[mp.WDParameter.consider_thermohaline]
+        ld._live_Hx = ci.Element.H # Doesn't matter! This only plays a part in irrelevant parts of the calculation
+        ld._live_M_cvz = 1 #Ditto
+        ld._live_all_wd_timescales = np.ones(len(ci.usual_elements)) # Ditto
+        dummy = cm.complete_model_calculation(
+            self.pollution_properties[mp.ModelParameter.metallicity],
+            self.pollution_properties[mp.ModelParameter.t_sinceaccretion],
+            self.pollution_properties[mp.ModelParameter.formation_distance],
+            self.pollution_properties[mp.ModelParameter.feeding_zone_size],
+            self.pollution_properties[mp.ModelParameter.parent_core_frac],
+            self.pollution_properties[mp.ModelParameter.parent_crust_frac],
+            self.pollution_properties[mp.ModelParameter.fragment_core_frac],
+            self.pollution_properties[mp.ModelParameter.fragment_crust_frac],
+            self.pollution_properties[mp.ModelParameter.fragment_mass],
+            self.pollution_properties[mp.ModelParameter.accretion_timescale],
+            self.pollution_properties[mp.ModelParameter.pressure],
+            self.pollution_properties[mp.ModelParameter.oxygen_fugacity],
+            enhancement_model,
+            consider_thermohaline,
+            t_formation,
+            normalise_abundances
+        )
+        input_dict = {'Dummy': dummy[1]['DiscAbundances']}
+        output_dict = excess_oxygen_calculator.run_full_calculation(input_dict)
+        water_mass_fraction = output_dict['Dummy'][oxidation_strategy][4]
+        return water_mass_fraction
+
 class SyntheticPopulation:
 
-    def __init__(self, population_size, wd_config_to_use, pollution_config_to_use, output_filename=None, pre_made_population=None, timescale_interpolator=None):
+    def __init__(self, population_size, wd_config_to_use, pollution_config_to_use, output_filename=None, pre_made_population=None, timescale_interpolator=None, mdot_threshold_dict=dict()):
         self.wd_config_to_use = wd_config_to_use
         self.stellar_compositions = None
         self.stellar_compositions_filename = 'StellarCompositionsSortFE.csv' # This should really be an argument (similarly in the modeller)
@@ -230,7 +274,7 @@ class SyntheticPopulation:
         self.inverse_cdf_dict = dict()
         self.io_ks_test_results = dict()
         self.pop_ks_test_results = dict()
-        self.spectral_type_dict = {
+        self.atmospheric_type_dict = {
             'DA': ci.Element.H,
             'DB': ci.Element.He
         }
@@ -238,9 +282,16 @@ class SyntheticPopulation:
         self.pollution_configurations = sc.pollution_configurations
         self.id_string = 'ID'
         self.output_filename = output_filename
+        #self.favoured_timescale_type = ti.TimescaleType.KoesterOvershoot
+        #self.consider_thermohaline = False
+        self.mdot_threshold_gradient = mdot_threshold_dict.get('gradient')
+        self.mdot_threshold_yintercept = mdot_threshold_dict.get('yintercept')
+        self.mdot_threshold_leeway = mdot_threshold_dict.get('leeway')
         if self.wd_config_to_use is not None and self.wd_config_to_use not in self.wd_configurations:
+            # I don't think we should actually raise this error here? Raise it when it actually becomes a problem! TODO
             raise ValueError('Unrecognised WD configuration ' + str(wd_config_to_use))
         if self.pollution_config_to_use is not None and self.pollution_config_to_use not in self.pollution_configurations:
+            # I don't think we should actually raise this error here? Raise it when it actually becomes a problem! TODO
             raise ValueError('Unrecognised pollution configuration ' + str(pollution_config_to_use))
         if pre_made_population is None:
             if self.output_filename is not None and os.path.isfile(self.output_filename):
@@ -335,20 +386,31 @@ class SyntheticPopulation:
             return toret
         if '.' in input_string:
             return float(input_string)
+        if 'e+' in input_string or 'e-' in input_string or 'E+' in input_string or 'E-' in input_string:
+            return float(input_string) # To catch things like '1e+20'
         else:
             try:
                 return int(input_string)
             except ValueError:
-                return input_string
+                try:
+                    return ti.TimescaleType[input_string]
+                except KeyError:
+                    if input_string == 'True':
+                        return True
+                    elif input_string == 'False':
+                        return False
+                    else:
+                        return input_string
 
     def dump_to_csv(self, output_file=None, only_raw=False):
         pollution_properties = list() if only_raw else [pp for pp in mp.ModelParameter]
-        pollution_abundance_keys = ci.usual_elements
-        observed_abundance_keys = list() if only_raw else ci.usual_elements
+        elements_to_read_and_write = ci.writeable_elements
+        pollution_abundance_keys = elements_to_read_and_write
+        observed_abundance_keys = list() if only_raw else elements_to_read_and_write
         bandpasses = list() if only_raw else [b for b in sb.Bandpass]
         modelled_properties = list() if only_raw else [pp for pp in mp.ModelParameter]
         header = [self.id_string]
-        header += [self.convert_property_to_readable_str(item) for item in mp.wd_parameters_for_synthesis]
+        header += [self.convert_property_to_readable_str(item) for item in mp.wd_descriptive_parameters]
         header += ['Input ' + self.convert_property_to_readable_str(item) for item in pollution_properties]
         header += ['True ' + self.convert_property_to_readable_str(item) for item in pollution_abundance_keys]
         if not only_raw:
@@ -378,7 +440,7 @@ class SyntheticPopulation:
             to_write = csv.writer(f)
             to_write.writerow(header)
             for system in self.population:
-                to_write.writerow(system.to_csv_row(mp.wd_parameters_for_synthesis, pollution_properties, pollution_abundance_keys, not only_raw, observed_abundance_keys, bandpasses, modelled_properties))
+                to_write.writerow(system.to_csv_row(mp.wd_descriptive_parameters, pollution_properties, pollution_abundance_keys, not only_raw, observed_abundance_keys, bandpasses, modelled_properties))
 
     def load_from_csv(self, input_file, original_requested_pop_size=np.inf):
         if original_requested_pop_size is None:
@@ -524,9 +586,10 @@ class SyntheticPopulation:
             self.population = list()
         pop_count = len(self.population)
         excluded_count = 0
+        last_reported_pop_count = None
         while pop_count < population_size:
             new_system = self.create_system()
-            print(new_system)
+            #print(new_system)
             if new_system is None:
                 excluded_count += 1
             else:
@@ -540,41 +603,75 @@ class SyntheticPopulation:
                 else:
                     raise
                     excluded_count += 1
-            if pop_count % 100 == 0:
+            if pop_count % 100 == 0 and pop_count != last_reported_pop_count and pop_count > 0:
                 print('Made ' + str(pop_count) + ' systems so far, excluded ' + str(excluded_count))
+                last_reported_pop_count = pop_count
 
-    def create_system(self, use_iterative_approach=False):
-        # use_iterative_approach: True is now deprecated but keeping it as an option just in case I want to reproduce older results
+    def create_system(self): # Bit odd that this function isn't in the SyntheticSystem constructor?
         self.load_compositions()
-        enhancement_model = 'Earthlike'
+        enhancement_model = 'Earthlike' # TODO: Consider switching to NonEarthlike by default? I guess it depends on the application!
+        #enhancement_model = 'FixedLightElement'
         t_formation = 1.5
         normalise_abundances = True
-        snapshot_wd_atm = True
         wd_config_dict = self.wd_configurations[self.wd_config_to_use]
         wd_dict = dict()
-        for parameter in mp.wd_parameters_for_synthesis:
-            wd_dict[parameter] = self.draw_variable_from_distribution(wd_config_dict[parameter])
+        for parameter in mp.WDParameter:
+            if parameter in mp.wd_meta_parameters:
+                wd_dict[parameter] = wd_config_dict[parameter]
+            if parameter in mp.wd_synthesis_parameters:
+                wd_dict[parameter] = self.draw_variable_from_distribution(wd_config_dict[parameter])
         pollution_config_dict = self.pollution_configurations[self.pollution_config_to_use]
         input_dict = dict()
         for parameter in mp.ModelParameter:
-            input_dict[parameter] = self.draw_variable_from_distribution(pollution_config_dict[parameter])
+            if parameter == mp.ModelParameter.fragment_mass and pollution_config_dict[parameter][1][0] == 'LogCollisionalCascade':
+                attempts = 1 # Can increase this to pick the largest mass from N random samples - ie effectively assuming that we sample N bodies but the pollution is dominated by the most massive
+                possible_masses = list()
+                while len(possible_masses) < attempts:
+                    possible_masses.append(self.draw_variable_from_distribution(pollution_config_dict[parameter]))
+                input_dict[parameter] = max(possible_masses)
+            else:
+                input_dict[parameter] = self.draw_variable_from_distribution(pollution_config_dict[parameter])
         if isinstance(input_dict[mp.ModelParameter.formation_distance], (np.integer, int)):
             input_dict[mp.ModelParameter.formation_distance] = float(input_dict[mp.ModelParameter.formation_distance])
-        CaHe = -10 # initial guess, only relevant for DBs
-        #modified_pollution_frac = None
-        modified_pollution_frac = input_dict[mp.ModelParameter.pollution_frac]
-        HorHe = self.spectral_type_dict[wd_dict[mp.WDParameter.spectral_type]]
-        HorHe_str = str(HorHe)
-        if HorHe == ci.Element.H:
-            wd_timescales = self.timescale_interpolator.get_wd_timescales(HorHe_str, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)
-            modified_pollution_frac = self.modify_pollution_frac(
-                input_dict[mp.ModelParameter.pollution_frac],
-                input_dict[mp.ModelParameter.t_sinceaccretion],
-                input_dict[mp.ModelParameter.accretion_timescale],
-                wd_timescales
-            )
-            ld._live_all_wd_timescales = [wd_timescales[el] for el in ci.usual_elements] # TODO: We also shouldn't need to do this twice
-            ld._live_non_zero_wd_timescales = [wd_timescales[el] for el in ci.usual_elements]
+        if isinstance(input_dict[mp.ModelParameter.fragment_mass], (np.integer, int)):
+            input_dict[mp.ModelParameter.fragment_mass] = float(input_dict[mp.ModelParameter.fragment_mass]) # Otherwise 10**fragment mass can give wrong results!
+        HorHe = self.atmospheric_type_dict[wd_dict[mp.WDParameter.spectral_type]]
+        CaHe = -9 # Based on this being kind of in the middle of the range of timescale variation, and a good compromise between high = less common but more observable
+        timescale_type_to_use = wd_config_dict[mp.WDParameter.timescale_type]
+        consider_thermohaline = wd_config_dict[mp.WDParameter.consider_thermohaline]
+
+        mdot = (6 + input_dict[mp.ModelParameter.fragment_mass]) - np.log10(input_dict[mp.ModelParameter.accretion_timescale]) # converting here from log(kg) and yr to kg per Myr
+        # In principle, doing the next bit of precompute should improve the efficiency of the mass cut
+        # By removing systems deep in declining phase (such that there's no chance of them having detectable pollution)
+        # However, it requires an estimate of the sinking timescales: this ends up being a bottleneck, to the point where the precompute saves negligible time
+        #declining_phase_time = (1000000*input_dict[mp.ModelParameter.t_sinceaccretion]) - input_dict[mp.ModelParameter.accretion_timescale] #yr
+        #declining_phase_tO = max(0, declining_phase_time/wd_timescales[ci.Element.O]) # in units of oxygen sinking times, but default to 0 if we're not actually in declining phase
+        #effective_mdot = mdot - (declining_phase_tO*0.43429) # rough approximation - every time we go through an O sinking time, the effective mdot goes down by a factor of e (so in log10 space you get this)
+        minimum_detectable_mdot = self.calculate_minimum_detectable_mdot(
+            wd_dict[mp.WDParameter.temperature],
+            self.mdot_threshold_gradient,
+            self.mdot_threshold_yintercept,
+            self.mdot_threshold_leeway
+        )
+        if mdot < minimum_detectable_mdot:
+            # No point doing the forward model!
+            return None
+        else:
+
+            wd_timescales = self.timescale_interpolator.extract_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)[timescale_type_to_use]
+            ld._live_all_wd_timescales = np.array([10**wd_timescales[el] for el in ci.writeable_elements])
+            #wd_timescales = self.timescale_interpolator.get_wd_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)[timescale_type_to_use]
+            #ld._live_all_wd_timescales = np.array([wd_timescales[el] for el in ci.writeable_elements])
+
+
+            #wd_timescales = self.timescale_interpolator.get_wd_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe, True)[timescale_type_to_use]
+            #ld._live_all_wd_timescales = np.array([wd_timescales[el] for el in fle.important_elements])
+
+            logq = wd_timescales['logq']
+            ld._live_Hx = HorHe
+            ld._live_M_cvz = wd_dict[mp.WDParameter.mass] * (10**logq)
+            ld._live_teff = wd_dict[mp.WDParameter.temperature]
+            ld._live_logg = wd_dict[mp.WDParameter.logg]
             output_dict, ignore = cm.complete_model_calculation(
                 input_dict[mp.ModelParameter.metallicity],
                 input_dict[mp.ModelParameter.t_sinceaccretion],
@@ -584,137 +681,21 @@ class SyntheticPopulation:
                 input_dict[mp.ModelParameter.parent_crust_frac],
                 input_dict[mp.ModelParameter.fragment_core_frac],
                 input_dict[mp.ModelParameter.fragment_crust_frac],
-                modified_pollution_frac,
+                input_dict[mp.ModelParameter.fragment_mass],
                 input_dict[mp.ModelParameter.accretion_timescale],
                 input_dict[mp.ModelParameter.pressure],
                 input_dict[mp.ModelParameter.oxygen_fugacity],
                 enhancement_model,
+                consider_thermohaline,
                 t_formation,
-                normalise_abundances,
-                snapshot_wd_atm
+                normalise_abundances
             )
-        elif HorHe == ci.Element.He:
-            if use_iterative_approach:
-                scaling_element = ci.Element.Mg
-                tolerance = 0.00001
-                rel_diff = tolerance + 1
-                iterations = 0
-                max_iterations = 20
-                # max_iterations = -1 # For testing purposes (skipping the self-consistency check)
-                initial_cahe = None
-                initial_mghe = None
-                initial_fehe = None
-                while rel_diff > tolerance:
-                    wd_timescales = self.timescale_interpolator.get_wd_timescales(HorHe_str, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)
-                    modified_pollution_frac = self.modify_pollution_frac(
-                        input_dict[mp.ModelParameter.pollution_frac],
-                        input_dict[mp.ModelParameter.t_sinceaccretion],
-                        input_dict[mp.ModelParameter.accretion_timescale],
-                        wd_timescales,
-                        scaling_element
-                    )
-                    ld._live_all_wd_timescales = [wd_timescales[el] for el in ci.usual_elements] # TODO: We also shouldn't need to do this twice
-                    ld._live_non_zero_wd_timescales = [wd_timescales[el] for el in ci.usual_elements]
-                    output_dict, ignore = cm.complete_model_calculation(
-                        input_dict[mp.ModelParameter.metallicity],
-                        input_dict[mp.ModelParameter.t_sinceaccretion],
-                        input_dict[mp.ModelParameter.formation_distance],
-                        input_dict[mp.ModelParameter.feeding_zone_size],
-                        input_dict[mp.ModelParameter.parent_core_frac],
-                        input_dict[mp.ModelParameter.parent_crust_frac],
-                        input_dict[mp.ModelParameter.fragment_core_frac],
-                        input_dict[mp.ModelParameter.fragment_crust_frac],
-                        modified_pollution_frac,
-                        input_dict[mp.ModelParameter.accretion_timescale],
-                        input_dict[mp.ModelParameter.pressure],
-                        input_dict[mp.ModelParameter.oxygen_fugacity],
-                        enhancement_model,
-                        t_formation,
-                        normalise_abundances,
-                        snapshot_wd_atm
-                    )
-                    if output_dict is None:
-                        print('Warning! WD creation had None result, returning None')
-                        return None
-                    if iterations == 0:
-                        initial_cahe = output_dict[ci.Element.Ca]
-                        initial_mghe = output_dict[ci.Element.Mg]
-                        initial_fehe = output_dict[ci.Element.Fe]
-                    diff = output_dict[ci.Element.Ca] - CaHe
-                    rel_diff = abs(diff/CaHe)
-                    if iterations % 20 == 0 and iterations > 0:
-                        print()
-                        print('Making WD (iteration ' + str(iterations) + ') ')
-                        print('Request Pfrac: ' + str(input_dict[mp.ModelParameter.pollution_frac]))
-                        print('Modified Pfrac: ' + str(modified_pollution_frac))
-                        print('Input CaHe: ' + str(CaHe))
-                        print('Initial CaHe: ' + str(initial_cahe))
-                        print('Initial MgHe: ' + str(initial_mghe))
-                        print('Initial FeHe: ' + str(initial_fehe))
-                        print('Initial CaFe: ' + str(initial_cahe - initial_fehe))
-                        print('Initial MgFe: ' + str(initial_mghe - initial_fehe))
-                        print('Output CaHe: ' + str(output_dict[ci.Element.Ca]))
-                        print('Output MgHe: ' + str(output_dict[ci.Element.Mg]))
-                        print('Output FeHe: ' + str(output_dict[ci.Element.Fe]))
-                        print('Output CaFe: ' + str(output_dict[ci.Element.Ca] - output_dict[ci.Element.Fe]))
-                        print('Output MgFe: ' + str(output_dict[ci.Element.Mg] - output_dict[ci.Element.Fe]))
-                        print('rel_diff: ' + str(rel_diff))
-                    if iterations > max_iterations:
-                        print('Warning! WD creation exceeded max iterations (' + str(max_iterations) + '), using most recent attempt')
-                        rel_diff = 0
-                    CaHe = output_dict[ci.Element.Ca]
-                    iterations += 1
-            else:
-                CaHe = -9 # Going slightly higher than -10. Based on this being kind of in the middle of the range of timescale variation, and a good compromise between high = less common but more observable
-                scaling_element = ci.Element.Ca # Switched this - Ca is more representative than Mg
-                wd_timescales = self.timescale_interpolator.get_wd_timescales(HorHe_str, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)
-                modified_pollution_frac = self.modify_pollution_frac(
-                    input_dict[mp.ModelParameter.pollution_frac],
-                    input_dict[mp.ModelParameter.t_sinceaccretion],
-                    input_dict[mp.ModelParameter.accretion_timescale],
-                    wd_timescales,
-                    scaling_element
-                )
-                ld._live_all_wd_timescales = np.array([wd_timescales[el] for el in ci.usual_elements])
-                output_dict, ignore = cm.complete_model_calculation(
-                    input_dict[mp.ModelParameter.metallicity],
-                    input_dict[mp.ModelParameter.t_sinceaccretion],
-                    input_dict[mp.ModelParameter.formation_distance],
-                    input_dict[mp.ModelParameter.feeding_zone_size],
-                    input_dict[mp.ModelParameter.parent_core_frac],
-                    input_dict[mp.ModelParameter.parent_crust_frac],
-                    input_dict[mp.ModelParameter.fragment_core_frac],
-                    input_dict[mp.ModelParameter.fragment_crust_frac],
-                    modified_pollution_frac,
-                    input_dict[mp.ModelParameter.accretion_timescale],
-                    input_dict[mp.ModelParameter.pressure],
-                    input_dict[mp.ModelParameter.oxygen_fugacity],
-                    enhancement_model,
-                    t_formation,
-                    normalise_abundances,
-                    snapshot_wd_atm
-                )
-                if output_dict is None:
-                    print('Warning! WD creation had None result, returning None')
-                    return None
-        else:
-            raise ValueError('Unrecognised WD atmosphere type: ' + HorHe_str + ', must be H or He')
-        input_dict[mp.ModelParameter.pollution_frac] = modified_pollution_frac
+        if output_dict is None:
+            print('Warning! WD creation had None result, returning None')
+            return None
+
         new_system = SyntheticSystem(wd_dict, input_dict, output_dict, None, None, None, None, self.get_next_id())
         return new_system
-
-    def modify_pollution_frac(self, pollution_frac, t_sinceaccretion, accretion_timescale, wd_timescales, scaling_element=ci.Element.Ca):
-        #t_sinceaccretion is in Myr
-        #accretion_timescale is in yr
-        t_sinceaccretion_yrs = 1000000*t_sinceaccretion
-        t_scaled_declining = (t_sinceaccretion_yrs - accretion_timescale)/wd_timescales[scaling_element]  # Mg is a somewhat arbitrary choice - Ca is actually more representative, no?
-        if t_scaled_declining > 0:
-            # Then we are in declining phase, and should reduce pollution fraction to prevent certain silly situations where pollution fraction is like -6 and it's all oxygen
-            correction = t_scaled_declining/np.log(10)
-            # This is essentially saying that the pollution fraction we inputted was actually the steady state pollution fraction
-            return pollution_frac - correction
-        else:
-            return pollution_frac
 
     def draw_variable_from_distribution(self, distribution_description):
         distribution_type = distribution_description[0]
@@ -778,7 +759,10 @@ class SyntheticPopulation:
             area, error = scint.quad(function, min_val, pts)
             if area > 0 and error/area > 0.1:
                 print('Warning! Integration error was: ' + str(error))
+                raise
             areas[i] = area
+            #if i > 10:
+            #    raise
         total_area = areas[-1]
         normalised_areas = np.zeros(sample_count)
         for i, area in enumerate(areas):
@@ -819,6 +803,11 @@ class SyntheticPopulation:
             else:
                 toret.append(system.wd_properties.get(wd_parameter))
         return toret
+
+    def calculate_minimum_detectable_mdot(self, wd_teff, gradient=None, yintercept=None, leeway=0):
+        if gradient is None or yintercept is None:
+            return -np.inf
+        return (wd_teff*gradient) + (yintercept-leeway)
 
     def pollution_input_values(self, input_parameter):
         toret = list()
@@ -1067,6 +1056,12 @@ class SyntheticPopulation:
                 subset.append(system)
         return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
 
+    def get_duplicate_population(self):
+        subset = list()
+        for system in self.population:
+            subset.append(system)
+        return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
+
     def get_ca_noise_threshold(self, pollution_frac):
         # Leftover from an earlier, more complicated function...
         return 0
@@ -1078,7 +1073,7 @@ class SyntheticPopulation:
             subset_size = np.inf
         subset_size = min(subset_size, len(self))
         if element is None:
-            sorted_pop = sorted(self.population, key=lambda x: x.pollution_properties[mp.ModelParameter.pollution_frac], reverse=True)
+            sorted_pop = sorted(self.population, key=lambda x: x.get_pollution_level(), reverse=True)
         else:
             sorted_pop = sorted(self.population, key=lambda x: x.observed_abundances.get(element, -np.inf), reverse=True)
         if impose_noise_pol_frac_correlation:
@@ -1091,8 +1086,9 @@ class SyntheticPopulation:
 
     def get_random_subset(self, subset_size=None, prevent_reuse=False):
         if subset_size is None:
-            subset_size = np.inf
-        subset_size = min(subset_size, len(self))
+            #subset_size = np.inf
+            subset_size = len(self)
+        #subset_size = min(subset_size, len(self)) <-- what on earth was this line doing here?? It meant that we were returning subsets smaller than requested - we should return None instead!
         #We're going round the houses (i.e. sampling the indices, rather than the population itself) so that we can maintain order
         if prevent_reuse:
             indices = self.unsampled_indices
@@ -1164,6 +1160,13 @@ class SyntheticPopulation:
                         correct_classification += 1
         return correct_classification, incorrect_classification, SyntheticPopulation.get_knn_p_value(correct_classification, incorrect_classification)
 
+    def output_water_content(self, excess_oxygen_calculator, oxidation_strategy):
+        self.load_compositions()
+        toret = list()
+        for synth_wd in self.population:
+            toret.append(synth_wd.water_content(excess_oxygen_calculator, oxidation_strategy))
+        return toret
+
     @staticmethod
     def get_knn_p_value(correct_classification, incorrect_classification):
         N = correct_classification + incorrect_classification
@@ -1209,8 +1212,69 @@ def demonstrate_synthesis():
     )
     print(synth_pop)
 
+def visualise_distributions():
+    import graph_factory as gf
+    import physical_constants as pc
+    synthetic_pop = SyntheticPopulation(1, 'TestWDConfig', 'TestPollutionConfig') # A dummy population
+    uniform_distribution = (sc.Distribution.Uniform, [0, 1])
+    normal_distribution = (sc.Distribution.Normal, [0.525, 0.065])
+    delta_distribution = (sc.Distribution.Delta, [0, 1])
+    triangle_distribution = (sc.Distribution.Triangle, [0, 0.7, 1])
+    slope_distribution = (sc.Distribution.Slope, [0, 0.7, 1])
+    #coll_casc_distribution = (sc.Distribution.CustomFunction, ['CollisionalCascade', sc.predefined_functions['CollisionalCascade'], 0.1, 1])
+    log_coll_casc_distribution = (sc.Distribution.CustomFunction, ['LogCollisionalCascade', sc.predefined_functions['LogCollisionalCascade'], 0.1, 1])
+    custom_distribution = (sc.Distribution.CustomDistribution, ['CD', [(0.0, 0.2), (0.2, 0.4), (0.4, 0.6), (0.6, 0.8), (0.8, 1.0)], np.array([1, 4, 6, 5, 3])])
+    sample_size = 100000
+    distribution_samples = {
+        sc.Distribution.Uniform: list(),
+        sc.Distribution.Normal: list(),
+        sc.Distribution.Delta: list(),
+        sc.Distribution.Triangle: list(),
+        sc.Distribution.Slope: list(),
+        sc.Distribution.CustomFunction: list(),
+        sc.Distribution.CustomDistribution: list()
+    }
+    i = 0
+    while i < sample_size:
+        distribution_samples[sc.Distribution.Uniform].append(synthetic_pop.draw_variable_from_distribution(uniform_distribution))
+        distribution_samples[sc.Distribution.Normal].append(synthetic_pop.draw_variable_from_distribution(normal_distribution))
+        distribution_samples[sc.Distribution.Delta].append(synthetic_pop.draw_variable_from_distribution(delta_distribution))
+        distribution_samples[sc.Distribution.Triangle].append(synthetic_pop.draw_variable_from_distribution(triangle_distribution))
+        distribution_samples[sc.Distribution.Slope].append(synthetic_pop.draw_variable_from_distribution(slope_distribution))
+        distribution_samples[sc.Distribution.CustomFunction].append(synthetic_pop.draw_variable_from_distribution(log_coll_casc_distribution))
+        distribution_samples[sc.Distribution.CustomDistribution].append(synthetic_pop.draw_variable_from_distribution(custom_distribution))
+        i += 1
+
+    graph_fac = gf.GraphFactory()
+    for dist_type, samples in distribution_samples.items():
+        print()
+        print(str(dist_type))
+        print('Min: ' + str(min(samples)))
+        print('Max: ' + str(max(samples)))
+        bins = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+        heights, bins2 = np.histogram(
+            samples,
+            bins,
+            density=True
+        )
+
+        bin_centres = [0.025, 0.075, 0.125, 0.175, 0.225, 0.275, 0.325, 0.375, 0.425, 0.475, 0.525, 0.575, 0.625, 0.675, 0.725, 0.775, 0.825, 0.875, 0.925, 0.975]
+        graph_fac.make_histogram(
+            bin_centres,
+            [heights],
+            [str(dist_type)],
+            str(dist_type),
+            0.05,
+            1.1,
+            'Value',
+            '_visualisation',
+            None,
+            None
+        )
+
 def main():
     demonstrate_synthesis()
+    visualise_distributions()
 
 if __name__ == '__main__':
     main()

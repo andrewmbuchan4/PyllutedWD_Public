@@ -7,11 +7,6 @@ import numpy as np
 # This file is a bit of a hack. It exists because we need to pass external information into the prior function,
 # but the prior function can only contain one argument (cube) otherwise pymultinest complains.
 # So the idea here is that the manager will update the following variables, which can then be accessed by the prior
-# TODO: Make a more elegant design that doesn't have these pseudo-global variables!
-# Maybe some sort of static function in the Manager?
-# Or maybe make the pollution model class into a subclass of a pymultinest solver, then use self.wd_abundances etc
-# Then you still have to 'publish' the data but at least it's contained in an object
-# Or some hybrid solution where the pollution model subclass has a self.live_data which is given a LiveData object containing the live data
 
 _live_model = None
 _live_prior = None
@@ -29,3 +24,19 @@ _live_q = None
 _live_mass = None
 _live_type = None
 _live_white_dwarf = None
+_live_timescale_type = None
+
+# These get set by publish_live_model in manager.py
+_live_model = None
+_live_prior = None
+_live_enhancement_model = None
+_live_consider_thermohaline = None
+
+# These last few variables are particularly egregious - they're ultimately here because the complete_model function needs to work for both Bayesian and Synthetic code
+# From the point of view of the Bayesian code, we would ideally just send the white dwarf object in as an argument
+# But in the Synthetic code, there is no white dwarf. Setting these global variables to the relevant values is a compromise
+
+_live_Hx = None
+_live_M_cvz = None
+_live_teff = None
+_live_logg = None

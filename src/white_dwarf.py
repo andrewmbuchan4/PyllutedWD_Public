@@ -4,10 +4,12 @@
 from copy import deepcopy
 from enum import Enum
 
+import collections as cn
 import numpy as np
 
 import chemistry_info as ci
 import model_parameters as mp
+import pwd_utils as pu
 import solar_abundances as sa
 
 class WhiteDwarfDataPointType(Enum):
@@ -267,6 +269,14 @@ class WhiteDwarfAbundanceData():
                 toret.append(element)
         return toret
 
+    def get_modellable_detected_elements(self, detectable_elements=ci.usual_elements):
+        toret = list()
+        for el in detectable_elements:
+            data_point = self.abundance_data_dict.get(el)
+            if data_point is not None and data_point.data_point_type == WhiteDwarfDataPointType.measurement and data_point.upper_error > 0 and data_point.lower_error > 0:
+                toret.append(el)
+        return toret
+
     def __str__(self):
         toret = ''
         for el in ci.all_elements:
@@ -343,13 +353,14 @@ class WhiteDwarfPropertyData():
     def __str__(self):
         toret = ''
         for wd_property in mp.WDParameter:
-            property_value = self.property_dict.get(wd_property, '---')#for wd_property, property_value in self.property_dict.items():
-            individual_str = str(wd_property) + ': ' + str(property_value)
-            if self.property_dict.get(wd_property) is not None:
-                unit = mp.wd_parameter_units.get(wd_property, '')
-                if unit != '':
-                    individual_str += ' ' + unit
-            toret += individual_str + '\n'
+            if wd_property not in [mp.WDParameter.logq, mp.WDParameter.timescale_type, mp.WDParameter.consider_thermohaline]: # logq is associated with atmosphere data, it's not treated as a property of the white dwarf itself. Similarly, the timescale_type  (and consider_thermohaline) is only a WDParameter for the sake of the synthetic WDs - normally it would be associated with the atmosphere data
+                property_value = self.property_dict.get(wd_property, '---')#for wd_property, property_value in self.property_dict.items():
+                individual_str = str(wd_property) + ': ' + str(property_value)
+                if self.property_dict.get(wd_property) is not None:
+                    unit = mp.wd_parameter_units.get(wd_property, '')
+                    if unit != '':
+                        individual_str += ' ' + unit
+                toret += individual_str + '\n'
         return toret
 
     def __repr__(self):
@@ -365,17 +376,96 @@ class WhiteDwarfPropertyData():
     def __neq__(self, other):
         return not self == other
 
+class WhiteDwarfAtmosphereData():
+    # To contain logq and sinking timescales.
+    def __init__(self, timescale_and_logq_dict):
+        # expecting input to be a dict containing both logq and all the timescales, as this is what is calculated by TimescaleInterpolator
+        self.logq_string = 'logq'
+        try:
+            self.logq = WhiteDwarfDataPoint(WhiteDwarfDataPointType.measurement, timescale_and_logq_dict[self.logq_string], 0) # For now, assume zero error on this
+        except KeyError:
+            self.logq = WhiteDwarfDataPoint(WhiteDwarfDataPointType.measurement, timescale_and_logq_dict[mp.WDParameter.logq], 0) # For now, assume zero error on this
+        self.timescale_dict = {element: timescale_and_logq_dict[element] for element in timescale_and_logq_dict if element not in [self.logq_string, mp.WDParameter.logq]}
+
+    def __str__(self):
+        toret = 'log(q): ' + str(self.logq) + '\n'
+        for element, timescale in self.timescale_dict.items():
+            toret += str(element) + ': ' + str(timescale) + ' yr\n'
+        toret += '\n'
+        return toret
+
+    def __repr__(self):
+        return str(self)
+
+    def get_timescales_as_array(self, elements=ci.usual_elements):
+        return np.array([self.timescale_dict[el] for el in elements])
+
+    def get_timescale_values_dict(self, elements=ci.usual_elements):
+        toret = cn.OrderedDict()
+        for el in elements:
+            toret[el] = self.timescale_dict.get(el)
+        return toret
+
+    def __eq__(self, other):
+        return self.logq == other.logq and self.timescale_dict == other.timescale_dict
+
+    def __neq__(self, other):
+        return not self == other
+
+class WhiteDwarfAtmosphereDataset():
+    # A dict of WhiteDwarfAtmosphereData
+    def __init__(self, atmosphere_data_dict):
+        self.atmosphere_data_dict = atmosphere_data_dict # expecting {ti.TimescaleType.something: WhiteDwarfAtmosphereData}
+
+    def __str__(self):
+        toret = ''
+        for key, add in self.atmosphere_data_dict.items():
+            toret += str(key) + ' Sinking Timescales:\n' + str(add)
+        toret += '\n'
+        return toret
+
+    def __repr__(self):
+        return str(self)
+
+    def get_available_timescale_types(self):
+        return list(self.atmosphere_data_dict.keys())
+
+    def get_timescales_as_array(self, timescale_type, elements=ci.usual_elements):
+        try:
+            return self.atmosphere_data_dict[timescale_type].get_timescales_as_array(elements)
+        except KeyError:
+            return None
+
+    def get_timescale_values_dict(self, timescale_type, elements=ci.usual_elements):
+        return self.atmosphere_data_dict[timescale_type].get_timescale_values_dict(elements)
+
+    def get_logq(self, timescale_type):
+        return self.atmosphere_data_dict[timescale_type].logq
+
+    def __eq__(self, other):
+        if self.atmosphere_data_dict.keys() != other.atmosphere_data_dict.keys():
+            return False
+        for key in self.atmosphere_data_dict.keys():
+            if self.atmosphere_data_dict[key] != other.atmosphere_data_dict[key]:
+                return False
+        return True
+
+    def __neq__(self, other):
+        return not self == other
+
 class WhiteDwarf():
 
-    def __init__(self, name, properties, abundances):
-        self.name = name # A string
-        #self.properties = {
-        #    mp.WDParameter.spectral_type: spectral_type,
-        #    mp.WDParameter.temperature: temperature, # TODO: Add the ability for these to also have errors associated! Might be important to be able to propagate this through to sinking timescales
-        #    mp.WDParameter.logg: logg,
-        #    mp.WDParameter.mass: mass,
-        #    mp.WDParameter.distance: distance
-        #}
+    def __init__(self, name_tuple_or_str, properties, abundances, timescales=dict()):
+        if isinstance(name_tuple_or_str, tuple):
+            self.system_name = name_tuple_or_str[0] # A string
+            self.variant = name_tuple_or_str[1] # A string
+            if self.variant == '':
+                self.variant = None
+        else:
+            #Assume name_tuple_or_str is a string
+            self.system_name = name_tuple_or_str
+            self.variant = None
+        self.abbreviated_name_as_used = None
         self.properties = deepcopy(properties) # Should be a WhiteDwarfPropertyData. Create a deepcopy because we want this to be unique
         self.abundances = deepcopy(abundances) # Should be a WhiteDwarfAbundanceData. Create a deepcopy because we want this to be unique
         # TODO : add sinking timescales to this
@@ -383,7 +473,166 @@ class WhiteDwarf():
             if self.properties.get_property_data(mp.WDParameter.atmospheric_type) is None:
                 raise ValueError('Must supply an atmospheric type if supplying abundances') # otherwise the abundances mean nothing
         self.abundances.abundance_data_dict[self.properties.get_property_data(mp.WDParameter.atmospheric_type).value] = WhiteDwarfDataPoint(WhiteDwarfDataPointType.measurement, 0, 0, False)
-        self.timescale_dict = dict()
+        self.atmosphere_data = self.unpack_timescales(timescales)
+
+    def full_name(self):
+        if self.variant is None:
+            return self.system_name
+        return self.system_name + '_' + self.variant
+
+    def abbreviated_name(self, chars_to_remove):
+        toret = self.full_name()
+        max_length = len(toret) - chars_to_remove
+        abbreviated_system_names = self.get_abbreviated_system_names()
+        abbreviated_variants = self.get_abbreviated_variants()
+        system_name_index = 0
+        variant_index = 0
+        while len(toret) > max_length:
+            if len(abbreviated_variants[variant_index]) < 3 or variant_index == len(abbreviated_variants) - 1:
+                abbreviate_system_name = True
+            else:
+                abbreviate_system_name = False
+            if abbreviate_system_name:
+                system_name_index += 1
+            else:
+                variant_index += 1
+            if abbreviated_variants[variant_index] is None:
+                toret = abbreviated_system_names[system_name_index]
+            else:
+                toret = abbreviated_system_names[system_name_index] + '_' + abbreviated_variants[variant_index]
+        self.abbreviated_name_as_used = toret
+        return toret
+
+    def get_abbreviated_system_names(self):
+        special_prefixes = ['USNO-A2.0', 'USNO-B1.0'] # <-- These mess around with the rest of the logic, so we'll handle them separately
+        # What we're going to try here is look for coordinates that we can truncate. Identify these by presence of a + or -
+        # Assuming we have only one of these, and it only occurs once
+        coordinate_separators = ['+', '-']
+        valid_chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '?']
+        min_coord_length = 2
+        special_prefix = ''
+        sys_name_to_use = self.system_name
+        for sp in special_prefixes:
+            if self.system_name.startswith(sp):
+                special_prefix = sp
+                sys_name_to_use = self.system_name.split(sp)[1]
+        cs_present = None
+        for cs in coordinate_separators:
+            if cs in sys_name_to_use:
+                cs_present = cs
+        if cs_present is None:
+            return [self.system_name]
+        # Now we need to crawl through the string to identify the coordinate values
+        cs_index = sys_name_to_use.index(cs_present)
+        test_index = cs_index - 1
+        coord1 = '' # Before the cs
+        while test_index >= 0:
+            test_char = sys_name_to_use[test_index]
+            if test_char in valid_chars:
+                coord1 += test_char
+            else:
+                break
+            test_index -= 1
+        coord1 = ''.join(reversed(coord1))
+        prefix = sys_name_to_use.split(coord1)[0]
+        test_index = cs_index + 1
+        coord2 = '' # After the cs
+        while test_index < len(sys_name_to_use):
+            test_char = sys_name_to_use[test_index]
+            if test_char in valid_chars:
+                coord2 += test_char
+            else:
+                break
+            test_index += 1
+        coords = [coord1, coord2]
+        if len(coord1) < 1 or len(coord2) < 1:
+            # Then this won't work
+            return [self.system_name]
+        prefix = sys_name_to_use.split(coord1)[0]
+        suffix = sys_name_to_use.split(coord2)[1]
+        toret = [special_prefix + sys_name_to_use]
+        # Sometimes the suffix may include special abbreviable words
+        abbreviable_words = ['Phot', 'Opt', 'Spec', 'UV', 'uv', 'phot', 'spec', 'opt', 'NoOvershoot', 'Overshoot'] #case sensitive
+        # There's a slight problem with this logic because we end up with no option to abbreviated the above strings and not also abbreviate the coordinate - but we should probably default to this if possible!
+        for aw in abbreviable_words:
+            suffix = suffix.replace(aw, aw[0])
+        while len(coords[0]) > min_coord_length and len(coords[1]) > min_coord_length:
+            #Now we need to know how many decimal places they each have, again assuming a dot will only appear (max) once...
+            dp_counts = [0, 0]
+            for i in [0, 1]:
+                if '.' in coords[i]:
+                    dp_counts[i] = len(coords[i]) - (coords[i].index('.') + 1)
+            if dp_counts[0] > dp_counts[1]:
+                to_remove = [1, 0]
+            elif dp_counts[1] > dp_counts[0]:
+                to_remove = [0, 1]
+            else:
+                to_remove = [1, 1]
+            for i, coord in enumerate(coords):
+                if to_remove[i] > 0:
+                    coord = coord[:-to_remove[i]]
+                if coord.endswith('.'):
+                    coord = coord[:-1]
+                coords[i] = coord
+            #Now we actually perform the abbreviation:
+            abbreviation = special_prefix + prefix + coords[0] + cs_present + coords[1] + suffix
+            toret.append(abbreviation)
+        return toret
+
+    def get_abbreviated_variants(self):
+        numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        allowable_letters_at_end = ['A', 'a', 'b']
+        allowable_characters = numbers + allowable_letters_at_end
+        #special_variants_dict = {
+        #    'Gaiarerun': 'GR'
+        #}
+        special_suffixes = ['GR']
+        suffix = ''
+        toret = [self.variant]
+        if self.variant is None:
+            return toret
+        #if self.variant in special_variants_dict:
+        #    toret.append(special_variants_dict[self.variant])
+        #    return toret
+        test_index = len(self.variant) - 1
+        while test_index >= 0:
+            test_char = self.variant[test_index]
+            if test_char in allowable_characters:
+                suffix += test_char
+                allowable_characters = numbers
+            else:
+                break
+            test_index -= 1
+        suffix = ''.join(reversed(suffix))
+        if len(suffix) < 1:
+            for ss in special_suffixes:
+                if self.variant.endswith(ss):
+                    suffix = ss
+                    break
+            else:
+                # TODO in future: Rather than return, at this point we could sequentially remove characters (similar to the last bit of this function, but with no suffix)
+                return toret
+        prefix = self.variant.split(suffix)[0]
+        if suffix.startswith('19') or suffix.startswith('20'):
+            suffix = suffix[2:]
+            toret.append(prefix + suffix)
+        while len(prefix) > 1:
+            prefix = prefix[:-1]
+            toret.append(prefix + suffix)
+        return toret
+
+    def unpack_timescales(self, timescales):
+        if isinstance(timescales, WhiteDwarfAtmosphereDataset):
+            return timescales # They are already in the right format (assuming that everything inside is also correct...maybe we should check? Probably overkill)
+        toret = dict()
+        for key, value in timescales.items():
+            if value is None:
+                pass
+            elif isinstance(value, WhiteDwarfAtmosphereData):
+                toret[key] = value # Looks like it's already in the right format
+            else:
+                toret[key] = WhiteDwarfAtmosphereData(value)
+        return WhiteDwarfAtmosphereDataset(toret)
 
     def get_plottable_points(self, elements_to_plot, reference_element=None, included=True, scale_to_solar=False): # Switch included to False to get the excluded points
         if reference_element is None:
@@ -417,8 +666,13 @@ class WhiteDwarf():
     def get_logg(self):
         return self.properties.get_property_data(mp.WDParameter.logg)
 
-    def get_logq(self):
-        return self.properties.get_property_data(mp.WDParameter.logq)
+    def get_logq(self, timescale_type):
+        return self.atmosphere_data.get_logq(timescale_type)
+
+    def get_logq_in_solar_masses(self, timescale_type):
+        logq = self.get_logq(timescale_type).value
+        mass = self.get_mass().value
+        return mass * (10**logq)
 
     def get_mass(self):
         return self.properties.get_property_data(mp.WDParameter.mass)
@@ -432,8 +686,8 @@ class WhiteDwarf():
     def get_abundance_arrays(self, elements=ci.usual_elements):
         return self.abundances.get_abundance_arrays(elements)
 
-    def get_timescales_as_array(self, elements=ci.usual_elements):
-        return np.array([self.timescale_dict[el] for el in elements])
+    def get_timescales_as_array(self, timescale_type, elements=ci.usual_elements):
+        return self.atmosphere_data.get_timescales_as_array(timescale_type, elements)
 
     def get_errors_for_present_elements_as_array(self, elements=ci.usual_elements):
         errors_to_use = list()
@@ -468,7 +722,7 @@ class WhiteDwarf():
         neg = 1/((2*np.pi)*(errors_to_use**2))
         chi2 = ((data_abundances_to_use - model_abundances_to_use)**2)*(neg)*2*np.pi
         like = -0.5*np.sum(chi2 - np.log(neg))
-        if like == -np.inf:
+        if np.isnan(like) or like == -np.inf:
             like = 0.9*min_likelihood
         return like
 
@@ -558,6 +812,12 @@ class WhiteDwarf():
     def get_lower_bounds_as_lists(self, return_included=True, return_excluded=False, elements=ci.all_elements, preserve_length=False):
         return self.abundances.get_lower_bounds_as_lists(return_included, return_excluded, elements, preserve_length)
 
+    def get_modellable_detected_elements(self, detectable_elements=ci.usual_elements):
+        return self.abundances.get_modellable_detected_elements(detectable_elements)
+        #toret = 0
+        #for el in detectable_elements:
+        #    abundance = self.get_abundance(el)
+
     def get_log_ratio(self, element1, element2):
         return self.abundances.get_log_ratio(element1, element2)
 
@@ -593,25 +853,27 @@ class WhiteDwarf():
                     pass
         return toret
 
-    def get_timescale_values_dict(self, elements=ci.usual_elements):
-        toret = dict()
-        for element in elements:
-            value = self.timescale_dict.get(element)
-            toret[element] = value
-        return toret
+    def get_timescale_values_dict(self, timescale_type, elements=ci.usual_elements):
+        return self.atmosphere_data.get_timescale_values_dict(timescale_type, elements)
+
+    def get_available_timescale_types(self):
+        return self.atmosphere_data.get_available_timescale_types()
 
     def __str__(self):
         toret = '\n'
-        toret += '--- ' + self.name + ' ---\n'
+        toret += '--- ' + self.full_name() + ' ---\n\n'
         toret += str(self.properties)
+        toret += '\n'
         toret += str(self.abundances)
+        toret += '\n'
+        toret += str(self.atmosphere_data)
         return toret
 
     def __repr__(self):
         return str(self)
 
     def __eq__(self, other):
-        return self.name == other.name and self.properties == other.properties and self.abundances == other.abundances and self.timescale_dict == other.timescale_dict
+        return self.full_name() == other.full_name() and self.properties == other.properties and self.abundances == other.abundances and self.atmosphere_data == other.atmosphere_data
 
     def __neq__(self, other):
         return not self == other

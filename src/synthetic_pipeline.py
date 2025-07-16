@@ -9,6 +9,7 @@ import scipy.stats as st
 import sys
 
 import chemistry_info as ci
+import detection_thresholds as dt
 import forty_parsec_abundances as fp
 import graph_factory as gf
 import hollands_abundances as ha
@@ -17,6 +18,7 @@ import model_analyser as ma
 import model_parameters as mp
 import multivariate_tests as mv
 import mwdd_abundances as mwdd
+import pewdd_values as pv
 import pwd_utils as pu
 import synthetic_modeller as sm
 import synthetic_population as sp
@@ -41,20 +43,15 @@ class Pipeline:
         self.results_dict = dict()
         self.p_threshold = 0.05
         self.timescale_interpolator = ti.TimescaleInterpolator()
-        self.manager = mn.Manager(  # Load manager once here, and send it to hollands_abundances, rather than load a new one every time
-            Namespace(
-                wd_data_filename='WDInputData.csv',
-                stellar_compositions_filename='StellarCompositionsSortFE.csv',
-                n_live_points = 0,
-                pollution_model_names=['Model_24'],
-                enhancement_model='Earthlike',
-                base_dir=pu.get_path_to_data()
-            )
-        )
+        self.manager = mn.Manager()  # Load manager once here, and send it to hollands_abundances, rather than load a new one every time
         self.ternary_scaling_factors = {
             ci.Element.Ca: 10,
             ci.Element.Fe: 1,
-            ci.Element.Mg: 1
+            ci.Element.Mg: 1,
+            ci.Element.C: 1,
+            ci.Element.Si: 1,
+            ci.Element.O: 1,
+            ci.Element.N: 1
         }
 
     def get_pipeline_dir(self, pop_name, obs_name, mod_name):
@@ -85,10 +82,12 @@ class Pipeline:
 
         mv_p_values_dict = dict()
         mv_dprob_values_dict = dict()
+        mv_dprob_values_dict_v_N = dict()
 
         for test_type in mv.get_mv_test_method_dict():
             mv_p_values_dict[test_type] = dict()
             mv_dprob_values_dict[test_type] = dict()
+            mv_dprob_values_dict_v_N[test_type] = dict()
 
         # Also assume that we change error size OR threshold offsets, not both. Need to detect which mode we're using:
         errors_or_thresholds = list()
@@ -113,6 +112,8 @@ class Pipeline:
             for N in N_values:
                 mv_p_values_dict[test_type][N] = list()
                 mv_dprob_values_dict[test_type][N] = list()
+            for et in errors_or_thresholds:
+                mv_dprob_values_dict_v_N[test_type][et] = list()
         for N in N_values:
             for et in errors_or_thresholds:
                 if error_mode:
@@ -144,13 +145,128 @@ class Pipeline:
                     elif comparison_et_value is not None:
                         raise NotImplementedError
                     else:
-                        raise NotImplementedError
+                        mv_combination1 = (modeller, obs_name, pop1_name, 'Observed', N)
+                        mv_combination2 = (modeller, obs_name, pop2_name, 'Observed', N) # This is sort of assuming we will have the same observer for each...
+                        #el_list_to_compare = [ci.Element.Ca, ci.Element.Mg, ci.Element.Fe] # This should be exposed at a higher level
+                        #el_list_to_compare = [ci.Element.C, ci.Element.O, ci.Element.Si]
+                        #el_list_to_compare = [ci.Element.O, ci.Element.Si, ci.Element.S]
+                        el_list_to_compare = [ci.Element.Fe, ci.Element.Si, ci.Element.O]
+                        mv_results_dict, mv_distinguishable_dict = self.run_mv_tests_between_populations(mv_combination1, mv_combination2, resample_count, most_polluted, el_list_to_compare)
                 for test_type in mv.get_mv_test_method_dict():
-                    mv_dprob_values_dict[test_type][N].append(mv_distinguishable_dict[test_type][0]/mv_distinguishable_dict[test_type][1])
+                    if mv_distinguishable_dict[test_type][1] > 0:
+                        mv_dprob_values_dict[test_type][N].append(mv_distinguishable_dict[test_type][0]/mv_distinguishable_dict[test_type][1])
+                        mv_dprob_values_dict_v_N[test_type][et].append(mv_distinguishable_dict[test_type][0]/mv_distinguishable_dict[test_type][1])
+                    else:
+                        mv_dprob_values_dict[test_type][N].append(None)
+                        mv_dprob_values_dict_v_N[test_type][et].append(None)
                     mv_p_values_dict[test_type][N].append(mv_results_dict[test_type])
         y_label = 'P(Input != Output)' if comparison_et_value is None else 'P(Output != No Noise)'
+        graph_fac.make_dprob_v_N_plot(N_values, mv_dprob_values_dict_v_N, None, pop1_output_name, pop2_output_name, y_label, True)
         graph_fac.make_dprob_v_error_plot(errors_or_thresholds, mv_dprob_values_dict, None, pop1_output_name, pop2_output_name, error_mode, y_label, True)
         graph_fac.make_ks_v_error_plot(errors_or_thresholds, mv_p_values_dict, self.p_threshold, None, pop1_output_name, pop2_output_name, error_mode, None, True)
+
+    def run_mv_tests_between_populations(self, combination1, combination2, resample_count=1, most_polluted=None, filter_on_elements=None):
+        # combinations should be a tuple containing:
+        #      0         1         2          3                                                              4
+        # (mod_name, obs_name, pop_name, variable_type ('Input', 'Pollution', 'Observed', 'Modelled'), population size)
+        # (population_size can be omitted)
+        print(combination1)
+        print(combination2)
+        normalise_abundance_values = True
+
+        pop1_including_unobserved = self.results_dict[combination1[0]][combination1[1]][combination1[2]]
+        pop2_including_unobserved = self.results_dict[combination2[0]][combination2[1]][combination2[2]]
+        if filter_on_elements is not None:
+            # Take all systems that are have detections of the requested elements
+            pop1 = pop1_including_unobserved.get_subset_with_detected_elements(filter_on_elements)
+            pop2 = pop2_including_unobserved.get_subset_with_detected_elements(filter_on_elements)
+        else:
+            # Take all systems that are actually observed:
+            pop1 = pop1_including_unobserved.get_observed_subset()
+            pop2 = pop2_including_unobserved.get_observed_subset()
+        try:
+            pop1_size = combination1[4]
+        except IndexError:
+            pop1_size = None
+        try:
+            pop2_size = combination2[4]
+        except IndexError:
+            pop2_size = None
+        number_of_times_resampled = 0
+        results_dict = dict()
+        for test_type in mv.get_mv_test_method_dict():
+            results_dict[test_type] = list()
+
+
+        #if normalise_abundance_values:
+        #    #comparison_values_normalised = self.normalise_abundance_lists(comparison_values)
+        #    data_set1_r = mv.convert_data_to_r_format(comparison_values_normalised)
+        #    data_set2_r = mv.convert_data_to_r_format(comparison_values_normalised)
+        #else:
+        #    data_set1_r = mv.convert_data_to_r_format(comparison_values)
+        max_no_ternary_series = 2
+        ternary_abundance_dict = {
+        #    'Real': dict()
+        }
+        #for i, el in enumerate(filter_on_elements):
+        #    if normalise_abundance_values:
+        #        ternary_abundance_dict['Real'][el] = comparison_values_normalised[i]
+        #    else:
+        #        ternary_abundance_dict['Real'][el] = comparison_values[i]
+        while number_of_times_resampled < resample_count:
+            if most_polluted is not None:
+                # Then we will use (as our 1 sample) the most polluted white dwarfs - this roughly mimics Hollands et al 2017
+                pop_size = most_polluted[0]
+                pol_element = most_polluted[1]
+                print('Sampling the ' + str(pop_size) + ' most polluted WDs (by ' + str(pol_element) + ')')
+                pop1_sample = pop1.get_most_polluted_subset(pop_size, pol_element)
+                pop2_sample = pop2.get_most_polluted_subset(pop_size, pol_element)
+                resample_count = 1
+            else:
+                pop1_sample = pop1.get_random_subset(pop1_size, True)
+                pop2_sample = pop2.get_random_subset(pop2_size, True)
+            if pop1_sample is not None and pop2_sample is not None:
+                if normalise_abundance_values:
+                    sample1_values_normalised = self.normalise_abundance_lists(pop1_sample.get_common_el_values(filter_on_elements))
+                    sample2_values_normalised = self.normalise_abundance_lists(pop2_sample.get_common_el_values(filter_on_elements))
+                    data_set1_r = mv.convert_data_to_r_format(sample1_values_normalised)
+                    data_set2_r = mv.convert_data_to_r_format(sample2_values_normalised)
+                else:
+                    sample1_values = pop1_sample.get_common_el_values(filter_on_elements)
+                    sample2_values = pop2_sample.get_common_el_values(filter_on_elements)
+                    data_set1_r = mv.convert_data_to_r_format(sample1_values)
+                    data_set2_r = mv.convert_data_to_r_format(sample2_values)
+                if len(ternary_abundance_dict.keys()) < max_no_ternary_series:
+                    ternary_abundance_dict[combination1[2] + '_' + combination1[1]] = dict()
+                    ternary_abundance_dict[combination2[2] + '_' + combination2[1]] = dict()
+                    for i, el in enumerate(filter_on_elements):
+                        if normalise_abundance_values:
+                            ternary_abundance_dict[combination1[2] + '_' + combination1[1]][el] = sample1_values_normalised[i]
+                            ternary_abundance_dict[combination2[2] + '_' + combination2[1]][el] = sample2_values_normalised[i]
+                        else:
+                            ternary_abundance_dict[combination1[2] + '_' + combination1[1]][el] = sample1_values[i]
+                            ternary_abundance_dict[combination2[2] + '_' + combination2[1]][el] = sample2_values[i]
+                for test_type, test_function in mv.get_mv_test_method_dict().items():
+                    p_value = test_function(
+                        data_set1_r,
+                        data_set2_r
+                    )
+                    results_dict[test_type].append(p_value)
+                number_of_times_resampled += 1
+            else:
+                break
+        distinguishable_dict = self.report_mv_test_results(combination1, combination2, pop1_size, pop2_size, results_dict, True)
+        if len(filter_on_elements) == 3:
+            graph_fac = gf.GraphFactory(self.get_base_pipeline_dir())
+            graph_fac.make_ternary_plot(
+                filter_on_elements,
+                ternary_abundance_dict,
+                'ternary_plot_sampled_' + combination1[2] + '_' + combination1[1] + '_compared_against_' + combination2[2] + '_' + combination2[1] + '_' + str(pop1_size) + '_' + str(pop2_size),
+                self.ternary_scaling_factors
+                #additional_text_dict
+            )
+        return results_dict, distinguishable_dict
+
 
     def run_mv_tests_against_comparison(self, combination, comparison_name, comparison_values, resample_count=1, most_polluted=None, filter_on_elements=None):
         # combinations should be a tuple containing:
@@ -259,7 +375,7 @@ class Pipeline:
             i += 1
         return toret
 
-    def create_dprob_ks_v_error_plot(self, base_pop1_name, base_pop2_name, errors, threshold_offsets, N_values, modeller, base_obs_name, variable, plot_descriptions, pool=False, resample_count=50, comparison_et_value=None, most_polluted=None, filter_on_elements=None):
+    def create_dprob_ks_v_error_plot(self, base_pop1_name, base_pop2_name, errors, threshold_offsets, N_values, modeller, base_obs_name, variable, plot_descriptions, use_modelled_output=False, pool=False, resample_count=50, comparison_et_value=None, most_polluted=None, filter_on_elements=None):
         # dprob = probability of distinguishing
         graph_fac = gf.GraphFactory(self.get_base_pipeline_dir())
 
@@ -320,11 +436,16 @@ class Pipeline:
                         # Then we're being told to compare all outputs to the output of one specific run
                         ks_combination1 = (modeller, obs_name, pop1_name, 'Modelled')
                         ks_combination2 = (modeller, comparison_obs_name, pop2_name, 'Modelled')
-                        ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable])
+                        ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], element_pair_to_test)
                     else:
-                        ks_combination1 = (modeller, obs_name, pop1_name, 'Modelled') if pop1_name != pop2_name else (modeller, obs_name, pop1_name, 'Input')
-                        ks_combination2 = (modeller, obs_name, pop2_name, 'Modelled')
-                        ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable])
+                        if use_modelled_output:
+                            ks_combination1 = (modeller, obs_name, pop1_name, 'Modelled') if pop1_name != pop2_name else (modeller, obs_name, pop1_name, 'Input')
+                            ks_combination2 = (modeller, obs_name, pop2_name, 'Modelled')
+                            ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], element_pair_to_test)
+                        else:
+                            ks_combination1 = (modeller, obs_name, pop1_name, 'Observed') if pop1_name != pop2_name else (modeller, obs_name, pop1_name, 'Pollution')
+                            ks_combination2 = (modeller, obs_name, pop2_name, 'Observed')
+                            ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], element_pair_to_test)
                 else:
                     # Then assume we are being directed to resample a pop of size N from a larger pool
                     # Assuming this becomes the standard protocol, can assume that the populations will no longer be named ...Nxyz
@@ -348,23 +469,26 @@ class Pipeline:
                         # Then we're being told to compare all outputs to the output of one specific run
                         ks_combination1 = (modeller, obs_name, pop1_name, 'Modelled', N)
                         ks_combination2 = (modeller, comparison_obs_name, pop2_name, 'Modelled', N)
-                        ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], resample_count)
+                        ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], element_pair_to_test, resample_count)
                     else:
-                        ks_combination1 = (modeller, obs_name, pop1_name, 'Modelled', N) if pop1_name != pop2_name else (modeller, obs_name, pop1_name, 'Input', N)
-                        ks_combination2 = (modeller, obs_name, pop2_name, 'Modelled', N)
-                        ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], resample_count)
+                        if use_modelled_output:
+                            ks_combination1 = (modeller, obs_name, pop1_name, 'Modelled', N) if pop1_name != pop2_name else (modeller, obs_name, pop1_name, 'Input', N)
+                            ks_combination2 = (modeller, obs_name, pop2_name, 'Modelled', N)
+                            ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], element_pair_to_test, resample_count)
+                        else:
+                            ks_combination1 = (modeller, obs_name, pop1_name, 'Observed', N) if pop1_name != pop2_name else (modeller, obs_name, pop1_name, 'Pollution', N)
+                            ks_combination2 = (modeller, obs_name, pop2_name, 'Observed', N)
+                            ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], resample_count)
                 dprob_values_dict[N].append(distinguishable_count/total_count)
                 ks_values_dict[N].append(ks_results)
         y_label = 'P(Input != Output)' if comparison_et_value is None else 'P(Output != No Noise)'
         graph_fac.make_dprob_v_error_plot(errors_or_thresholds, dprob_values_dict, plot_descriptions[variable][0][0], pop1_output_name, pop2_output_name, error_mode, y_label)
         graph_fac.make_ks_v_error_plot(errors_or_thresholds, ks_values_dict, self.p_threshold, plot_descriptions[variable][0][0], pop1_output_name, pop2_output_name, error_mode)
 
-    def create_dprob_ks_v_N_plot(self, base_pop1_name, base_pop2_name, errors, threshold_offsets, N_values, modeller, base_obs_name, variable, plot_descriptions, pool=False, resample_count=50):
+    def create_dprob_ks_v_N_plot(self, base_pop1_name, base_pop2_name, errors, threshold_offsets, N_values, modeller, base_obs_name, variable, plot_descriptions, use_modelled_output=False, pool=False, resample_count=50):
         # dprob = probability of distinguishing
         graph_fac = gf.GraphFactory(self.get_base_pipeline_dir())
 
-        # For this to be remotely practical, assume that the modeller name is always the same, and we're only interested in 'Modelled' output
-        # (Unless populations are the same!)
         # Let's require that the obs names we are interested in should all end in errxpyz which is parsed as error = x.yz dex
 
         dprob_values_dict = dict()
@@ -377,25 +501,36 @@ class Pipeline:
             ks_values_dict[error] = list()
             for N in N_values:
                 # Assume that we are always resampling a pop of size N from a larger pool
-                ks_combination1 = (modeller, obs_name, base_pop1_name, 'Modelled', N) if base_pop1_name != base_pop2_name else (modeller, obs_name, base_pop1_name, 'Input', N)
-                ks_combination2 = (modeller, obs_name, base_pop2_name, 'Modelled', N)
+                if use_modelled_output:
+                    ks_combination1 = (modeller, obs_name, base_pop1_name, 'Modelled', N) if base_pop1_name != base_pop2_name else (modeller, obs_name, base_pop1_name, 'Input', N)
+                    ks_combination2 = (modeller, obs_name, base_pop2_name, 'Modelled', N)
+                else:
+                    ks_combination1 = (modeller, obs_name, base_pop1_name, 'Observed', N) if base_pop1_name != base_pop2_name else (modeller, obs_name, base_pop1_name, 'Pollution', N)
+                    ks_combination2 = (modeller, obs_name, base_pop2_name, 'Observed', N)
                 ks_results, distinguishable_count, total_count = self.run_ks_test_on_results(ks_combination1, ks_combination2, variable, plot_descriptions[variable], resample_count)
-                dprob = distinguishable_count/total_count
+                if total_count > 0:
+                    dprob = distinguishable_count/total_count
+                else:
+                    dprob = None
                 dprob_values_dict[error].append(dprob)
                 ks_values_dict[error].append(ks_results)
                 dprob_grid[errors.index(error), N_values.index(N)] = dprob
-        graph_fac.make_dprob_v_N_plot(N_values, dprob_values_dict, plot_descriptions[variable][0][0], base_pop1_name, base_pop2_name, 'P(Input != Output)')
+        y_label = 'P(Input != Output)' if base_pop1_name == base_pop2_name else 'P(' + base_pop1_name + ' != ' + base_pop2_name+ ')'
+        graph_fac.make_dprob_v_N_plot(N_values, dprob_values_dict, plot_descriptions[variable][0][0], base_pop1_name, base_pop2_name, y_label)
         graph_fac.make_ks_v_N_plot(N_values, ks_values_dict, self.p_threshold, plot_descriptions[variable][0][0], base_pop1_name, base_pop2_name, False)
-        graph_fac.make_dprob_N_error_heatmap(N_values, errors, dprob_grid, plot_descriptions[variable][0][0], base_pop1_name, base_pop2_name)
+        if len(N_values) > 1 and len(errors) > 1:
+            graph_fac.make_dprob_N_error_heatmap(N_values, errors, dprob_grid, plot_descriptions[variable][0][0], base_pop1_name, base_pop2_name)
 
-    def create_dprob_ks_v_N_multipop_plot(self, base_pop1_name, base_pop2_name, base_obs1_name, base_obs2_name, modeller1, modeller2, errors, N_values, N_scaling_factor, variable, plot_descriptions, resample_count=50):
+    def create_dprob_ks_v_N_multipop_plot(self, base_pop1_name, base_pop2_name, base_obs1_name, base_obs2_name, modeller1, modeller2, errors, N_values, N_scaling_factor, variable, plot_descriptions, use_modelled_output=False, resample_count=50):
         # dprob = probability of distinguishing
         graph_fac = gf.GraphFactory(self.get_base_pipeline_dir())
 
         # For this to be remotely practical, assume that the modeller name is always the same, and we're only interested in 'Modelled' output
         # (Unless populations are the same!)
         # Let's require that the obs names we are interested in should all end in errxpyz which is parsed as error = x.yz dex
-
+        print(base_pop1_name)
+        print(base_obs1_name)
+        print(modeller1)
         pop1_key = base_pop1_name + '_'  + base_obs1_name + '_' + modeller1
         pop2_key = base_pop2_name + '_'  + base_obs2_name + '_' + modeller2
         dprob_values_dict = {pop1_key: dict(), pop2_key: dict()}
@@ -413,15 +548,15 @@ class Pipeline:
             N_values_dict[pop2_key][error] = list()
             for N in N_values:
                 # Assume that we are always resampling a pop of size N from a larger pool
-                ks_combination_pop1_1 = (modeller1, obs1_name, base_pop1_name, 'Input', N)
-                ks_combination_pop1_2 = (modeller1, obs1_name, base_pop1_name, 'Modelled', N)
+                ks_combination_pop1_1 = (modeller1, obs1_name, base_pop1_name, 'Input', N) if use_modelled_output else (modeller1, obs1_name, base_pop1_name, 'Pollution', N)
+                ks_combination_pop1_2 = (modeller1, obs1_name, base_pop1_name, 'Modelled', N) if use_modelled_output else (modeller1, obs1_name, base_pop1_name, 'Observed', N)
                 ks_results_pop1, distinguishable_count_pop1, total_count_pop1 = self.run_ks_test_on_results(ks_combination_pop1_1, ks_combination_pop1_2, variable, plot_descriptions[variable], resample_count)
                 dprob_values_dict[pop1_key][error].append(distinguishable_count_pop1/total_count_pop1)
                 ks_values_dict[pop1_key][error].append(ks_results_pop1)
                 N_values_dict[pop1_key][error].append(N)
                 pop2_sample_size = N*N_scaling_factor
-                ks_combination_pop2_1 = (modeller2, obs2_name, base_pop2_name, 'Input', pop2_sample_size)
-                ks_combination_pop2_2 = (modeller2, obs2_name, base_pop2_name, 'Modelled', pop2_sample_size)
+                ks_combination_pop2_1 = (modeller2, obs2_name, base_pop2_name, 'Input', pop2_sample_size) if use_modelled_output else (modeller2, obs2_name, base_pop2_name, 'Pollution', pop2_sample_size)
+                ks_combination_pop2_2 = (modeller2, obs2_name, base_pop2_name, 'Modelled', pop2_sample_size) if use_modelled_output else (modeller2, obs2_name, base_pop2_name, 'Observed', pop2_sample_size)
                 ks_results_pop2, distinguishable_count_pop2, total_count_pop2 = self.run_ks_test_on_results(ks_combination_pop2_1, ks_combination_pop2_2, variable, plot_descriptions[variable], resample_count)
                 dprob_values_dict[pop2_key][error].append(distinguishable_count_pop2/total_count_pop2)
                 ks_values_dict[pop2_key][error].append(ks_results_pop2)
@@ -673,14 +808,24 @@ class Pipeline:
         #Need to pick out the right subset - bear in mind that extract_plottables can return a smaller subset of values than expected if it receives systems that it shouldn't. This is bad (it throws off the KS test)
         if combination1[3] == 'Modelled':
             pop1 = pop1_including_unobserved.get_subset_with_modelled_properties([plot_description[0][0]])
+        elif combination1[3] == 'Observed':
+            element_pair = plot_description[1][0]
+            print(element_pair)
+            pop1 = pop1_including_unobserved.get_subset_with_detected_elements(element_pair)
+        elif combination1[3] == 'Pollution':
+            pop1 = pop1_including_unobserved.get_duplicate_population() # Because all systems have pollution - whether that pollution is observed is irrelevant in this case
         else:
             raise NotImplementedError('For other variable types, need to pick the appropriate subset. e.g. for Observed, should pick out systems with detections of relevant elements')
 
         if combination2[3] == 'Modelled':
             pop2 = pop2_including_unobserved.get_subset_with_modelled_properties([plot_description[0][0]])
+        elif combination2[3] == 'Observed':
+            element_pair = plot_description[1][0]
+            pop2 = pop2_including_unobserved.get_subset_with_detected_elements(element_pair)
+        elif combination2[3] == 'Pollution':
+            pop2 = pop2_including_unobserved.get_duplicate_population() # Because all systems have pollution - whether that pollution is observed is irrelevant in this case
         else:
             raise NotImplementedError('For other variable types, need to pick the appropriate subset. e.g. for Observed, should pick out systems with detections of relevant elements')
-
         try:
             pop1_size = combination1[4]
         except IndexError:
@@ -693,11 +838,16 @@ class Pipeline:
         number_of_times_resampled = 0
         results_list = list()
         while number_of_times_resampled < resample_count:
+            print(pop1_size)
             pop1_sample = pop1.get_random_subset(pop1_size, True)
+            if pop1_sample is not None:
+                print(len(pop1_sample))
             if combination1[0] == combination2[0] and combination1[1] == combination2[1] and combination1[2] == combination2[2]:
                 pop2_sample = pop1_sample  # Then they're actually the same population and we're comparing input and output, so the sample should be the same
             else:
                 pop2_sample = pop2.get_random_subset(pop2_size, True)
+            if pop2_sample is not None:
+                print(len(pop2_sample))
             if pop1_sample is not None and pop2_sample is not None:
                 variable_dict1, weights_dict1, variable_below1, variable_above1 = self.extract_plottables(combination1[2], pop1_sample, {variable: plot_description})
                 variable_dict2, weights_dict2, variable_below2, variable_above2 = self.extract_plottables(combination2[2], pop2_sample, {variable: plot_description})
@@ -723,7 +873,7 @@ class Pipeline:
                 number_of_times_resampled += 1
             else:
                 break   # This will occur when we run out of WDs to sample (and the get_random_subset function returns None). We now want to break out of the loop and report the results
-        distinguishable_count, total_count = self.report_ks_test_results(combination1, combination2, variable, pop1_size, pop2_size, results_list)
+        distinguishable_count, total_count = self.report_ks_test_results(combination1, combination2, variable, pop1_size, pop2_size, results_list, True)
         return results_list, distinguishable_count, total_count
 
     def report_ks_test_results(self, combination1, combination2, variable, pop1_size, pop2_size, results_list, append=False, p_threshold=None):
@@ -777,7 +927,7 @@ class Pipeline:
         if isinstance(combination2, str):
             to_write.append('Comparison sample: ' + combination2)
         else:
-            to_write.append('Modeller = ' + combination2[0] + ', Observer = ' + combination2[1] + ', Pop = ' + combination2[2] + ' (N = ' + str(pop2_size) + '), ' + combination2[3] + ' ' + variable)
+            to_write.append('Modeller = ' + combination2[0] + ', Observer = ' + combination2[1] + ', Pop = ' + combination2[2] + ' (N = ' + str(pop2_size) + '), ' + combination2[3])
         toret = dict()
         for test_type in mv.get_mv_test_method_dict():
             distinguishable_count = 0
@@ -808,6 +958,19 @@ class Pipeline:
 
     def generate_populations(self, population_parameter_dict, obs_name, mod_name):
         toret = dict()
+        base_obs_name = obs_name.split('Observer')[0]
+        default_min_mdot_dict = { # By default, there will be no filter on which sets of parameters we forward model. Potentially inefficient - could throw away anything with negligible chance of being detectable (by adding a key to the dictionary in detection_thresholds)
+            'DA': {
+                'gradient': 0,
+                'yintercept': -np.inf,
+                'leeway': 0
+            },
+            'DB': {
+                'gradient': 0,
+                'yintercept': -np.inf,
+                'leeway': 0
+            }
+        }
         for pop_name, params_dict in population_parameter_dict.items():
             # 3 cases: Never seen this combo before, seen pop_name before but not one/both of obs and mod, seen exact combo before
             # In the 1st and 3rd cases, load up with no premade pop - in the 1st case it should realise it's seen this before and load the right pop
@@ -820,13 +983,23 @@ class Pipeline:
                 dummy_obs = self.results_dict[pop_name].keys().next()
                 dummy_mod = self.results_dict[pop_name][dummy_obs].keys().next()
                 premade_pop = self.results_dict[pop_name][dummy_obs][dummy_mod].extract_raw_population()
+
+            if 'DA' in params_dict[sp.PopulationParameter.wd_config]:
+                spectral_type = 'DA'
+            elif 'DB' in params_dict[sp.PopulationParameter.wd_config]:
+                spectral_type = 'DB'
+            else:
+                print(params_dict[sp.PopulationParameter.wd_config])
+                raise # In this case, need to just rename the wd config so we know what mdot bank to look in
+            min_mdot_dict = dt.min_mdot_bank.get(base_obs_name, default_min_mdot_dict)
             toret[pop_name] = sp.SyntheticPopulation(
                 params_dict[sp.PopulationParameter.size],
                 params_dict[sp.PopulationParameter.wd_config],
                 params_dict[sp.PopulationParameter.pollution_config],
                 file_to_look_for,
                 premade_pop,
-                self.timescale_interpolator
+                self.timescale_interpolator,
+                min_mdot_dict[spectral_type]
             )
             #toret[pop_name].check_sinking_timescales() # This is an optional diagnostic (time consuming!)
         return toret
@@ -868,9 +1041,9 @@ class Pipeline:
                     print(incorrect)
                     print(p_value)
 
-    def plot_ternary_comparisons(self, most_polluted_tuple=None):
+    def plot_ternary_comparisons(self, most_polluted_tuple=None, comparison_pop_name='Hollands', comparison_elements=[ci.Element.Ca, ci.Element.Mg, ci.Element.Fe]):
         manager_for_hollands_abundances = ha.load_manager()
-        el_list = [ci.Element.Ca, ci.Element.Fe, ci.Element.Mg]
+        el_list = comparison_elements
         for mod_name, mod_results in self.results_dict.items():
             for obs_name, results in mod_results.items():
                 for pop_name, pop in results.items():
@@ -895,24 +1068,38 @@ class Pipeline:
                         if all_elements_observed:
                             for element in el_list:
                                 el_abundance_dict[pop_name][element].append(10**wd.observed_abundances[element])
-                    #Now add in Hollands abundances
-                    el_abundance_dict['Hollands'] = dict()
-                    for element in el_list:
-                        el_abundance_dict['Hollands'][element] = [10**hav for hav in ha.get_hollands_abundance_values(element, manager_for_hollands_abundances)]
+                    #Now add in comparison abundances
+                    el_abundance_dict[comparison_pop_name] = dict()
+                    if comparison_pop_name == 'Hollands':
+                        comparison_values = ha.get_hollands_common_el_values(comparison_elements, manager_for_hollands_abundances)
+                    elif comparison_pop_name == 'PEWDD_thermohaline':
+                        comparison_values = pv.get_common_thermohaline_el_values(comparison_elements)
+                    else:
+                        pass
+                    for i, element in enumerate(el_list):
+                        el_abundance_dict[comparison_pop_name][element] = [10**hav for hav in comparison_values[i]]
+                        # TODO Add some logic here that more elegantly switches to different abundances as a function of comparison_pop_name]
+                        #if comparison_pop_name == 'Hollands':
+                        #    el_abundance_dict[comparison_pop_name][element] = [10**hav for hav in ha.get_hollands_abundance_values(element, manager_for_hollands_abundances)]
+                        #elif comparison_pop_name == 'PEWDD_thermohaline':
+                        #    el_abundance_dict[comparison_pop_name][element] = [10**av for av in pt.get_abundance_values(element, manager_for_hollands_abundances)]
+                        #else:
+                        #    pass
                     if run_mv_tests:
-                        synthetic_data_for_mv_test = [
-                            el_abundance_dict[pop_name][ci.Element.Ca], # Things to check: does it matter if I just use 2 of these (as long as its normalised), does the scaling matter, does the test type matter
-                            el_abundance_dict[pop_name][ci.Element.Mg], # Also, these need to be normalised anyway: we only care about the relative quantities surely? Maybe this is another thing to test
-                            el_abundance_dict[pop_name][ci.Element.Fe]
-                        ]
-                        hollands_data_for_mv_test = [
-                            el_abundance_dict['Hollands'][ci.Element.Ca],
-                            el_abundance_dict['Hollands'][ci.Element.Mg],
-                            el_abundance_dict['Hollands'][ci.Element.Fe]
-                        ]
+                        synthetic_data_for_mv_test = [el_abundance_dict[pop_name][c_el] for c_el in comparison_elements]
+                        #synthetic_data_for_mv_test = [
+                        #    el_abundance_dict[pop_name][ci.Element.Ca], # Things to check: does it matter if I just use 2 of these (as long as its normalised), does the scaling matter, does the test type matter
+                        #    el_abundance_dict[pop_name][ci.Element.Mg], # Also, these need to be normalised anyway: we only care about the relative quantities surely? Maybe this is another thing to test
+                        #    el_abundance_dict[pop_name][ci.Element.Fe]
+                        #]
+                        hollands_data_for_mv_test = [el_abundance_dict[comparison_pop_name][c_el] for c_el in comparison_elements]
                         synthetic_converted = mv.convert_data_to_r_format(synthetic_data_for_mv_test)
                         hollands_converted = mv.convert_data_to_r_format(hollands_data_for_mv_test)
                         print('Performing Cramér test...')
+                        print(synthetic_converted)
+                        print(hollands_converted)
+                        print(len(synthetic_converted))
+                        print(len(hollands_converted))
                         p_value_cramer = mv.cramer_test_p_value(
                             synthetic_converted,
                             hollands_converted
@@ -1035,7 +1222,11 @@ class Pipeline:
                     prefilter = population.input_values(vfilter[0])
                     weights = [1]*len(prefilter)
                 elif vl == 'Pollution':
-                    prefilter = population.pollution_abundance_values(vfilter[0])
+                    if len(vfilter[0]) == 2:
+                        # Then we're dealing with a tuple of 2 elements, and we want to return the ratio
+                        prefilter = population.pollution_abundance_log_ratios(vfilter[0][0], vfilter[0][1])
+                    else:
+                        prefilter = population.pollution_abundance_values(vfilter[0])
                     weights = [1]*len(prefilter)
                 elif vl == 'Observed':
                     if len(vfilter[0]) == 2:
@@ -1082,7 +1273,9 @@ class Pipeline:
         return variable_dict, weights_dict, variable_below_threshold_dict, variable_above_threshold_dict
 
     def plot_individual_population_io_comparison(self, model_analyser, pop_name, plot_descriptions, variable_dict, weights_dict, variable_below_threshold_dict, variable_above_threshold_dict):
-        variables_to_plot = ['fcf']
+        #variables_to_plot = ['fcf']
+        #variables_to_plot = ['distance']
+        variables_to_plot = ['fcf', 'distance']
         hist_modes = ['pdf', 'cdf']
         paper_version = False
         io_comparison_plots_dict = {vtp: dict() for vtp in variables_to_plot}
@@ -1139,7 +1332,6 @@ class Pipeline:
         return io_comparison_plots_dict
 
     def plot_individual_population_io_scatter(self, model_analyser, population, pop_name, plot_descriptions, add_excluded_systems_to_scatter_plot, hx):
-        # Possible TODO: should this have a mode for picking out the most polluted systems?
         for plot_name, plot_description in plot_descriptions.items():
             vfilter = self.get_vfilter('Input', plot_description)
             observed_pop = population.get_observed_subset()
@@ -1204,12 +1396,14 @@ class Pipeline:
                     comparison_dist_dict['MWDD ' + str(vfilter[0]) + '/' + str(mwdd_hx)] = mwdd.get_mwdd_abundances(vfilter[0], mwdd_hx)
                     comparison_dist_dict['Hollands+ 2017 ' + str(vfilter[0]) + '/' + str(mwdd_hx)] = ha.get_hollands_abundance_values(vfilter[0], self.manager)
                     variable_name = (vfilter[0], mwdd_hx)
+                if isinstance(vfilter[0], list):
+                    variable_name = tuple(vfilter[0])
                 for mode in hist_modes:
                     vl_plot = model_analyser.make_variable_distribution_plot(
                         variable_name, #variable_name
                         variable_dict[vl][plot_name], #variable_values_dict,
-                        vfilter[1], #x_min
-                        vfilter[2], #x_max
+                        max(-10, vfilter[1]), #x_min
+                        min(10, vfilter[2]), #x_max
                         vfilter[3], #half_bin_size
                         excluded_text_dict, #text_dict
                         plot_name + '_' + vl + '_' + mode, #file_prefix
@@ -1242,7 +1436,10 @@ class Pipeline:
             for mode in hist_modes:
                 plots_to_multipanelise = list()
                 for vl in self.get_variable_type_list_for_multipanel():
-                    plots_to_multipanelise.append(individual_pop_plots_dict[vl][plot_name][mode])
+                    try:
+                        plots_to_multipanelise.append(individual_pop_plots_dict[vl][plot_name][mode])
+                    except KeyError:
+                        pass # We probably didn't actually have that vl specified in the plot descriptions
                 model_analyser.graph_fac.multipanelise(plots_to_multipanelise, 2, 2, [plot_name + '_FullPipeline_' + mode + '.pdf'], 15, 18, 0.2, 0.2, False, False)
 
     def get_variable_type_list(self):
@@ -1259,7 +1456,12 @@ class Pipeline:
         if variable_type in self.get_io_type_variables():
             return plot_description[0]
         else:
-            return plot_description[1]
+            if variable_type == 'Pollution':
+                new_bottom_end = -np.inf#plot_description[1][1] - 150 # A bit of a hack - basically, element ratios for 'Pollution' can be really low, and it makes sense to just drop the bottom end off
+                new_top_end = np.inf#plot_description[1][2] + 150 #...ditto at the top
+                return plot_description[1][:1] + (new_bottom_end,) + (new_top_end,) + plot_description[1][3:]
+            else:
+                return plot_description[1]
 
 def run_control_pipeline():
     # KEYS IN THESE DICTS SHOULD IDEALLY CONTAIN NO UNDERSCORES OR WHITESPACE
@@ -1618,6 +1820,7 @@ def run_fcf_comparison_pipeline():
         'fcf',
         plot_descriptions,
         True,
+        True,
         5000,
         None
     )
@@ -1633,6 +1836,7 @@ def run_fcf_comparison_pipeline():
         'fcf',
         plot_descriptions,
         True,
+        True,
         5000,
         None
     )
@@ -1647,6 +1851,7 @@ def run_fcf_comparison_pipeline():
         'RealisticObserver',
         'fcf',
         plot_descriptions,
+        True,
         True,
         5000,
         None
@@ -1776,6 +1981,7 @@ def run_delta_fcf_variable_error_pipeline():
                     'fcf',
                     comparison_tuple_to_iterate[1],
                     True,
+                    True,
                     248,
                     None,
                     most_polluted_tuple,
@@ -1892,6 +2098,7 @@ def run_strategy_comparison_pipelines():
         'fcf',
         plot_descriptions,
         True,
+        True,
         500 #5000
     )
 
@@ -1915,33 +2122,724 @@ def run_profiling_pipeline():
             0.05
         ]
     }
+    #modeller_dict = {
+    #    'NullModeller': [
+    #        sm.ModellerType.Null,
+    #        None
+    #    ]
+    #}
     modeller_dict = {
         'StandardModeller': [
             sm.ModellerType.AnalyticApproximation,
-            [False, 'synthetic_grid_dummy.csv']
+            [ti.TimescaleType.KoesterOvershoot, False, 'synthetic_grid_dummy.csv']
         ]
     }
     pipeline = Pipeline('profiling', population_parameter_dict, observer_dict, modeller_dict)
     pipeline.run_all_combinations()
 
+    #plot_descriptions = {
+    #     # input description, output description (each is variable, min bin value, max bin value, half bin size)
+    #    'fcf': ((mp.ModelParameter.fragment_core_frac, 0, 1, 0.025), (ci.Element.Fe, -20, -2, 0.1)),
+    #    'distance': ((mp.ModelParameter.formation_distance, -2, 1, 0.0125), (ci.Element.Na, -20, -4, 0.1)),
+    #    'time': ((mp.ModelParameter.t_sinceaccretion, 0, 100000, 1), (ci.Element.Ca, -20, -4, 0.1)),
+    #    'metallicity': ((mp.ModelParameter.metallicity, 0, 958, 24), (ci.Element.Ca, -20, -4, 0.1))
+    #}
+    #pipeline.plot_results(plot_descriptions, ci.Element.H)
+
+def run_variable_timescale_pipeline():
+
+    population_parameter_dict = {
+        #'SyntheticHollandsDeltaKO': {
+        #    sp.PopulationParameter.size: 50000,
+        #    sp.PopulationParameter.wd_config: 'HollandsDBsKO',
+        #    sp.PopulationParameter.pollution_config: 'DBDeltaCC'
+        #},
+        #'SyntheticHollandsTidalKO': {
+        #    sp.PopulationParameter.size: 50000,
+        #    sp.PopulationParameter.wd_config: 'HollandsDBsKO',
+        #    sp.PopulationParameter.pollution_config: 'DBTidalCC'
+        #},
+        #'SyntheticHollandsCollisionalKO': {
+        #    sp.PopulationParameter.size: 50000,
+        #    sp.PopulationParameter.wd_config: 'HollandsDBsKO',
+        #    sp.PopulationParameter.pollution_config: 'DBCollisionalCC'
+        #},
+        #'SyntheticHollandsDeltaKN': {
+        #    sp.PopulationParameter.size: 50000,
+        #    sp.PopulationParameter.wd_config: 'HollandsDBsKN',
+        #    sp.PopulationParameter.pollution_config: 'DBDeltaCC'
+        #},
+        #'SyntheticHollandsTidalKN': {
+        #    sp.PopulationParameter.size: 50000,
+        #    sp.PopulationParameter.wd_config: 'HollandsDBsKN',
+        #    sp.PopulationParameter.pollution_config: 'DBTidalCC'
+        #},
+        #'SyntheticHollandsCollisionalKN': {
+        #    sp.PopulationParameter.size: 50000,
+        #    sp.PopulationParameter.wd_config: 'HollandsDBsKN',
+        #    sp.PopulationParameter.pollution_config: 'DBCollisionalCC'
+        #},
+        #'SyntheticHollandsDeltaBO': {
+        #    sp.PopulationParameter.size: 50000,
+        #    sp.PopulationParameter.wd_config: 'HollandsDBsBO',
+        #    sp.PopulationParameter.pollution_config: 'DBDeltaCC'
+        #},
+        'SyntheticHollandsTidalBO': {
+            sp.PopulationParameter.size: 50000,
+            sp.PopulationParameter.wd_config: 'HollandsDBsBO',
+            sp.PopulationParameter.pollution_config: 'DBTidalCC'
+        },
+        'SyntheticHollandsCollisionalBO': {
+            sp.PopulationParameter.size: 50000,
+            sp.PopulationParameter.wd_config: 'HollandsDBsBO',
+            sp.PopulationParameter.pollution_config: 'DBCollisionalCC'
+        }
+    }
+
+    observer_dict = dict()
+    list_of_error_tuples = [ # Doing this explicitly rather than by iteration to avoid floating point errors
+        (0, '0'),
+        (0.025, '0p025'),
+        (0.05, '0p05'),
+        (0.075, '0p075'),
+        (0.1, '0p1'),
+        (0.125, '0p125'),
+        (0.15, '0p15'),
+        (0.175, '0p175'),
+        (0.2, '0p2'),
+        (0.225, '0p225'),
+        (0.25, '0p25'),
+        (0.275, '0p275'),
+        (0.3, '0p3'),
+        (0.325, '0p325'),
+        (0.35, '0p35'),
+        (0.375, '0p375'),
+        (0.4, '0p4')
+    ]
+    for error_tuple in list_of_error_tuples:
+        observer_dict['HollandsObservererr' + error_tuple[1]] = [
+            so.ObservationType.TeffIndividualElementCutoff,
+            error_tuple[0],
+            'Hollands'
+        ]
+
+    modeller_dict = {
+        'NullModeller': [
+            sm.ModellerType.Null,
+            None
+        ]
+    }
+    pipeline = Pipeline('variable_timescale', population_parameter_dict, observer_dict, modeller_dict)
+    pipeline.run_all_combinations()
+
+    sample_size = 202
+
+    element_for_most_polluted = None
+    most_polluted_tuple = None
+
+    filter_on_elements = None
+
+    pipeline.plot_ternary_comparisons(most_polluted_tuple)
+
+    pipeline.create_mv_plots(
+        'SyntheticHollandsDeltaKO',
+        'SyntheticHollandsDeltaKN',
+        [et[0] for et in list_of_error_tuples],
+        [0],
+        [sample_size],
+        'NullModeller',
+        'HollandsObserver',
+        True,
+        248, #Theoretical maximum (= 50000/202)
+        None,
+        most_polluted_tuple
+    )
+
+    pipeline.create_mv_plots(
+        'SyntheticHollandsDeltaKO',
+        'SyntheticHollandsDeltaBO',
+        [et[0] for et in list_of_error_tuples],
+        [0],
+        [sample_size],
+        'NullModeller',
+        'HollandsObserver',
+        True,
+        248, #Theoretical maximum (= 50000/202)
+        None,
+        most_polluted_tuple
+    )
+
+    #pops_to_iterate = ['SyntheticHollandsDeltaPopKN', 'SyntheticHollandsDeltaPopBN', 'SyntheticHollandsDeltaPopKO', 'SyntheticHollandsDeltaPopBO']
+    #pops_to_iterate = ['SyntheticHollandsDeltaKN', 'SyntheticHollandsTidalKN', 'SyntheticHollandsCollisionalKN']
+    #pops_to_iterate = ['SyntheticHollandsDeltaKO', 'SyntheticHollandsDeltaBO']
+    #mv_comparisons_to_iterate = ['Hollands_Ca_Mg_Fe']
+
+    for pop_to_iterate in pops_to_iterate:
+        for comparison in mv_comparisons_to_iterate:
+            pipeline.create_mv_plots(
+                    pop_to_iterate,
+                    comparison,
+                    [et[0] for et in list_of_error_tuples],
+                    [0],
+                    [sample_size],
+                    'NullModeller',
+                    'HollandsObserver',
+                    True,
+                    248, #Theoretical maximum (= 50000/202)
+                    None,
+                    most_polluted_tuple
+                )
+
+def run_volatile_pipeline():
+    population_parameter_dict = {
+        'HWOWet': {
+            sp.PopulationParameter.size: 700000,
+            sp.PopulationParameter.wd_config: 'HWODAsKO', # Setting this to a DA-specific value - doesn't matter because we're not actually going to run it!
+            sp.PopulationParameter.pollution_config: 'DADevoWet' # Setting this to a DA-specific value - doesn't matter because we're not actually going to run it!
+        },
+        'HWODry': {
+            sp.PopulationParameter.size: 700000,
+            sp.PopulationParameter.wd_config: 'HWODAsKO', # Setting this to a DA-specific value - doesn't matter because we're not actually going to run it!
+            sp.PopulationParameter.pollution_config: 'DADevoWet' # Setting this to a DA-specific value - doesn't matter because we're not actually going to run it!
+        }
+        #'HWODAWet': {
+        #    sp.PopulationParameter.size: 600000,
+        #    sp.PopulationParameter.wd_config: 'HWODAsKO',
+        #    sp.PopulationParameter.pollution_config: 'DADevoWet'
+        #},
+        #'HWODADry': {
+        #    sp.PopulationParameter.size: 600000,
+        #    sp.PopulationParameter.wd_config: 'HWODAsKO',
+        #    sp.PopulationParameter.pollution_config: 'DADevoDry'
+        #},
+        #'HWODBWet': {
+        #    sp.PopulationParameter.size: 100000,
+        #    sp.PopulationParameter.wd_config: 'HWODBsKO',
+        #    sp.PopulationParameter.pollution_config: 'DBDevoWet'
+        #},
+        #'HWODBDry': {
+        #    sp.PopulationParameter.size: 100000,
+        #    sp.PopulationParameter.wd_config: 'HWODBsKO',
+        #    sp.PopulationParameter.pollution_config: 'DBDevoDry'
+        #}
+    }
+
+    observer_dict = dict()
+    list_of_error_tuples = [
+        (0.1, '0p1')
+    ]
+    for error_tuple in list_of_error_tuples:
+        observer_dict['ELB_DTObservererr' + error_tuple[1]] = [
+            so.ObservationType.TeffIndividualElementCutoff,
+            error_tuple[0],
+            'ELB_DT'
+        ]
+
+    modeller_dict = {
+        'NullModeller': [
+            sm.ModellerType.Null,
+            None
+        ]
+    }
+    pipeline = Pipeline('volatiles', population_parameter_dict, observer_dict, modeller_dict)
+    pipeline.run_all_combinations()
+
+    #import excess_oxygen_calculator as eoc
+    #excess_oxygen_calculator = eoc.ExcessOxygenCalculator()
+    #oxidation_strategy = eoc.OxidationStrategy.default
+    #water_content_wet = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOWet'].output_water_content(excess_oxygen_calculator, oxidation_strategy)
+    #water_content_dry = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODry'].output_water_content(excess_oxygen_calculator, oxidation_strategy)
+    #import csv
+    #with open('raw_water_content_wet', 'w', newline='', encoding='utf-8') as f:
+    #    to_write = csv.writer(f)
+    #    for wc in water_content_wet:
+    #        to_write.writerow([wc])
+    #
+    #with open('raw_water_content_dry', 'w', newline='', encoding='utf-8') as f:
+    #    to_write = csv.writer(f)
+    #    for wc in water_content_dry:
+    #        to_write.writerow([wc])
+    #
+    #water_content_to_plot_wet = [max(0, wc) for wc in water_content_wet]
+    #water_content_to_plot_dry = [max(0, wc) for wc in water_content_dry]
+    #
+    #wc_to_plot_dict = {
+    #    'Wet': water_content_to_plot_wet,
+    #    'Dry': water_content_to_plot_dry
+    #}
+    #
+    #bins = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+    #bin_centres = [0.025, 0.075, 0.125, 0.175, 0.225, 0.275, 0.325, 0.375, 0.425, 0.475, 0.525, 0.575, 0.625, 0.675, 0.725, 0.775, 0.825, 0.875, 0.925, 0.975]
+    #graph_fac = gf.GraphFactory(pipeline.get_base_pipeline_dir())
+    #for pop_name, vals in wc_to_plot_dict.items():
+    #    heights, bins2 = np.histogram(
+    #        vals,
+    #        bins,
+    #        density=True
+    #    )
+    #
+    #
+    #    graph_fac.make_histogram(
+    #        bin_centres,
+    #        [heights],
+    #        [pop_name],
+    #        pop_name,
+    #        0.05,
+    #        1.1,
+    #        'Water Mass Fraction',
+    #        '_water',
+    #        None,
+    #        None
+    #    )
+    #
+    #raise
+
+    #dp1 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOWet'].get_subset_with_detected_elements([ci.Element.O, ci.Element.Si])
+    #dp2 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODry'].get_subset_with_detected_elements([ci.Element.O, ci.Element.Si])
+    #dp3 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOWet'].get_observed_subset()
+    #dp4 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODry'].get_observed_subset()
+    #dp5 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOWet'].get_subset_with_detected_elements([ci.Element.C, ci.Element.Si])
+    #dp6 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODry'].get_subset_with_detected_elements([ci.Element.C, ci.Element.Si])
+    #print(len(dp1)) #881
+    #print(len(dp2)) #1077
+    #print(len(dp3)) #83721
+    #print(len(dp4)) #36570 -> in total, that's 1958/120291 = 1.6277%
+    #print(len(dp5)) #550
+    #print(len(dp6)) #150
+    #raise
+
+    #         # Population hybridisation hack:
+    #         # Now to commit a crime
+    #         # We need a population with DAs and DBs, but I haven't programmed this functionality in yet. So what we'll do
+    #         # is reach inside the pipeline's populations and construct a hybrid population from what we find in there
+    #         # Going to add them in a 6:1 ratio, approximately accurate
+    #         # And repeat for both wet and dry
+    #         pre_made_wet_population = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODAWet'].population[0:600000] + pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODBWet'].population[0:100000]
+    #         pre_made_dry_population = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODADry'].population[0:600000] + pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODBDry'].population[0:100000]
+    #         population_size = None
+    #         wd_config_to_use = None
+    #         pollution_config_to_use = None
+    #         output_filename = None
+    #         hybrid_wet_population = sp.SyntheticPopulation(
+    #             population_size,
+    #             wd_config_to_use,
+    #             pollution_config_to_use,
+    #             output_filename,
+    #             pre_made_wet_population
+    #         )
+    #         hybrid_dry_population = sp.SyntheticPopulation(
+    #             population_size,
+    #             wd_config_to_use,
+    #             pollution_config_to_use,
+    #             output_filename,
+    #             pre_made_dry_population
+    #         )
+    #         # Now here's the real trick: We'll dump it as a csv, then on rerunning the pipeline we can trick the code into loading this up as a normal population
+    #         # We'll comment out the original populations with separate DAs and DBs, and replace with a hybrid one
+    #         # And also comment out this code which generated the hybrid
+    #         # Now when we rerun, it'll think this was a population which it already ran, and will load it up
+    #         # One final thing: Need to go into the csv files themselves and reset all the IDs in column 1!
+    #         hybrid_wet_population.dump_to_csv(pipeline.get_popdump_dir() + 'popdump_HWOWet_ELB_DTObservererr0p1_NullModeller.csv')
+    #         hybrid_dry_population.dump_to_csv(pipeline.get_popdump_dir() + 'popdump_HWODry_ELB_DTObservererr0p1_NullModeller.csv')
+    #         raise
+
+    #          # Now to commit an even worse crime
+    #          # The two populations of wet and dry are very hard to distinguish
+    #          # So let's make more hybrid populations, where we only pick the ones within, say 10^1 AU
+    #          pre_made_wet_population = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODAWet'].population[0:300000] + pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODBWet'].population[0:50000]
+    #          pre_made_dry_population = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODADry'].population[0:300000] + pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODBDry'].population[0:50000]
+    #          pre_made_wet_population_filtered = list()
+    #          pre_made_dry_population_filtered = list()
+    #          for sys in pre_made_wet_population:
+    #              if sys.pollution_properties[mp.ModelParameter.formation_distance] < 1:
+    #                  pre_made_wet_population_filtered.append(sys)
+    #          for sys in pre_made_dry_population:
+    #              if sys.pollution_properties[mp.ModelParameter.formation_distance] < 1:
+    #                  pre_made_dry_population_filtered.append(sys)
+    #          population_size = None
+    #          wd_config_to_use = None
+    #          pollution_config_to_use = None
+    #          output_filename = None
+    #          hybrid_wet_population = sp.SyntheticPopulation(
+    #              population_size,
+    #              wd_config_to_use,
+    #              pollution_config_to_use,
+    #              output_filename,
+    #              pre_made_wet_population_filtered
+    #          )
+    #          hybrid_dry_population = sp.SyntheticPopulation(
+    #              population_size,
+    #              wd_config_to_use,
+    #              pollution_config_to_use,
+    #              output_filename,
+    #              pre_made_dry_population_filtered
+    #          )
+    #          # Now here's the real trick: We'll dump it as a csv, then on rerunning the pipeline we can trick the code into loading this up as a normal population
+    #          # We'll comment out the original populations with separate DAs and DBs, and replace with a hybrid one
+    #          # And also comment out this code which generated the hybrid
+    #          # Now when we rerun, it'll think this was a population which it already ran, and will load it up - but need to be careful to load the correct number (ie the actual number available)
+    #          # One final thing: Need to go into the csv files themselves and reset all the IDs in column 1!
+    #          hybrid_wet_population.dump_to_csv(pipeline.get_popdump_dir() + 'popdump_HWOWetFilter_ELB_DTObservererr0p1_NullModeller.csv')
+    #          hybrid_dry_population.dump_to_csv(pipeline.get_popdump_dir() + 'popdump_HWODryFilter_ELB_DTObservererr0p1_NullModeller.csv')
+    #          raise
+
+
     plot_descriptions = {
          # input description, output description (each is variable, min bin value, max bin value, half bin size)
-        'fcf': ((mp.ModelParameter.fragment_core_frac, 0, 1, 0.025), (ci.Element.Fe, -20, -2, 0.1)),
-        'distance': ((mp.ModelParameter.formation_distance, -2, 1, 0.0125), (ci.Element.Na, -20, -4, 0.1)),
-        'time': ((mp.ModelParameter.t_sinceaccretion, 0, 100000, 1), (ci.Element.Ca, -20, -4, 0.1)),
-        'metallicity': ((mp.ModelParameter.metallicity, 0, 958, 24), (ci.Element.Ca, -20, -4, 0.1))
+        #'fcf': ((mp.ModelParameter.fragment_core_frac, 0, 1, 0.025), (ci.Element.Fe, -20, -2, 0.1)),
+        'distance': ((mp.ModelParameter.formation_distance, -2, 2, 0.0125), ([ci.Element.O, ci.Element.Si], -3, 8, 0.1)),
+        #'time': ((mp.ModelParameter.t_sinceaccretion, 0, 100000, 1), (ci.Element.Ca, -20, -4, 0.1)),
+        #'metallicity': ((mp.ModelParameter.metallicity, 0, 958, 24), (ci.Element.Ca, -20, -4, 0.1))
     }
-    pipeline.plot_results(plot_descriptions, ci.Element.H)
+
+    pipeline.create_dprob_ks_v_N_plot(
+        'HWOWet',
+        'HWODry',
+        [0.1],
+        [0],
+        [int(a) for a in range(5, 201)],
+        'NullModeller',
+        'ELB_DTObserver',
+        'distance',
+        plot_descriptions,
+        False,
+        True,
+        50
+    )
+
+    pipeline.create_mv_plots(
+        'HWOWet',
+        'HWODry',
+        [0.1],
+        [0],
+        [5, 10, 15, 20, 25, 30, 40, 50],
+        #[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+        #  47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
+        'NullModeller',
+        'ELB_DTObserver',
+        True,
+        100,
+        None,
+        None
+    )
+
+    pipeline.plot_results(plot_descriptions, None)
+
+    #pipeline.create_dprob_ks_v_N_plot(
+    #    'HWODBWet',
+    #    'HWODBDry',
+    #    [0.1],
+    #    [0],
+    #    [5, 10, 15, 20, 25, 30, 40, 50, 100, 200, 500],
+    #    'NullModeller',
+    #    'ELB_DTObserver',
+    #    'distance',
+    #    plot_descriptions,
+    #    False,
+    #    True,
+    #    50
+    #)
+    #
+    #pipeline.create_dprob_ks_v_N_plot(
+    #    'HWODAWet',
+    #    'HWODADry',
+    #    [0.1],
+    #    [0],
+    #    [5, 10, 15, 20, 25, 30, 40, 50, 100, 200, 500],
+    #    'NullModeller',
+    #    'ELB_DTObserver',
+    #    'distance',
+    #    plot_descriptions,
+    #    False,
+    #    True,
+    #    50
+    #)
+
+def run_light_element_pipeline():
+    # Remember to switch enhancement_model = 'FixedLightElement' in synthetic_population AND THEN SWITCH IT BACK
+    population_parameter_dict = {
+        'HWOSrichCore': {
+            sp.PopulationParameter.size: 700000,
+            sp.PopulationParameter.wd_config: 'HWODBsKO', #Dummy
+            sp.PopulationParameter.pollution_config: 'DBDevoDry' #Dummy
+        },
+        'HWOSiOrichCore': {
+            sp.PopulationParameter.size: 700000,
+            sp.PopulationParameter.wd_config: 'HWODAsKO', #Dummy
+            sp.PopulationParameter.pollution_config: 'DADevoDry' #Dummy
+        }
+        #'HWODBSrichCore': {
+        #    sp.PopulationParameter.size: 100000,
+        #    sp.PopulationParameter.wd_config: 'HWODBsKO',
+        #    sp.PopulationParameter.pollution_config: 'DBLightEl'
+        #},
+        #'HWODASrichCore': {
+        #    sp.PopulationParameter.size: 600000,
+        #    sp.PopulationParameter.wd_config: 'HWODAsKO',
+        #    sp.PopulationParameter.pollution_config: 'DALightEl'
+        #},
+        #'HWODBSiOrichCore': {
+        #    sp.PopulationParameter.size: 100000,
+        #    sp.PopulationParameter.wd_config: 'HWODBsKO',
+        #    sp.PopulationParameter.pollution_config: 'DBLightEl'
+        #},
+        #'HWODASiOrichCore': {
+        #    sp.PopulationParameter.size: 600000,
+        #    sp.PopulationParameter.wd_config: 'HWODAsKO',
+        #    sp.PopulationParameter.pollution_config: 'DALightEl'
+        #}
+    }
+
+    observer_dict = dict()
+    list_of_error_tuples = [
+        (0.1, '0p1')
+    ]
+    for error_tuple in list_of_error_tuples:
+        observer_dict['ELB_DTObservererr' + error_tuple[1]] = [
+            so.ObservationType.TeffIndividualElementCutoff,
+            error_tuple[0],
+            'ELB_DT'
+        ]
+
+    modeller_dict = {
+        'NullModeller': [
+            sm.ModellerType.Null,
+            None
+        ]
+    }
+    pipeline = Pipeline('light_element', population_parameter_dict, observer_dict, modeller_dict)
+    pipeline.run_all_combinations()
+    #dp1 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOSrichCore'].get_subset_with_detected_elements([ci.Element.S, ci.Element.O, ci.Element.Si])
+    #dp2 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOSiOrichCore'].get_subset_with_detected_elements([ci.Element.S, ci.Element.O, ci.Element.Si])
+    #dp3 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOSrichCore'].get_observed_subset()
+    #dp4 = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWOSiOrichCore'].get_observed_subset()
+    #print(len(dp1)) #952
+    #print(len(dp2)) #752
+    #print(len(dp3)) #60038
+    #print(len(dp4)) #61755
+    # So in total, we have 121793 PWDs and 1704 of those with Si, O and S - a rate of 1.399%
+    # So 70 with Si, O and S corresponds to 5000 total
+    #raise
+
+    #           # Population hybridisation hack:
+    #           # Now to commit a crime
+    #           # We need a population with DAs and DBs, but I haven't programmed this functionality in yet. So what we'll do
+    #           # is reach inside the pipeline's populations and construct a hybrid population from what we find in there
+    #           # Going to add them in a 6:1 ratio, approximately accurate
+    #           # And repeat for both wet and dry
+    #           pre_made_s_population = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODASrichCore'].population[0:600000] + pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODBSrichCore'].population[0:100000]
+    #           pre_made_sio_population = pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODASiOrichCore'].population[0:600000] + pipeline.results_dict['NullModeller']['ELB_DTObservererr0p1']['HWODBSiOrichCore'].population[0:100000]
+    #           population_size = None
+    #           wd_config_to_use = None
+    #           pollution_config_to_use = None
+    #           output_filename = None
+    #           hybrid_s_population = sp.SyntheticPopulation(
+    #               population_size,
+    #               wd_config_to_use,
+    #               pollution_config_to_use,
+    #               output_filename,
+    #               pre_made_s_population
+    #           )
+    #           hybrid_sio_population = sp.SyntheticPopulation(
+    #               population_size,
+    #               wd_config_to_use,
+    #               pollution_config_to_use,
+    #               output_filename,
+    #               pre_made_sio_population
+    #           )
+    #           # Now here's the real trick: We'll dump it as a csv, then on rerunning the pipeline we can trick the code into loading this up as a normal population
+    #           # We'll comment out the original populations with separate DAs and DBs, and replace with a hybrid one
+    #           # And also comment out this code which generated the hybrid
+    #           # Now when we rerun, it'll think this was a population which it already ran, and will load it up
+    #           # One final thing: Need to go into the csv files themselves and reset all the IDs in column 1!
+    #           hybrid_s_population.dump_to_csv(pipeline.get_popdump_dir() + 'popdump_HWOSrichCore_ELB_DTObservererr0p1_NullModeller.csv')
+    #           hybrid_sio_population.dump_to_csv(pipeline.get_popdump_dir() + 'popdump_HWOSiOrichCore_ELB_DTObservererr0p1_NullModeller.csv')
+    #           raise
+
+    plot_descriptions = {
+         # input description, output description (each is variable, min bin value, max bin value, half bin size)
+        'fcf': ((mp.ModelParameter.fragment_core_frac, 0, 1, 0.025), ([ci.Element.O, ci.Element.S], -5, 5, 0.1)),
+        #'distance': ((mp.ModelParameter.formation_distance, -2, 2, 0.0125), ([ci.Element.O, ci.Element.Si], -3, 4, 0.1)),
+        #'time': ((mp.ModelParameter.t_sinceaccretion, 0, 100000, 1), (ci.Element.Ca, -20, -4, 0.1)),
+        #'metallicity': ((mp.ModelParameter.metallicity, 0, 958, 24), (ci.Element.Ca, -20, -4, 0.1))
+    }
+
+
+
+    pipeline.create_dprob_ks_v_N_plot(
+        'HWOSrichCore',
+        'HWOSiOrichCore',
+        [0.1],
+        [0],
+        [5, 10, 15, 20, 25, 30, 40, 50, 100],
+        'NullModeller',
+        'ELB_DTObserver',
+        'fcf',
+        plot_descriptions,
+        False,
+        True,
+        50
+    )
+
+    pipeline.create_mv_plots(
+        'HWOSrichCore',
+        'HWOSiOrichCore',
+        [0.1],
+        [0],
+        #[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],
+        [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+          47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70],
+        'NullModeller',
+        'ELB_DTObserver',
+        True,
+        100,
+        None,
+        None
+    )
+
+    #pipeline.create_dprob_ks_v_N_plot(
+    #    'HWODASrichCore',
+    #    'HWODASiOrichCore',
+    #    [0.1],
+    #    [0],
+    #    [5, 10, 15, 20, 25, 30, 40, 50, 100, 200, 500],
+    #    'NullModeller',
+    #    'ELB_DTObserver',
+    #    'fcf',
+    #    plot_descriptions,
+    #    False,
+    #    True,
+    #    50
+    #)
+    pipeline.plot_results(plot_descriptions, None)
+
+
+def thermohaline_pipeline():
+    population_parameter_dict = {
+        'ThermohalineOn': {
+            sp.PopulationParameter.size: 100000,
+            sp.PopulationParameter.wd_config: 'DAsThermohalineOn', #Dummy
+            sp.PopulationParameter.pollution_config: 'DALightEl'
+        },
+        'ThermohalineOff': {
+            sp.PopulationParameter.size: 100000,
+            sp.PopulationParameter.wd_config: 'DAsThermohalineOff', #Dummy
+            sp.PopulationParameter.pollution_config: 'DALightEl'
+        }
+    }
+
+    observer_dict = dict()
+    list_of_error_tuples = [
+        (0.1, '0p1')
+    ]
+    for error_tuple in list_of_error_tuples:
+        observer_dict['DefaultObservererr' + error_tuple[1]] = [
+            so.ObservationType.NoCut,
+            error_tuple[0],
+            'Default'
+        ]
+
+    modeller_dict = {
+        'NullModeller': [
+            sm.ModellerType.Null,
+            None
+        ]
+    }
+    pipeline = Pipeline('thermohaline', population_parameter_dict, observer_dict, modeller_dict)
+    pipeline.run_all_combinations()
+
+    print(pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOn'].population[0])
+    print(pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOn'].population[1])
+
+    # This next bit is awful and needs to be done properly
+    premade_hot_t_on_population = [wd for wd in pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOn'].population if wd.wd_properties[mp.WDParameter.temperature] > 15000]
+    premade_hot_t_off_population = [wd for wd in pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOff'].population if wd.wd_properties[mp.WDParameter.temperature] > 15000]
+    population_size = None
+    wd_config_to_use = None
+    pollution_config_to_use = None
+    output_filename = None
+    pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOn'] = sp.SyntheticPopulation(
+        population_size,
+        wd_config_to_use,
+        pollution_config_to_use,
+        output_filename,
+        premade_hot_t_on_population
+    )
+    pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOff'] = sp.SyntheticPopulation(
+        population_size,
+        wd_config_to_use,
+        pollution_config_to_use,
+        output_filename,
+        premade_hot_t_off_population
+    )
+    print(pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOn'].population[0])
+    print(pipeline.results_dict['NullModeller']['DefaultObservererr0p1']['ThermohalineOn'].population[1])
+
+    plot_descriptions = {
+         # input description, output description (each is variable, min bin value, max bin value, half bin size)
+        'fcf': ((mp.ModelParameter.fragment_core_frac, 0, 1, 0.025), ([ci.Element.Fe, ci.Element.Si], -100, 100, 0.1)),
+        'distance': ((mp.ModelParameter.formation_distance, -2, 2, 0.0125), ([ci.Element.O, ci.Element.Si], -100, 100, 0.1)),
+        #'time': ((mp.ModelParameter.t_sinceaccretion, 0, 100000, 1), (ci.Element.Ca, -20, -4, 0.1)),
+        #'metallicity': ((mp.ModelParameter.metallicity, 0, 958, 24), (ci.Element.Ca, -20, -4, 0.1))
+    }
+    pipeline.create_mv_plots( #Of course, what we'll want to do here is compare to real DAs
+        'ThermohalineOn',
+        'ThermohalineOff',
+        [0.1],
+        [0],
+        [5, 100, 1000],
+        'NullModeller',
+        'DefaultObserver',
+        True,
+        100,
+        None,
+        None
+    )
+    pipeline.plot_ternary_comparisons((1000, ci.Element.Ca), 'PEWDD_thermohaline', [ci.Element.Fe, ci.Element.Si, ci.Element.O])
+    pipeline.plot_results(plot_descriptions, None)
+
+def run_reference_pipeline():
+    population_parameter_dict = {
+        'ReferenceDA': {
+            sp.PopulationParameter.size: 100000,
+            sp.PopulationParameter.wd_config: 'RealisticDAs',
+            sp.PopulationParameter.pollution_config: 'DARef'
+        },
+        'ReferenceDB': {
+            sp.PopulationParameter.size: 100000,
+            sp.PopulationParameter.wd_config: 'RealisticDBs',
+            sp.PopulationParameter.pollution_config: 'DBRef'
+        }
+    }
+    observer_dict = {
+        'RealisticObservererr0p2': [
+            so.ObservationType.TeffIndividualElementCutoff,
+            0.2
+        ]
+    }
+    modeller_dict = {
+        'NullModeller': [
+            sm.ModellerType.Null,
+            None
+        ]
+    }
+    pipeline = Pipeline('reference', population_parameter_dict, observer_dict, modeller_dict)
+    pipeline.run_all_combinations()
 
 
 def main():
-    run_profiling_pipeline()
+    #run_reference_pipeline()
+    #thermohaline_pipeline()
+    #run_volatile_pipeline()
+    #run_light_element_pipeline()
+    #run_variable_timescale_pipeline()
+    #run_profiling_pipeline()
     run_control_pipeline()
-    run_control_pipeline_with_realistic_observer()
+    #run_control_pipeline_with_realistic_observer()
     #run_control_pipeline_with_variable_observer_offset() # Unused
-    run_fcf_comparison_pipeline()
-    run_delta_fcf_variable_error_pipeline()
-    run_strategy_comparison_pipelines()
+    #run_fcf_comparison_pipeline()
+    #run_delta_fcf_variable_error_pipeline()
+    #run_strategy_comparison_pipelines()
 
 if __name__ == '__main__':
     main()

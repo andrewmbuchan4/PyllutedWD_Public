@@ -659,7 +659,7 @@ system_categories = {
     'LHS2534': 'U',
     'NLTT43806Corr': 'HPM*',
     'PG0843+516XCorr': 'PD',
-    'PG1015+161Xu': 'PD', 
+    'PG1015+161Xu': 'PD',
     'PG1225-079Corr': 'NED',
     'SDSSJ0512-0505': 'PD',
     'SDSSJ0738+1835Corr': 'PU', # Pressure unconstrained
@@ -707,8 +707,8 @@ system_sources = {
     'NLTT43806Corr': '\citet{Zuckerman2011}',
     'PG0843+516XCorr': '\citet{Xu2019}',
     'PG0843+516GCorr': '\citet{Gaensicke2012}',
-    'PG1015+161Xu': '\citet{Xu2019}', 
-    'PG1015+161Corr': '\citet{Gaensicke2012}', 
+    'PG1015+161Xu': '\citet{Xu2019}',
+    'PG1015+161Corr': '\citet{Gaensicke2012}',
     'PG1225-079Corr': '\citet{Klein2011} and \citet{Xu2013}',
     'SDSSJ0512-0505': '\citet{Harrison2021}, although Si not previously included',
     'SDSSJ0738+1835Corr': '\citet{Dufour2012}',
@@ -780,8 +780,6 @@ def collect_system_stats(path=None):
     system_stats_dict = dict()
     na_string = 'N/A'
     volatile_rich_temp = 1000  # Below this temp, we're volatile rich
-    raise # Forcing an error here in order to force reconsideration of the 1000K cutoff - it should almost certainly be lower. Check 0845+2257 for example - looks volatile depleted @ T ~ 500K
-    # Is this even a good system in principle? Looking at excess oxygen seems better
     volatile_poor_temp = 1400 # Above this temp, we're volatile poor (including moderate volatiles) (loosely basing this on Lodders 2003 table 8)
     for stats_file in find_stats_files(path):
         path_to_use = stats_file
@@ -795,7 +793,7 @@ def collect_system_stats(path=None):
         fcmf_uppererror = None
         temperature = None
         best_model_index = None
-        
+
         variable_indices = create_empty_variable_dict()
         medians = create_empty_variable_dict()
         percentile_16s = create_empty_variable_dict()
@@ -870,19 +868,19 @@ def collect_system_stats(path=None):
                             for variable in percentile_84s.keys():
                                 if variable_indices[variable] is not None:
                                     percentile_84s[variable] = float(row[variable_indices[variable]])
-        
+
         for variable, median in medians.items():
             if median is not None:
                 upper_error = percentile_84s[variable] - median
                 lower_error = median - percentile_16s[variable]
                 upper_errors[variable] = upper_error
                 lower_errors[variable] = lower_error
-        
+
         if temperature == '' or temperature is None:
             temperature = 0
         else:
             temperature = float(temperature)
-        
+
         if diff_sigma is not None and diff_sigma != na_string:
             if diff_sigma == 'inf':
                 diff_sigma = np.inf
@@ -911,11 +909,11 @@ def collect_system_stats(path=None):
             except ValueError:
                 fcmf_lowererror = None
         fcf = medians['Fragment Core Fraction']
-            
+
         core_rich = fcf > pcnf if fcf is not None else False
         mantle_rich = fcf < pcnf if fcf is not None else False
         primitive = not core_rich and not mantle_rich
-        
+
         volatile_rich = temperature < volatile_rich_temp
         volatile_depleted = temperature >= volatile_rich_temp and temperature <= volatile_poor_temp
         moderate_volatile_depleted = temperature > volatile_poor_temp
@@ -1340,14 +1338,14 @@ def compile_stats_summary(system_stats_dict, path=None):
                     t_classification = 'VolatileDepleted'
                 elif vals['ModerateVolatileDepleted']:
                     t_classification = 'ModerateVolatileDepleted'
-                
+
                 if vals['Primitive']:
                     c_classification = 'Primitive'
                 elif vals['CoreRich']:
                     c_classification = 'CoreRich'
                 elif vals['MantleRich']:
                     c_classification = 'MantleRich'
-                    
+
                 classifications[t_classification][c_classification] += 1
                 try:
                     if vals['DifferentiationSigma'] > differentiated_sigma_requirement:
@@ -1417,14 +1415,14 @@ def read_old_output_files():
 
         workbook = xlrd.open_workbook(xlsx_file)
         sheet = workbook.sheet_by_index(0)
-        
+
         model_list = sheet.row_values(0)
         evidences = sheet.row_values(1)
         chi_sq_list = sheet.row_values(2)
 
         highest_evidences = [np.NINF]
         highest_evidence_indices = [0]
-        
+
         for index, evidence in enumerate(evidences):
             try:
                 if evidence > highest_evidences[0]:
@@ -1436,18 +1434,18 @@ def read_old_output_files():
             except TypeError:
                 # Then it was blank, or otherwise ignorable text
                 pass
-                
+
         # If this isn't true then we need to know
         assert len(highest_evidences) == 1
         assert len(highest_evidence_indices) == 1
-        
+
         best_model = model_list[highest_evidence_indices[0]]
         chi_sq = chi_sq_list[highest_evidence_indices[0]]
         chi_sq_per_data_point = chi_sq/num_elements
         best_model_evidence = highest_evidences[0]
         best_model_description = model_params_dict[best_model]
         good_fit = chi_sq_per_data_point < 1
-        
+
         print(best_model)
         print(chi_sq)
         print(chi_sq_per_data_point)
@@ -1455,7 +1453,7 @@ def read_old_output_files():
         print(best_model_description)
         print(good_fit)
         raise
-        
+
         file_prefix = str(obs_number) + 'model17'  # By this point, need to have generated this name from the system's obs number and the favoured model (internal naming convention)
         number_of_params = len(best_model_description)
         a = pn.Analyzer(n_params = number_of_params, outputfiles_basename = path + file_prefix)
@@ -1475,6 +1473,6 @@ def main():
     compile_stats_table(system_stats_dict, path)
     compile_stats_summary(system_stats_dict, path)
     #read_old_output_files()
-    
+
 if __name__ == '__main__':
     main()
