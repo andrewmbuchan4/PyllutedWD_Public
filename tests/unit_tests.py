@@ -1333,7 +1333,7 @@ class ManagerTests(unittest.TestCase):
         )
         self.assertEqual([False, True], test_mn.thermohaline_regimes_to_run)
         self.assertEqual(False, test_mn.suppress_graphical_output)
-        self.assertEqual(734, len(test_mn.white_dwarfs))
+        self.assertEqual(737, len(test_mn.white_dwarfs))
         self.assertEqual(8, test_mn.default_logg)
         self.assertEqual(-15, test_mn.default_Ca_value)
         self.assertEqual(2000, test_mn.n_live_points)

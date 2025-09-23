@@ -145,6 +145,41 @@ video_configurations = {
             [459.152406077556, 9.51060362842148E-07, -0.225163316389305, 0.05, None, None, 0.452100129532203, None, 20.5, 10**0.305741302429945, 16.2438353981353, -1.75587458913119],
             [459.152406077556, 9.51060362842148E-07, -0.225163316389305, 0.05, None, None, 0, None, 20.5, 10**0.305741302429945, 16.2438353981353, -1.75587458913119]
         ]
+    },
+    'J1227GR': {
+        'png_dir': 'J1227GR_heating_variation/',
+        'interpolation_steps': [50, 50],
+        'wd_type': ci.Element.He,
+        'Teff': 7946.72,
+        'logg': 8.069893,
+        'wd_abundances': {
+            ci.Element.Al: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -7),
+            ci.Element.Ti: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -9.7, 0.3),
+            ci.Element.Ca: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -8.7, 0.2),
+            ci.Element.Ni: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -8.9, 0.2),
+            ci.Element.Fe: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -7.5, 0.2),
+            ci.Element.Cr: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -9),
+            ci.Element.Mg: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -7.3, 0.2),
+            ci.Element.Si: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -7.1),
+            ci.Element.Na: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.measurement, -8.3, 0.2),
+            ci.Element.O: wd.WhiteDwarfDataPoint(wd.WhiteDwarfDataPointType.upper_bound, -4)
+        },
+        'leg_descriptors': [
+            ('formdist', 2),
+            ('formdist', 2)
+        ],
+        'list_of_coordinates': [
+
+#            #[fe_star, t_sinceaccretion (Myr), d_formation, z_formation, N_c, N_o, f_c, f_o, log_fragment_mass, t_disc (yr), pressure, fO2]
+#Stellar metallicity indices	Time since Accretion/Myrs	log(Formation Distance/AU)	Fragment Core Fraction	log(Fragment Mass /kg)	log(Accretion Event Timescale/Yrs)	Pressure /GPa	Oxygen Fugacity /ΔIW
+
+#Median:
+
+            [695.511722949721, 0.935056105420901, -1, 0.080417918508727, None, None, 0.17, None, 18.9744928319028, 3.02727336546314, 54, -2],
+            [695.511722949721, 0.935056105420901, 0.233852560787135, 0.080417918508727, None, None, 0.17, None, 18.9744928319028, 3.02727336546314, 54, -2],
+            [695.511722949721, 0.935056105420901, 2, 0.080417918508727, None, None, 0.17, None, 18.9744928319028, 3.02727336546314, 54, -2]
+
+        ]
     }
 }
 
@@ -187,7 +222,7 @@ def produce_pngs(wd_name, png_dir, list_of_coordinates, leg_descriptors, interpo
     tau_X = white_dwarf.get_timescales_as_array(timescale_type, elements_to_plot)
     #tau_X = np.array([5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000, 5000000]) # for testing. should remove differential sinking
 
-    reference_element = None
+    reference_element = ci.Element.Mg
     extra_text_dict = None
 
     max_frames = sum(interpolation_steps)
@@ -237,7 +272,7 @@ def produce_pngs(wd_name, png_dir, list_of_coordinates, leg_descriptors, interpo
     print('Produced ' + str(frame) + ' frames')
 
 def main():
-    configuration = 'WD0059+257'
+    configuration = 'J1227GR'
     png_dir = video_configurations[configuration]['png_dir']
     interpolation_steps = video_configurations[configuration]['interpolation_steps']
     leg_descriptors = video_configurations[configuration]['leg_descriptors']
@@ -248,8 +283,8 @@ def main():
     wd_abundance_data_raw = video_configurations[configuration]['wd_abundances']
     #Teff = 17280 # For GD61 (move this to config dict!)
     #logg = 8.2 # For GD61
-    CaHx = -15
-    timescale_type = ti.TimescaleType.KoesterOvershoot
+    CaHx = -8.7 # Use -15 by default here!
+    timescale_type = ti.TimescaleType.BedardNoOvershoot
     manager = mn.Manager()
     manager.publish_live_data(0, timescale_type)
     elements_to_plot = [

@@ -10,7 +10,9 @@ As used in:
 [Rapid formation of exoplanetesimals revealed by white dwarfs](https://www.nature.com/articles/s41550-022-01815-8)<br />
 [Seven white dwarfs with circumstellar gas discs II: tracing the composition of exoplanetary building blocks](https://academic.oup.com/mnras/article/532/4/3866/7697554)<br />
 [White dwarf constraints on geological processes at the population level](https://academic.oup.com/mnras/article/532/2/2705/7701788)<br />
-[Host star and exoplanet composition: Polluted white dwarf reveals depletion of moderately refractory elements in planetary material](https://www.aanda.org/articles/aa/full_html/2025/01/aa51621-24/aa51621-24.html)
+[Host star and exoplanet composition: Polluted white dwarf reveals depletion of moderately refractory elements in planetary material](https://www.aanda.org/articles/aa/full_html/2025/01/aa51621-24/aa51621-24.html)<br />
+[Measurements of three exo-planetesimal compositions: a planetary core, a chondritic body, and an icy Kuiper belt analogue](https://academic.oup.com/mnras/article/541/2/1377/8174999)<br />
+[White dwarfs as probes of extrasolar planet compositions and fundamental astrophysics](https://doi.org/10.48550/arXiv.2507.03029)
 
 Earlier versions of this code were introduced in:
 

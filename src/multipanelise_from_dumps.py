@@ -205,6 +205,43 @@ dump_config9 = {
     ]
 }
 
+dump_config10 = {
+    'y_dimension': 2,
+    'x_dimension': 2,
+    'filenames': ['robust_systems.pdf', 'robust_systems.png'],
+    'fig_height': 11,
+    'fig_width': 14,
+    'gridspec_wspace': 0,
+    'gridspec_hspace': 0,
+    'sharey_axes': True,
+    'sharex_axes': True,
+    'list_of_dumps': [
+        pu.get_path_to_default_graphs() + '../../../Graphs of Robust Systems/WDJ183352.68+321757.25_TremblayGR_kn_n_p2000_HD0123_NEL_D_composition_rel_Mg.pdf.txt',
+        pu.get_path_to_default_graphs() + '../../../Graphs of Robust Systems/HE0106-3253_XuGR_3p_t_p2000_HD013_NEL_D_composition_rel_Mg.pdf.txt',
+        pu.get_path_to_default_graphs() + '../../../Graphs of Robust Systems/PG1225-079Model2_KleinGR_kn_n_p2000_HD01_NEL_D_composition_rel_Mg.pdf.txt',
+        pu.get_path_to_default_graphs() + '../../../Graphs of Robust Systems/GD133_XuGR_3p_t_p2000_HD01_NEL_D_composition_rel_Mg.pdf.txt'
+    ]
+}
+
+dump_config11 = {
+    'y_dimension': 3,
+    'x_dimension': 2,
+    'filenames': ['timescale_crosssections.pdf', 'timescale_crosssections.png'],
+    'fig_height': 19,
+    'fig_width': 14,
+    'gridspec_wspace': 0.1,
+    'gridspec_hspace': 0.1,
+    'sharey_axes': False,
+    'sharex_axes': False,
+    'list_of_dumps': [
+        pu.get_path_to_default_graphs() + 'timescales_v_Teff_H_3p_bn.pdf.txt',
+        pu.get_path_to_default_graphs() + 'timescales_v_Teff_He_vo_bn.pdf.txt',
+        pu.get_path_to_default_graphs() + 'timescales_v_Teff_H_relMg_3p.pdf.txt',
+        pu.get_path_to_default_graphs() + 'timescales_v_Teff_H_bn_kn.pdf.txt',
+        pu.get_path_to_default_graphs() + 'timescales_v_Teff_He_bn_kn.pdf.txt'
+    ]
+}
+
 def multipanelise_from_dumps(list_of_dump_configs):
     graph_fac = gf.GraphFactory()
     for dump_config in list_of_dump_configs:
@@ -222,7 +259,7 @@ def multipanelise_from_dumps(list_of_dump_configs):
         )
 
 def main():
-    list_of_dump_configs = [dump_config9]
+    list_of_dump_configs = [dump_config11]
     multipanelise_from_dumps(list_of_dump_configs)
 
 if __name__ == '__main__':

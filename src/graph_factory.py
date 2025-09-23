@@ -124,7 +124,7 @@ class GraphFactory:
                 toret.append(original_abundances[element] - original_abundances[ci.Element.Mg] - ld._geo_model.solar_abundances[element])  # Technically this should also bear stellar Mg in mind. Can afford to ignore here because it's always 0 (since we report relative to Mg)
                 elements_present.append(element)
                 if original_errors is not None:
-                    # Absolute errors should add in quadriture for addition.
+                    # Absolute errors should add in quadriture for addition. TODO: Add error on solar abundance
                     if element == ci.Element.Mg:
                         toret_errs.append(original_errors[ci.Element.Mg])
                     else:
@@ -197,8 +197,8 @@ class GraphFactory:
         }
 
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_composition_plot_mk2(self, system, file_prefix, all_wd_abundances, all_wd_abundance_errors, fit_dict, error_low_dict=None, error_high_dict=None, upper_limits=None, lower_limits=None, video=False, hack_legend_to_only_show_pressure=False, excluded_wd_abundances=None, excluded_wd_abundance_errors=None, excluded_wd_upper_bounds=None, excluded_wd_lower_bounds=None):
         x_axis = ['Al','Ti','Ca','Ni','Fe','Cr','Si','Na','O','C','N']
@@ -350,7 +350,7 @@ class GraphFactory:
                     fit_key_to_use = fit_key[:-6]
                 else:
                     fit_key_to_use = fit_key
-                series_dict[fit_key_to_use + ' 1 Sigma CI'] = {
+                series_dict[fit_key_to_use + ' 1 Sigma CI'] = { #TODO: unabbreviate CI? Confusing withCI chondrite
                     'type': dp.SeriesType.shade,
                     #'x_data': range(0, len(observations)),
                     'x_data': x_axis,
@@ -490,11 +490,11 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
+        #plotter.draw()
         if video:
-            plotter.yield_output(pu.get_path_to_output_graphs_dir())
+            plotter.draw_and_yield_output(pu.get_path_to_output_graphs_dir())
         else:
-            plotter.yield_output(self.output_dir)
+            plotter.draw_and_yield_output(self.output_dir)
 
     def make_composition_plot_mk3(self, white_dwarf, elements_to_plot, fit_dict=None, reference_element=None, model_name=None, extra_text_dict=None, video=False, fit_dict_prescaled=True, hack_legend_to_only_show_pressure=False):
         #extra_text_dict expected args: long, short, x_pos, y_pos
@@ -798,8 +798,8 @@ class GraphFactory:
                         'ylabel_pad': 0,
                         'x_min': -0.5,
                         'x_max': len(x_axis) - 0.5,
-                        'y_min': -3 if video else None,
-                        'y_max': 0 if video else None,
+                        'y_min': -1.5 if video else None,
+                        'y_max': 1.5 if video else None,
                         'font': 'STIXGeneral',
                         'series': series_dict
                     }
@@ -807,8 +807,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir, not video)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir, not video)
 
     def strip_system_suffix(self, system_name):
         obs_data_series_name = system_name
@@ -1107,11 +1107,11 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
+        #plotter.draw()
         if video:
-            plotter.yield_output(get_path_to_output_graphs_dir())
+            plotter.draw_and_yield_output(get_path_to_output_graphs_dir())
         else:
-            plotter.yield_output(self.output_dir)
+            plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_composition_plot_for_proposal(self, wd_type, fit_dict, target_points_dict):
@@ -1213,8 +1213,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_composition_plot_multi_system(self, file_prefix, all_wd_abundances_dict, all_wd_abundance_errors_dict, upper_limits_dict):
@@ -1371,8 +1371,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_element_dropout(self, d_formation_vals, T_vals, element_abundance_vals, z_formation):
         series_dict = dict()
@@ -1437,8 +1437,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_element_dropout_ratio(self, d_formation_vals, T_vals, element_abundance_vals, element1, element2, z_formation):
         to_plot = list()
@@ -1504,8 +1504,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_earth_composition_plot(self, observed_abundances, fitted_abundances_dict, layer, tag, observed_abundance_errors=None, fitted_abundance_errors_dict=None):
         #observations, errors, x_tick_labels = self.convert_to_relative_solar_abundance(observed_abundances, observed_abundance_errors)
@@ -1583,8 +1583,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_Ds_comparison_plot(self, observed_Ds_dict, predicted_Ds_dict, tag, run_name, observed_Ds_errors_dict=None, predicted_Ds_errors_dict=None):
         elements = list()
@@ -1672,8 +1672,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_Ds_comparison_multipanel_plot(self, observed_Ds_dict_list, predicted_Ds_dict_list, tag, run_name_list, observed_Ds_errors_dict_list=None, predicted_Ds_errors_dict_list=None):
         # For now assuming we only want 2 panels
@@ -1860,8 +1860,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_ternary_plot(self, variable_list, el_abundance_dict, filename, scaling_factors=dict(), additional_text_dict=None):
         #el_abundance_dict expected to be
@@ -1917,8 +1917,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_planet_formation_plot(self, abundances_dict, variable, variable_vals, layer_text, earth_observations, tag, ratio_against=None):
         colours = [
@@ -2044,8 +2044,8 @@ class GraphFactory:
                 }
             }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def get_planet_formation_stacked_subplot_dict(self, abundances_dict, variable, variable_vals, file_prefix, earth_observations, colour_dict):
         first_ele_name = list(abundances_dict.keys())[0]  # Doesn't matter which - just need a key to find out how many data points we have on the next line
@@ -2135,8 +2135,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def get_planet_formation_combined_stacked_subplot_dict(self, abundances_dict, variable, variable_vals, file_prefix, earth_observations, colour_dict):
         first_ele_name = list(abundances_dict[gi.Layer.core].keys())[0]  # Doesn't matter which - just need a key to find out how many data points we have on the next line
@@ -2263,8 +2263,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_planet_formation_multipanel_stacked_plot(self, stacked_variable_p_vals, bulk_stacked_variable_p_vals,
         stacked_variable_fO2_vals, bulk_stacked_variable_fO2_vals, pressure_vals, fO2_vals, file_prefix,
@@ -2345,8 +2345,8 @@ class GraphFactory:
         plot_dict['planetplot_multipanel_stacked']['subplots']['core_fO2_subplot']['xlabel_fontsize'] = 24
 
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_planet_cnf_plot(self, cnf_list, variable, variable_vals, observations_dict):
         unit_dict = {
@@ -2402,8 +2402,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_convergence_plot(self, Ds_dict, run_name, colour_dict):
         # Ds_dict[element] = [D_0, D_1 ... D_iterations]
@@ -2455,8 +2455,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_modeller_functions(self, input_ratios, input_el1, input_el2, output_vals_dict, output_var1, output_var2):
         series_dict_1 = {
@@ -2535,8 +2535,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_log_elel_ratio(self, ratio_vals, x_vals, variable, system_name, element, ref_element, core_number_fraction,
                            observed_val, observed_error, tag, fixed_val, colour_dict, ignore_lack_of_observations=False, femg_vals=None, femg_obs=None, femg_obs_err=None):
@@ -2746,8 +2746,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_3d_log_elel_ratio(self, ratio_vals, p_range, f_range, system_name, element, ref_element, fixed_var_val, observed_val, observed_error, tag, x_var, y_var, fixed_var, ignore_lack_of_observation=False, guidelines=list()):
         ref_element_str = str(ref_element) if ref_element != ci.Element.Placeholder else 'Hx'
@@ -2854,8 +2854,8 @@ class GraphFactory:
         }
 
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_all_system_ratios(self, system_names, num_ref_systems, y_axis_ratios_obs, x_axis_ratios_obs, y_axis_ratios_obs_err, x_axis_ratios_obs_err, y_axis_ratios, x_axis_ratios, y_el_numerator, y_el_denominator, x_el_numerator, x_el_denominator, system_ps, system_fcfs, y_contour_vals, x_contour_vals, z_contour_vals):
@@ -2964,8 +2964,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_all_system_ratios_poster_version(self, system_names, num_ref_systems, y_axis_ratios_obs, x_axis_ratios_obs, y_axis_ratios_obs_err, x_axis_ratios_obs_err, y_axis_ratios, x_axis_ratios, y_el_numerator, y_el_denominator, x_el_numerator, x_el_denominator, system_ps, system_fcfs, y_contour_vals, x_contour_vals, z_contour_vals, text_offsets, example_fcf_lines, stellar_y, stellar_x, synth_stellar_y, synth_stellar_x, sinking_arrows, heating_arrows, synth_wd_y_dict, synth_wd_x_dict, systems_to_show_ellipse, y_axis_lower_bounds, x_axis_lower_bounds, y_axis_upper_bounds, x_axis_upper_bounds, system_categories):
         colours = [
@@ -3450,8 +3450,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def multipanelise_from_dumps(self, list_of_plot_dumps, y_dimension, x_dimension, filenames, fig_height=15, fig_width=10, gridspec_wspace=None, gridspec_hspace=None, sharey_axes=True, sharex_axes=True):
@@ -3509,8 +3509,8 @@ class GraphFactory:
                         y_coord += 1
                     gridspec_index += 1
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        ##plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_size_v_pressure(self, series_to_plot, cmb_pressure=False, property_string=None):
@@ -3733,8 +3733,8 @@ class GraphFactory:
             plot_dict['pvsplot']['subplots'] = cn.OrderedDict({'radiusplot': radius_subplot, 'massplot': mass_subplot})
             plot_dict['pvsplot']['subplots']['massplot']['twin_subplot'] = 'radiusplot'
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_accretion_phase_demo(self, t_range, test_ratios, N_X, N_Y):
         absolute_series_dict = {
@@ -3913,8 +3913,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_retrieved_variable_against_fcf(self, system_name, variable, fcf_values, variable_values, variable_1s_upper_errors, variable_1s_lower_errors, variable_2s_upper_errors=None, variable_2s_lower_errors=None, tag=None):
         earth_vals = {
@@ -4109,11 +4109,11 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
-    def plot_2D_timescales(self, timescales_to_plot, variable, x_vals, HorHe, logg, Teff, CaHe):
+    def plot_2D_timescales(self, timescales_to_plot, timescale_type, variable, x_vals, HorHe, logg, Teff, CaHe, relative_element=None):
         x_labels = {
             'Teff': 'Temperature /K',
             'logg': 'log(g / cm s$^{-2}$)',
@@ -4121,18 +4121,55 @@ class GraphFactory:
         }
         series_dict = dict()
         i = 0
-        scale_factor = 0.000000001 if HorHe == 'He' else 1
-        time_unit = 'Gyr' if HorHe == 'He' else 'yr'
-        elements = list()
+        el_colour_dict = {
+            ci.Element.Al: '#1E88E5',
+            ci.Element.Ti: '#FFC107',
+            ci.Element.Ca: '#D81B60',
+            ci.Element.Ni: '#004D40',
+            ci.Element.Fe: '#004D40',
+            ci.Element.Cr: '#1E88E5',
+            ci.Element.Si: '#FFC107',
+            ci.Element.Na: '#D81B60',
+            ci.Element.O: '#D81B60',
+            ci.Element.C: '#1E88E5',
+            ci.Element.N: '#004D40'
+        }
+        el_linestyle_dict = {
+            ci.Element.Al: '--',
+            ci.Element.Ti: '--',
+            ci.Element.Ca: '--',
+            ci.Element.Ni: '--',
+            ci.Element.Fe: '-',
+            ci.Element.Cr: '-',
+            ci.Element.Si: '-',
+            ci.Element.Na: ':',
+            ci.Element.O: '-',
+            ci.Element.C: ':',
+            ci.Element.N: ':'
+        }
+        scale_factor = 0.000000001 if HorHe == ci.Element.He and relative_element is None else 1
+        time_unit = 'Gyr' if scale_factor == 0.000000001 else 'yr'
         for element, timescales in timescales_to_plot.items():
-            elements.append(element)
-            series_dict[str(element)] = {
-                'type': dp.SeriesType.scatter_2d,
-                'x_data': x_vals,
-                'y_data': [t*scale_factor for t in timescales],
-                'legend': True,
-                'line_color': self.colour_list[i]
-            }
+            if relative_element is None:
+                series_dict[str(element) + '_' + timescale_type.short_str()] = {
+                    'type': dp.SeriesType.scatter_2d,
+                    'x_data': x_vals,
+                    'y_data': [t*scale_factor for t in timescales],
+                    'legend': True,
+                    'line_color': self.colour_list[i],
+                    'line_style': '-'
+                }
+            else:
+                if element != relative_element:
+                    data_to_plot = timescales/timescales_to_plot[relative_element]
+                    series_dict[str(element) + '/' + str(relative_element) +  '_' + timescale_type.short_str()] = {
+                        'type': dp.SeriesType.scatter_2d,
+                        'x_data': x_vals,
+                        'y_data': data_to_plot,
+                        'legend': True,
+                        'line_color': el_colour_dict[element],
+                        'line_style': el_linestyle_dict[element]
+                    }
             i += 1
         #plot_ratio = True
         #if len(elements == 2) and plot_ratio:
@@ -4148,7 +4185,7 @@ class GraphFactory:
         #        'legend': True,
         #        'line_color': self.colour_list[i+1]
         #    }
-        title_text = 'Sinking times for a ' + HorHe + ' WD at '
+        title_text = 'Sinking times for a ' + str(HorHe) + ' WD at '
         vars_added = 0
         var_limit = 2 if HorHe == 'He' else 1
         if logg is not None:
@@ -4166,10 +4203,15 @@ class GraphFactory:
             title_text += 'log(Ca/He) = ' + str(CaHe)
             if vars_added < 2:
                 title_text += ', '
+        extension = ['.pdf', '.png']
+        if relative_element is None:
+            base_file_name = 'timescales_v_' + variable + '_' + str(HorHe) + '_' + timescale_type.short_str()
+        else:
+            base_file_name = 'timescales_v_' + variable + '_' + str(HorHe) + '_rel' + str(relative_element) + '_' + timescale_type.short_str()
         plot_dict = {
             '2d_timescales_plot': {
                 'show': False,
-                'filenames': ['timescales_v_' + variable + '_' + HorHe + '.pdf'],
+                'filenames': [base_file_name + e for e in extension],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -4182,7 +4224,7 @@ class GraphFactory:
                         'xlabel_text': x_labels[variable],
                         'xlabel_fontsize': 10,
                         'xlabel_fontweight': 'bold',
-                        'ylabel_text': 'Sinking time /' + time_unit,
+                        'ylabel_text': 'Sinking time /' + time_unit if relative_element is None else 'Relative sinking timescale',
                         'ylabel_fontsize': 10,
                         'ylabel_fontweight': 'bold',
                         'font': 'STIXGeneral',
@@ -4193,8 +4235,107 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
+
+    def plot_2D_timescale_type_timescale_comparison(self, to_plot_dict, timescale_type1, timescale_type2, element1_list, element2_list, variable, ax_values, atm_type, logg, Teff, CaHe):
+        x_labels = {
+            'Teff': 'Temperature /K',
+            'logg': 'log(g / cm s$^{-2}$)',
+            'CaHe': 'log(Ca/He)',
+        }
+        el_index = 0
+        series_dict = dict()
+        el_colour_dict = {
+            ci.Element.Al: '#1E88E5',
+            ci.Element.Ti: '#FFC107',
+            ci.Element.Ca: '#D81B60',
+            ci.Element.Ni: '#004D40',
+            ci.Element.Fe: '#004D40',
+            ci.Element.Cr: '#1E88E5',
+            ci.Element.Si: '#FFC107',
+            ci.Element.Na: '#D81B60',
+            ci.Element.O: '#D81B60',
+            ci.Element.C: '#1E88E5',
+            ci.Element.N: '#004D40'
+        }
+        el_linestyle_dict = {
+            ci.Element.Al: '--',
+            ci.Element.Ti: '--',
+            ci.Element.Ca: '--',
+            ci.Element.Ni: '--',
+            ci.Element.Fe: '-',
+            ci.Element.Cr: '-',
+            ci.Element.Si: '-',
+            ci.Element.Na: ':',
+            ci.Element.O: '-',
+            ci.Element.C: ':',
+            ci.Element.N: ':'
+        }
+        while el_index < min(len(element1_list), len(element2_list)):
+            element1 = element1_list[el_index]
+            element2 = element2_list[el_index]
+            if element1 != element2:
+                tt1 = to_plot_dict[timescale_type1][element1]/to_plot_dict[timescale_type1][element2]
+                tt2 = to_plot_dict[timescale_type2][element1]/to_plot_dict[timescale_type2][element2]
+                series_dict[str(element1) + '/' + str(element2)] = {
+                    'type': dp.SeriesType.scatter_2d,
+                    'x_data': ax_values,
+                    'y_data': tt1/tt2,
+                    'legend': True,
+                    'line_color': el_colour_dict[element1],
+                    'line_style': el_linestyle_dict[element1]
+                }
+            el_index += 1
+        title_text = 'Sinking times for a ' + str(atm_type) + ' WD at '
+        vars_added = 0
+        var_limit = 2 if atm_type == ci.Element.He else 1
+        if logg is not None:
+            vars_added += 1
+            title_text += 'log(g / cm s$^{-2}$) = ' + str(logg)
+            if vars_added < var_limit:
+                title_text += ', '
+        if Teff is not None:
+            vars_added += 1
+            title_text += 'T = ' + str(Teff) + 'K'
+            if vars_added < var_limit:
+                title_text += ', '
+        if CaHe is not None and atm_type == ci.Element.He:
+            vars_added += var_limit
+            title_text += 'log(Ca/He) = ' + str(CaHe)
+            if vars_added < 2:
+                title_text += ', '
+        extension = ['.pdf', '.png']
+        base_file_name = 'timescales_v_' + variable + '_' + str(atm_type) + '_' + timescale_type1.short_str() + '_' + timescale_type2.short_str()
+        plot_dict = {
+            '2d_timescales_plot': {
+                'show': False,
+                'filenames': [base_file_name + e for e in extension],
+                'subplots': {
+                    'subplot1': {
+                        'subplot_region': 111,
+                        'legend': True,
+                        'legend_loc': 'best',
+                        'legend_text_size': 8,
+                        'title_text': title_text,
+                        'title_fontsize': 12,
+                        'title_fontweight': 'bold',
+                        'xlabel_text': x_labels[variable],
+                        'xlabel_fontsize': 10,
+                        'xlabel_fontweight': 'bold',
+                        'ylabel_text': 'Change',
+                        'ylabel_fontsize': 10,
+                        'ylabel_fontweight': 'bold',
+                        'font': 'STIXGeneral',
+                        #'y_scale': 'log',
+                        'series': series_dict
+                    }
+                }
+            }
+        }
+        plotter = dp.DictPlotter(plot_dict)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_timescale_model_comparison(self, to_plot_new, to_plot_old, variable, x_vals, x_vals_old, HorHe, logg, Teff, CaHe, elements_to_ratio):
         x_labels = {
@@ -4333,8 +4474,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_el_v_Teff(self, element, el_vals, teff_vals, el_upper_bound_vals, teff_upper_bound_vals):
         series_dict = dict()
@@ -4401,8 +4542,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_fcrit_plot(self, variable_fcrit_dict, pressure_vals, fO2):
         series_dict = dict()
@@ -4445,8 +4586,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_dlogX_dP_plot(self, variable_dlogX_dP_dict, fcf_vals, fO2):
         series_dict = dict()
@@ -4563,8 +4704,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_timesince_v_accretiontime(self, x_data, y_data, full_name, system_name, file_prefix, t_Mg):
         series_dict = dict()
@@ -4665,7 +4806,8 @@ class GraphFactory:
             'y_data': y_data,
             'bins': bins,
             'normed': True,
-            'cmap': self.discrete_cmap(8, 'Greys'),
+            #'cmap': self.discrete_cmap(8, 'Greys'), # Removing this because it can't be read in by the dict_plot_from_dump script
+            'colour_map_colours': ['#ffffff', '#000000'],
             'cbar_label': 'Probability density',
             'cbar_ticks': [0.00,0.125,0.25,0.375,0.5,0.625,0.75,0.875,1.00,1.125,1.25,1.375,1.5,1.625,1.75],
             'cbar_ticklabels': [0.00/25,0.125/25,0.25/25,0.375/25,0.5/25,0.625/25,0.75/25,0.875/25,1.00/25,1.125/25,1.25/25,1.375/25,1.5/25,1.625/25,1.75/25],
@@ -4683,9 +4825,9 @@ class GraphFactory:
                         'legend': True,         #plt.legend(loc='lower right', frameon = False, handletextpad=0.5, fontsize=9)
                         'legend_loc': 'lower right',
                         'legend_text_size': 9,
-                        'xlabel_text': 'log(Time since Accretion Started/Yrs)',
+                        'xlabel_text': 'log(Time Since Accretion Started /yr)',
                         'xlabel_fontsize': 14,
-                        'ylabel_text': 'log(Accretion Event Lifetime/Yrs)',
+                        'ylabel_text': 'log(Accretion Event Duration /yr)',
                         'ylabel_fontsize': 14,
                         'font': 'STIXGeneral',
                         'y_min': xy_min,
@@ -4698,8 +4840,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_pressure_v_oxygen_fugacity(self, x_data, y_data, full_name, system_name, file_prefix):
         series_dict = dict()
@@ -4752,9 +4894,10 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
+    # TODO: make a make_histogram_from_samples function where the data isn't already binned
     def make_histogram(self, xbar, all_heights, wd_names, file_prefix, bar_width, relative_text_height, xlabel, file_suffix, additional_text_dict, additional_line_dict, additional_x_axis_dict=None, relative_y_max=1.25, text_size_dict=dict(), cumulative=False, hist_colours_override=list(), blank_yaxis=False):
         series_dict = dict()
         single_hist = len(all_heights) < 2
@@ -4912,8 +5055,8 @@ class GraphFactory:
                     'twin_on_x': True
                 }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_mix_pie_chart(self, fcf, mix_dict):
@@ -4968,8 +5111,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_io_scatter_plot(self, input_values, modelled_values, unmodelled_input_heights, unmodelled_input_x_centres, plot_name, variable, min_val, max_val, half_bin_size, add_hist_subplot=True):
@@ -5097,8 +5240,8 @@ class GraphFactory:
                 'twin_subplot': 'subplot1'
             }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_elel_scatter_plot(self, el1_values, el2_values, el1_el2_observed_bools, el1, el2, el1_threshold, el2_threshold, plot_name, hx):
@@ -5221,8 +5364,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_hollands_elel_scatter_plot(self, wd_data_dict, stellar_data, x_el_1, x_el_2, y_el_1, y_el_2, graph_name):
@@ -5307,8 +5450,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_dprob_v_error_plot(self, error_values, dprob_values_dict, parameter, pop1_name, pop2_name, error_mode, y_axis_title=None, mv_mode=False):
@@ -5382,8 +5525,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_dprob_v_N_plot(self, N_values, dprob_values_dict, parameter, pop1_name, pop2_name, y_axis_title=None, mv_mode=False):
@@ -5456,8 +5599,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_dprob_v_N_multipop_plot(self, N_values_dict, dprob_values_dict, parameter, pop1_name, pop2_name, error, y_axis_title=None):
@@ -5551,8 +5694,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_ks_v_error_plot(self, error_values, ks_values_dict, p_threshold, parameter, pop1_name, pop2_name, error_mode, y_axis_title=None, mv_mode=False):
@@ -5669,8 +5812,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_ks_v_N_plot(self, N_values, ks_values_dict, p_threshold, parameter, pop1_name, pop2_name, p_value=True, y_axis_title=None):
@@ -5777,8 +5920,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_ks_v_N_multipop_plot(self, N_values_dict, ks_values_dict, p_threshold, parameter, pop1_name, pop2_name, error, p_value=True, y_axis_title=None, separate_axes=False):
@@ -5943,8 +6086,8 @@ class GraphFactory:
         else:
             plot_dict['ks_plot']['subplots']['subplot1']['series'].update(pop2_series_dict)
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_sample_size_bernoulli_trial_plot(self, p_threshold, all_p_values_dict, prejump_p_values_dict, postjump_p_values_dict):
@@ -6071,8 +6214,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_observability(self, data_dict, x_element, y_element, lithophile_element, siderophile_element):
@@ -6223,8 +6366,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_fcf_v_delta_time(self, fcfs, fcfs_upper_errors, fcfs_lower_errors, delta_times, delta_times_upper_errors, delta_times_lower_errors, t_Mgs, wd_types, scaled=False):
@@ -6324,8 +6467,8 @@ class GraphFactory:
             plot_dict['fcf_v_delta_time_plot']['subplots']['subplot1']['x_max'] = 0.00002
             plot_dict['fcf_v_delta_time_plot']['subplots']['subplot1']['x_min'] = -0.0000025
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_excess_oxygen_plot(self, all_eoc_stats, file_name):
         #all_eoc_stats = composition: excess_oxygen, fractional_excess_oxygen, oxygen_assignations, water_mass, water_mass_fraction, excess_o_mass, normalised_abundances, species_names
@@ -6461,8 +6604,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_gpe_deltaT_2d(self, ro_range, iron_thickness_range, deltaT_array):
         series_dict = {
@@ -6510,8 +6653,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_chi_squared_v_t_and_t_disc(self, wd_name, comparison_name, t_values, t_disc_values, chi_sq_values):
         series_dict = {
@@ -6561,8 +6704,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def plot_therm_factors(self, Teff_vals, logg_vals, logMdot, therm_factors, reference_systems, background_systems):
         series_dict = {
@@ -6662,8 +6805,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_discrepancy_metric(self, Teff_vals, logg_vals, DM_vals, timescale_type1, timescale_type2, Hx, reference_systems, background_systems, weighted=False):
@@ -6743,7 +6886,7 @@ class GraphFactory:
         plot_dict = {
             'dm_plot': {
                 'show': False,
-                'filenames': ['discrepancy_metric' + '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + e for e in extensions],
+                'filenames': ['discrepancy_metric' + '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + '_' + str(len(Teff_vals)) + e for e in extensions],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -6771,8 +6914,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_discrepancy_metric_as_percentage_above_threshold(self, Teff_vals, logg_vals, PAT_vals, timescale_type1, timescale_type2, Hx, reference_systems, background_systems, metric_threshold, weighted=False):
@@ -6852,7 +6995,7 @@ class GraphFactory:
         plot_dict = {
             'dm_plot': {
                 'show': False,
-                'filenames': ['discrepancy_metric_pat' +  '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + '_' + str(metric_threshold) + e for e in extensions],
+                'filenames': ['discrepancy_metric_pat' +  '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + '_' + str(metric_threshold) + '_' + str(len(Teff_vals)) + e for e in extensions],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -6882,8 +7025,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_discrepancy_metric_as_proxy_percentage_above_threshold(self, Teff_vals, logg_vals, PROXYPAT_vals, timescale_type1, timescale_type2, Hx, reference_systems, background_systems, weighted=False):
@@ -6963,7 +7106,7 @@ class GraphFactory:
         plot_dict = {
             'dm_plot': {
                 'show': False,
-                'filenames': ['discrepancy_metric_proxy_pat' +  '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + e for e in extensions],
+                'filenames': ['discrepancy_metric_proxy_pat' +  '_' + weight_desc +  '_' + timescale_str_1 + '_' + timescale_str_2 + '_' + str(Hx) + '_' + str(len(Teff_vals)) + e for e in extensions],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -6993,8 +7136,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_modellable_wd_density(self, Teff_vals, logg_vals, density_vals, Hx):
@@ -7029,7 +7172,7 @@ class GraphFactory:
         plot_dict = {
             'dm_plot': {
                 'show': False,
-                'filenames': ['local_density_' + str(Hx) + e for e in extensions],
+                'filenames': ['local_density_' + str(Hx) + '_' + str(len(Teff_vals)) + e for e in extensions],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -7059,13 +7202,11 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_timescale_type_ratios(self, element1, element2, timescale_type1, timescale_type2, Hx, correction_type, Teff_vals, logg_vals, ratio_data, reference_systems, background_systems, grid_range_to_plot):
-        print(grid_range_to_plot)
-        print(Teff_vals)
         min_teff_index = math.floor((grid_range_to_plot[0][0] - Teff_vals[0])/(Teff_vals[1] - Teff_vals[0]))
         max_teff_index = math.ceil((grid_range_to_plot[0][1] - Teff_vals[0])/(Teff_vals[1] - Teff_vals[0]))
         min_logg_index = math.floor((grid_range_to_plot[1][0] - logg_vals[0])/(logg_vals[1] - logg_vals[0]))
@@ -7149,10 +7290,12 @@ class GraphFactory:
             system_count += 1
 
         extensions = ['.pdf', '.png']
+        timescale_names = '_'.join(tt.short_str() for tt in [timescale_type1, timescale_type2] if tt is not None)
+        file_base_name = 'timescale_type_comparison_' + str(element1) + '_' + str(element2) + '_' + timescale_names + '_' + str(Hx) + '_' + correction_type
         plot_dict = {
             'timescale_type_plot': {
                 'show': False,
-                'filenames': ['timescale_type_comparison_' + str(element1) + '_' + str(element2) + '_' + timescale_type1.short_str() + '_' + timescale_type2.short_str() + '_' + str(Hx) + '_' + correction_type + e for e in extensions],
+                'filenames': [file_base_name + e for e in extensions],
                 'subplots': {
                     'subplot1': {
                         'subplot_region': 111,
@@ -7182,8 +7325,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def plot_timescale_type_benchmark(self, element1, element2, timescale_type1, timescale_type2, timescale_benchmark, Hx, correction_type, Teff_vals, logg_vals, data_to_plot, reference_systems, background_systems, grid_range_to_plot):
@@ -7198,6 +7341,12 @@ class GraphFactory:
         cmap_scaling_factor = 1.2 # Just want to make sure we don't actually reach full colour saturation
         cmap_min = -cmap_scaling_factor*max_dist_from_0
         cmap_max = cmap_scaling_factor*max_dist_from_0 # Making sure the min and max are equally spaced so that 0 is white
+
+        print(r'$\Delta $' + str(element1) + '/' + str(element2))
+        print(Teff_vals[min_teff_index:max_teff_index+1])
+        print(logg_vals[min_logg_index:max_logg_index+1])
+        print(data_in_range)
+
         series_dict = {
             '3dscatter': {
                 'type': dp.SeriesType.contour_scatter,
@@ -7303,8 +7452,9 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        plotter.draw_and_yield_output(self.output_dir)
+        ##plotter.draw()
+        #plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_dprob_N_error_heatmap(self, sample_sizes, errors, dprob_grid, model_parameter, base_pop1_name, base_pop2_name):
@@ -7351,8 +7501,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_corner_plot(self, weighted_posteriors, parameter_labels, file_name_prefix):
         #corner.corner(weighted_posteriors, labels=parameter_labels, label_kwargs=dict(fontsize=12), levels = (0.39346934,0.86466472,0.988891), smooth=True)
@@ -7430,8 +7580,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
 
     def make_polfrac_dist_plot(self, xbincentres, heights, predicted_heights, half_bin_size):
         #xbincentres = [-5, -5.5, -6, -6.5, -7]
@@ -7531,8 +7681,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_bu_teff_trend_plot(self, da_pairs, db_pairs):
@@ -7609,8 +7759,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_bonsor2023_fig4a(self, time_vals, fraction_vals):
@@ -7659,8 +7809,8 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
     def make_pol_frac_v_t_event_plot(self, t_event_vals, pol_frac_DA_vals, pol_frac_DB_vals):
@@ -7718,11 +7868,11 @@ class GraphFactory:
             }
         }
         plotter = dp.DictPlotter(plot_dict)
-        plotter.draw()
-        plotter.yield_output(self.output_dir)
+        #plotter.draw()
+        plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
-    def make_detection_thresholds_plot(self, threshold_dict, element, wd_data, wd_upper_bounds, min_teff, max_teff, show_legend=False, yield_output=False):
+    def make_detection_thresholds_plot(self, threshold_dict, element, wd_data, wd_upper_bounds, min_teff, max_teff, show_legend=False, draw_and_yield_output=False):
         # expect threshold_dict to be threshold_dict[element][spectral_type][name] = (m, c)
         def linear(x, m_c_tuple):
             m = m_c_tuple[0]
@@ -7840,10 +7990,10 @@ class GraphFactory:
                 }
             }
         }
-        if yield_output:
+        if draw_and_yield_output:
             plotter = dp.DictPlotter(plot_dict)
-            plotter.draw()
-            plotter.yield_output(self.output_dir)
+            #plotter.draw()
+            plotter.draw_and_yield_output(self.output_dir)
         return plot_dict
 
 def main():
@@ -7852,7 +8002,11 @@ def main():
     #new_colour = graph_fac.colour_mixer('#710193', '#FC6A03', 0)
     colour1 = '#710193'
     colour2 = '#FC6A03'
-    for i in [0, 0.16, 0.33, 0.5, 0.67, 0.83, 1]:
+    intervals = [0, 0.16, 0.33, 0.5, 0.67, 0.83, 1]
+    colour1 = '#0000ff'
+    colour2 = '#ffffff'
+    intervals = [(1/13)*i for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
+    for i in intervals:
         new_colour = graph_fac.colour_mixer(colour1, colour2, i)
         print(new_colour)
 

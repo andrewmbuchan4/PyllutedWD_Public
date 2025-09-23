@@ -109,6 +109,11 @@ teff_ranges = {
     }
 }
 
+timescale_types_with_CaHe = [
+    TimescaleType.KoesterNoOvershoot,
+    TimescaleType.KoesterOvershoot
+]
+
 class TimescaleInterpolator():
 
     def __init__(self):
@@ -208,6 +213,7 @@ class TimescaleInterpolator():
                 }
             }
         }
+        print('Reminder! For the 3D option, should we default to the no overshoot case if we land outside the 3D grid?')
         self.all_timescale_data = self.load_data()
         self.wd_data = None
         self.expected_vals = dict()
@@ -342,7 +348,7 @@ class TimescaleInterpolator():
         # Different csv files are formatted differently - this just returns a flag to let us know how the particular request csv is formatted
         # 0 is basically default
         # 1 has CaHe as an additional variable
-        if timescale_type in [TimescaleType.KoesterNoOvershoot, TimescaleType.KoesterOvershoot] and HorHe == ci.Element.He:
+        if timescale_type in timescale_types_with_CaHe and HorHe == ci.Element.He:
             return 1
         return 0
 
@@ -358,7 +364,7 @@ class TimescaleInterpolator():
             vals_list = list(self.all_timescale_data[timescale_name][HorHe][self.get_arbitrary_val(timescale_name, HorHe, 'g')][self.get_arbitrary_val(timescale_name, HorHe, 't')].keys())
             if 'logq' in vals_list:
                 # Then this was a file set which didn't have CaHe as a variable! We went straight to the elements.
-                #print('Warning! Variable CaHe was not present. Returning None')
+                print('Warning! Variable CaHe was not present. Returning None')
                 return None
             vals = np.array(vals_list)
         else:
@@ -651,11 +657,11 @@ def create_grid():
 def main():
     timescale_interpolator = TimescaleInterpolator()
     HorHe = ci.Element.H
-    logg = 8.09
-    Teff = 14400
-    CaHe = None
+    logg = 8
+    Teff = 6000
+    CaHe = -15
     print('Example timescales for a ' + str(HorHe) + ' WD with log(g) = ' + str(logg) + ', Teff = ' + str(Teff) + ' and Ca/He = ' + str(CaHe))
-    result = timescale_interpolator.get_wd_timescales(HorHe, logg, Teff, CaHe)
+    result = timescale_interpolator.get_wd_timescales(HorHe, logg, Teff, CaHe, True)
     print(result)
     for timescale_type in TimescaleType:
         print()
@@ -665,12 +671,12 @@ def main():
                 print(str(element) + ': ' + str(np.log10(result[timescale_type][element])))
             except TypeError:
                 print(str(element) + ': None')
-    for timescale_type in TimescaleType:
-        print()
-        print(timescale_type)
-        print(result[timescale_type][ci.Element.Mg]/result[timescale_type][ci.Element.Si])
-        print(result[timescale_type][ci.Element.Fe]/result[timescale_type][ci.Element.Si])
-        print(result[timescale_type][ci.Element.Mg]/result[timescale_type][ci.Element.Fe])
+    #for timescale_type in TimescaleType:
+    #    print()
+    #    print(timescale_type)
+    #    print(result[timescale_type][ci.Element.Mg]/result[timescale_type][ci.Element.Si])
+    #    print(result[timescale_type][ci.Element.Fe]/result[timescale_type][ci.Element.Si])
+    #    print(result[timescale_type][ci.Element.Mg]/result[timescale_type][ci.Element.Fe])
     #interpolated_timescales = timescale_interpolator.process_wd_data()
     #print(interpolated_timescales)
     #print('Call timescale_interpolator.dump_wd_timescales(interpolated_timescales) to dump these timescales into a file')

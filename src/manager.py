@@ -599,9 +599,10 @@ class Manager:
         plot_best_nondiff = False
         plot_best_heated = False
         bonus_plots = list()
-        bonus_plot_names = dict()#{
-        #    'HM02' : 'Best model without heating'
-        #}
+        bonus_plot_names = {
+            #'HD0' : 'Primitive'
+            #'HM02' : 'Best model without heating'
+        }
         bonus_fits = dict()
         bonus_error_lows = dict()
         bonus_error_highs = dict()

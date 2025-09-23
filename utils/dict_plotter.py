@@ -55,12 +55,39 @@ class DictPlotter:
     def draw(self):
         for plot_name, plot in self.plots.items():
             print('Drawing ' + plot_name)
-            plot.draw()
+            try:
+                plot.draw()
+            except Exception as e:
+                print('Encountered error drawing ' + plot_name + ', attempting text dump')
+                print(e)
+                plot.dump_to_text()
 
     def yield_output(self, output_dir=None, dump=True):
         for plot_name, plot in self.plots.items():
             print('Yielding output for ' + plot_name)
             plot.yield_output(output_dir, dump)
+
+    def draw_and_yield_output(self, output_dir=None, dump=True):
+        for plot_name, plot in self.plots.items():
+            print('Drawing ' + plot_name)
+            draw_successful = False
+            try:
+                plot.draw()
+                draw_successful = True
+            except Exception as e:
+                if dump:
+                    print('Encountered error drawing ' + plot_name + ', attempting text dump')
+                    print(e)
+                    plot.dump_to_text(output_dir)
+                else:
+                    print('Encountered error drawing ' + plot_name)
+                    print(e)
+            if draw_successful:
+                print('Yielding output for ' + plot_name)
+                try:
+                    plot.yield_output(output_dir, dump)
+                except:
+                    print('Encountered error yielding output for ' + plot_name)
 
 class Plot:
 
@@ -117,6 +144,43 @@ class Plot:
                 subplot.draw(self.fig, self.gridspec, self.subplots[subplot.twin_subplot])
         plt.tight_layout()
 
+    def dump_to_text(self, output_dir=None):
+        import numpy as np
+        import sys
+        np.set_printoptions(threshold=sys.maxsize) # We need to print as much as possible. Maybe we should switch this back after we're done here?
+        s = pprint.pformat(self.raw_input_dict, sort_dicts=False)
+        s = s.replace('array', 'np.array')
+        s = s.replace('nan', 'np.nan')
+        s = s.replace('inf', 'np.inf')
+        # TODO: Do this logic by cycling through all possible enum values? Might be hard to read
+        s = s.replace('<SeriesType.function_2d: 0>', 'dp.SeriesType.function_2d')
+        s = s.replace('<SeriesType.scatter_2d: 1>', 'dp.SeriesType.scatter_2d')
+        s = s.replace('<SeriesType.function_3d: 2>', 'dp.SeriesType.function_3d')
+        s = s.replace('<SeriesType.scatter_3d: 3>', 'dp.SeriesType.scatter_3d')
+        s = s.replace('<SeriesType.vline: 4>', 'dp.SeriesType.vline')
+        s = s.replace('<SeriesType.text: 5>', 'dp.SeriesType.text')
+        s = s.replace('<SeriesType.shade: 6>', 'dp.SeriesType.shade')
+        s = s.replace('<SeriesType.contour_scatter: 7>', 'dp.SeriesType.contour_scatter')
+        s = s.replace('<SeriesType.scatter_2d_error: 8>', 'dp.SeriesType.scatter_2d_error')
+        s = s.replace('<SeriesType.tricontour_scatter: 9>', 'dp.SeriesType.tricontour_scatter')
+        s = s.replace('<SeriesType.ellipse: 10>', 'dp.SeriesType.ellipse')
+        s = s.replace('<SeriesType.hline: 11>', 'dp.SeriesType.hline')
+        s = s.replace('<SeriesType.arrow: 12>', 'dp.SeriesType.arrow')
+        s = s.replace('<SeriesType.hist2d: 13>', 'dp.SeriesType.hist2d')
+        s = s.replace('<SeriesType.bar: 14>', 'dp.SeriesType.bar')
+        s = s.replace('<SeriesType.pie: 15>', 'dp.SeriesType.pie')
+        s = s.replace('<SeriesType.ternary_scatter: 16>', 'dp.SeriesType.ternary_scatter')
+        s = s.replace('<SubplotType.cartesian: 0>', 'dp.SubplotType.cartesian')
+        s = s.replace('<SubplotType.ternary: 1>', 'dp.SubplotType.ternary')
+        s = s.replace('<SubplotType.polar: 2>', 'dp.SubplotType.polar')
+        s = s.replace('OrderedDict', 'cn.OrderedDict')
+        destination = self.filenames[0] + '.txt'
+        if output_dir is not None:
+            destination = output_dir + destination
+        with open(destination, 'w') as dump_file:
+            print(s, file=dump_file)
+        print('Dumped text version to ' + destination)
+
     def yield_output(self, output_dir=None, dump=True, close=True):
         if output_dir is not None:
             if not output_dir.endswith('/'):
@@ -126,41 +190,7 @@ class Plot:
             except FileExistsError:
                 pass
         if dump:
-            # Dump first in case something goes wrong with the plot!
-            import numpy as np
-            import sys
-            np.set_printoptions(threshold=sys.maxsize)
-            s = pprint.pformat(self.raw_input_dict, sort_dicts=False)
-            s = s.replace('array', 'np.array')
-            s = s.replace('nan', 'np.nan')
-            s = s.replace('inf', 'np.inf')
-            s = s.replace('<SeriesType.function_2d: 0>', 'dp.SeriesType.function_2d')
-            s = s.replace('<SeriesType.scatter_2d: 1>', 'dp.SeriesType.scatter_2d')
-            s = s.replace('<SeriesType.function_3d: 2>', 'dp.SeriesType.function_3d')
-            s = s.replace('<SeriesType.scatter_3d: 3>', 'dp.SeriesType.scatter_3d')
-            s = s.replace('<SeriesType.vline: 4>', 'dp.SeriesType.vline')
-            s = s.replace('<SeriesType.text: 5>', 'dp.SeriesType.text')
-            s = s.replace('<SeriesType.shade: 6>', 'dp.SeriesType.shade')
-            s = s.replace('<SeriesType.contour_scatter: 7>', 'dp.SeriesType.contour_scatter')
-            s = s.replace('<SeriesType.scatter_2d_error: 8>', 'dp.SeriesType.scatter_2d_error')
-            s = s.replace('<SeriesType.tricontour_scatter: 9>', 'dp.SeriesType.tricontour_scatter')
-            s = s.replace('<SeriesType.ellipse: 10>', 'dp.SeriesType.ellipse')
-            s = s.replace('<SeriesType.hline: 11>', 'dp.SeriesType.hline')
-            s = s.replace('<SeriesType.arrow: 12>', 'dp.SeriesType.arrow')
-            s = s.replace('<SeriesType.hist2d: 13>', 'dp.SeriesType.hist2d')
-            s = s.replace('<SeriesType.bar: 14>', 'dp.SeriesType.bar')
-            s = s.replace('<SeriesType.pie: 15>', 'dp.SeriesType.pie')
-            s = s.replace('<SeriesType.ternary_scatter: 16>', 'dp.SeriesType.ternary_scatter')
-            s = s.replace('<SubplotType.cartesian: 0>', 'dp.SubplotType.cartesian')
-            s = s.replace('<SubplotType.ternary: 1>', 'dp.SubplotType.ternary')
-            s = s.replace('<SubplotType.polar: 2>', 'dp.SubplotType.polar')
-            s = s.replace('OrderedDict', 'cn.OrderedDict')
-            destination = self.filenames[0] + '.txt'
-            if output_dir is not None:
-                destination = output_dir + destination
-            with open(destination, 'w') as dump_file:
-                print(s, file=dump_file)
-            print('Dumped text version to ' + destination)
+            self.dump_to_text(output_dir)
         if self.show:
             plt.show()
         if self.filenames is not None:
@@ -762,10 +792,16 @@ class Series:
             mpl_minor_version = int(mpl_version_parse[1])
             newversion = mpl_major_version >= 3 and mpl_minor_version >= 1
             # From version 3.1.0 onwards, normed was renamed to density
-            if newversion:
-                hist = ax.hist2d(self.x_data, self.y_data, bins=self.bins, density=self.normed, cmap=self.cmap)
+
+            if self.colour_map_colours is not None:
+                cmap = clr.LinearSegmentedColormap.from_list('dummy', self.colour_map_colours, N=256)
             else:
-                hist = ax.hist2d(self.x_data, self.y_data, bins=self.bins, normed=self.normed, cmap=self.cmap)
+                cmap = self.cmap
+
+            if newversion:
+                hist = ax.hist2d(self.x_data, self.y_data, bins=self.bins, density=self.normed, cmap=cmap)
+            else:
+                hist = ax.hist2d(self.x_data, self.y_data, bins=self.bins, normed=self.normed, cmap=cmap)
             if (self.cbar_label is not None) or (self.cbar_ticks is not None) or (self.cbar_ticklabels is not None):
                 cbar = figure.colorbar(hist[3], ax=ax, format='%.2f')
                 if self.cbar_label is not None:

@@ -18,7 +18,7 @@ import timescale_interpolator as ti
 max_num_observable_sinking_timescales = 5
 assumed_accretion_event_timescale = 100000 #yr
 dummy_timescale = 0.01 #yr - doesn't matter much, just needs to be short relative to assumed_accretion_event_timescale
-min_thermohaline_temp = 15000 # The minimum temperature that we will consider for thermohaline DAs
+min_thermohaline_temp = 10000 # The minimum temperature that we will consider for thermohaline DAs
 max_thermohaline_temp = 20502
 synthetic_default_error = 0.2 # The error to be assumed for synthetic wds
 min_elements_for_correlation = 4
@@ -250,9 +250,11 @@ def estimate_declining_phase_depth(white_dwarf, timescale_types_to_try):
         estimate = chance
     else:
         estimate = chance*max(0, corr)*max_num_observable_sinking_timescales
+    print(white_dwarf.full_name())
     print('corr = ' + str(corr))
     print('chance = ' + str(chance))
     print('estimate = ' + str(estimate))
+    print()
     return estimate
 
 def estimate_a_priori_chance_of_declining_phase(white_dwarf, timescale_types_to_try):
@@ -440,7 +442,7 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
     # Idea here is to, for each Teff and logg, calculate the expected metric value by averaging across a synthetic population of pollutants
     # We can use the population synthesis code to do this - but we will need to override the WD teff and log(g)
 
-    grid_steps = 100
+    grid_steps = 20
     weak_metric_threshold = 0.5
     metric_threshold = 1
     strong_metric_threshold = 2
@@ -474,13 +476,24 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
     PROXYPAT_values = np.zeros((len(logg_values), len(Teff_values)))
     local_modellable_wd_density = np.zeros((len(logg_values), len(Teff_values)))
 
+    #if atm_type == ci.Element.He:
+        #D_values = [0, 0.1, 0.3, 0.6, 1, 2, 5] # Sampling appropriately here might be the best approach
+        #D_values = [1] #...on second thoughts, mathematically it should be equivalent to just take the mean value alone! Which is about 1 (see fig 4.7 of my thesis)
+        # On third thoughts it will make a difference for the number of times above a certain threshold, but we can just calculate it for each synthetic wd no?
+    #else:
+    #    D_values = [0]
+
     population_size = None
     wd_config_to_use = None
     pollution_config_to_use = None
     if atm_type == ci.Element.He:
+        #synth_pop_file_name = 'popdump_TestPop1_TestObs_TestMod1.csv'
         synth_pop_file_name = 'popdump_ReferenceDB_RealisticObservererr0p2_NullModeller.csv' #<-- this is not fully self consistent because we used VO to generate the population
+        #synth_pop_file_name = 'popdump_SyntheticHollandsTidalKO_HollandsObservererr0p2_NullModeller.csv'
+        #synth_pop_file_name = 'popdump_SyntheticHollandsCollisionalKO_HollandsObservererr0p2_NullModeller.csv'
     else:
         synth_pop_file_name = 'popdump_ReferenceDA_RealisticObservererr0p2_NullModeller.csv' #<-- this is not fully self consistent because we used 3P to generate the population
+        #synth_pop_file_name = 'popdump_DADeltaFcfPop_RealisticObservererr0p2_StandardModeller.csv'
     synth_pop_file = pu.get_path_to_pipeline_base_dir() + 'popdumps/' + synth_pop_file_name
     test_pop = sp.SyntheticPopulation(population_size, wd_config_to_use, pollution_config_to_use, synth_pop_file)
 
@@ -490,7 +503,9 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
     # The mean of an exponential distribution is 1/lambda (the first parameter that sets the decay)
     # We want the mean to be about 1 (see fig 4.7 in my thesis)
     # hence lambda = 1 (the second argument is how many values we want to sample)
-    D_values = np.random.exponential(1, 50)
+    #D_values = np.random.exponential(1, 50)
+
+    num_D_values = 50
 
     cached_timescale_interpolator = get_cached_timescale_interpolator()
     for i, logg in enumerate(logg_values):
@@ -508,7 +523,7 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
             max_logg_dist = 0.1
             first_iteration = True
             local_modellable_wd_density_val = 0
-            while len(dm_values) < (5*len(D_values)):
+            while len(dm_values) < (5*num_D_values):
                 for wd in test_pop:
                     # We should also filter the wd by Teff and logg, because these might correlate with detected elements!
                     Teff_dist = abs(wd.wd_properties[mp.WDParameter.temperature] - Teff)
@@ -517,6 +532,8 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
                         if first_iteration:
                             local_modellable_wd_density_val += 1
                         if wd.observed_abundances is not None and len(wd.observed_abundances) > 1:
+                            lambda_val = estimate_a_priori_chance_of_declining_phase(wd, [tt for tt in all_timescale_types if tt not in [None, thermohaline_dummy_override_string]])
+                            D_values = np.random.exponential(lambda_val, num_D_values)
                             for D_override in D_values:
                                 dm = calculate_discrepancy_metric(wd, timescale_pairs, timescale_override_dict, D_override)
                                 dm_values.append(dm)
@@ -547,7 +564,6 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
             full_sample = {wd.full_name(): (wd.get_teff().value, wd.get_logg().value) for wd in pick_out_all_dbs()}
         else:
             print(atm_type)
-            raise
     local_modellable_wd_density /= local_modellable_wd_density.sum()
     import graph_factory as gf
     graph_fac = gf.GraphFactory()
@@ -565,21 +581,22 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
 
 def main():
     #pick_out_sample('OVERSHOOT_DA_CONTROL')
-    pick_out_sample('BVK_DB')
-    pick_out_sample('BVK_DA')
-    pick_out_sample('OVERSHOOT_DB')
-    pick_out_sample('FIXED_OVERSHOOT_DB')
-    pick_out_sample('OVERSHOOT_DA')
-    pick_out_sample('THERMOHALINE_DA')
+    #pick_out_sample('BVK_DB')
+    #pick_out_sample('BVK_DA')
+    #pick_out_sample('OVERSHOOT_DB')
+    #pick_out_sample('FIXED_OVERSHOOT_DB')
+    #pick_out_sample('OVERSHOOT_DA')
+    #pick_out_sample('THERMOHALINE_DA')
+    #plot_metric_for_synthetic_pop('OVERSHOOT_DA')
+    #plot_metric_for_synthetic_pop('FIXED_OVERSHOOT_DB')
 
-    plot_metric_for_synthetic_pop('BVK_DA')
+    #plot_metric_for_synthetic_pop('BVK_DA')
+    #plot_metric_for_synthetic_pop('OVERSHOOT_DA_PATCHED')
+    #plot_metric_for_synthetic_pop('THERMOHALINE_DA')
     plot_metric_for_synthetic_pop('BVK_DB')
     plot_metric_for_synthetic_pop('OVERSHOOT_DB')
-    plot_metric_for_synthetic_pop('OVERSHOOT_DA')
-    plot_metric_for_synthetic_pop('FIXED_OVERSHOOT_DB')
 
-    plot_metric_for_synthetic_pop('OVERSHOOT_DA_PATCHED')
-    plot_metric_for_synthetic_pop('THERMOHALINE_DA')
+    pass
 
 if __name__ == '__main__':
     main()
