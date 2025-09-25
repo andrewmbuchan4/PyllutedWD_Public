@@ -2063,8 +2063,8 @@ def get_mock_partition_coefficient(element, pressure=None, fO2=None):
 class AbundanceTests(unittest.TestCase):
 
     def load_generic_float_data_csv(self, input_filename):
-        generic_csv = open(get_path_to_data() + input_filename)
-        generic_list =  [row for row in csv.reader(generic_csv)]
+        with open(get_path_to_data() + input_filename) as generic_csv:
+            generic_list =  [row for row in csv.reader(generic_csv)]
         generic_array = np.asarray(generic_list)
         return generic_array.astype(np.float)
 
