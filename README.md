@@ -82,7 +82,7 @@ And then, within the R interface, run the following command:
 install.packages("cramer")
 ```
 
-Finally, update src/configuration.ini with the path you would like to save output to.
+Finally, update src/configuration.ini with the path you would like to save output to, as well as the location of the DA pollution tables.
 
 ## Validation
 
