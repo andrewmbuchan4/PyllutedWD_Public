@@ -2756,7 +2756,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                               plt.figure(figsize=(6,4))
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                              plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -2792,7 +2792,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                               plt.figure(figsize=(6,4)) 
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                              plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -3456,9 +3456,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -3488,7 +3488,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -4114,9 +4114,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -4328,9 +4328,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -4954,9 +4954,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -5168,9 +5168,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -5656,7 +5656,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                               plt.figure(figsize=(6,4))
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                              plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -5692,7 +5692,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                               plt.figure(figsize=(6,4)) 
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                              plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -6355,9 +6355,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -6386,7 +6386,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -7011,9 +7011,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -7225,9 +7225,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -7849,9 +7849,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -8063,9 +8063,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -8533,7 +8533,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                plt.figure(figsize=(6,4))
                                plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                               plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                               plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                plt.ylabel('Probability', fontsize=14)
                                plt.ylim(0,(np.max(h)*1.25))
                                plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -8569,7 +8569,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                                plt.figure(figsize=(6,4)) 
                                plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                               plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                               plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                                plt.ylabel('Probability', fontsize=14)
                                plt.ylim(0,(np.max(h)*1.25))
                                plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -9232,9 +9232,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -9263,7 +9263,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -9887,9 +9887,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -10102,9 +10102,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -10727,9 +10727,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -10941,9 +10941,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -11394,7 +11394,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                plt.figure(figsize=(6,4))
                                plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                               plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                               plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                plt.ylabel('Probability', fontsize=14)
                                plt.ylim(0,(np.max(h)*1.25))
                                plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -11430,7 +11430,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                                plt.figure(figsize=(6,4)) 
                                plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                               plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                               plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                                plt.ylabel('Probability', fontsize=14)
                                plt.ylim(0,(np.max(h)*1.25))
                                plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -12093,9 +12093,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -12124,7 +12124,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -12748,9 +12748,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -12962,9 +12962,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -13586,9 +13586,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -13801,9 +13801,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -14227,7 +14227,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                       h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                       plt.figure(figsize=(6,4))
                       plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                      plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                      plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                       plt.ylabel('Probability', fontsize=14)
                       plt.ylim(0,(np.max(h)*1.25))
                       plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -14263,7 +14263,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                       h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                       plt.figure(figsize=(6,4)) 
                       plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                      plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                      plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                       plt.ylabel('Probability', fontsize=14)
                       plt.ylim(0,(np.max(h)*1.25))
                       plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -15356,9 +15356,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -15570,9 +15570,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -15787,9 +15787,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -16382,7 +16382,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                               plt.figure(figsize=(6,4))
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                              plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -16418,7 +16418,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                               plt.figure(figsize=(6,4)) 
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                              plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -17084,9 +17084,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -17115,7 +17115,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -17739,9 +17739,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -17953,9 +17953,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -18577,9 +18577,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -18792,9 +18792,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -19305,7 +19305,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                               plt.figure(figsize=(6,4))
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                              plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -19341,7 +19341,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                               plt.figure(figsize=(6,4)) 
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                              plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -20005,9 +20005,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -20035,7 +20035,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -20660,9 +20660,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -20875,9 +20875,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -21499,9 +21499,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -21713,9 +21713,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -22208,7 +22208,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                               plt.figure(figsize=(6,4))
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                              plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -22244,7 +22244,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                               plt.figure(figsize=(6,4)) 
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                              plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -22907,9 +22907,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -22938,7 +22938,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -23563,9 +23563,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -23776,9 +23776,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -24401,9 +24401,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -24616,9 +24616,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -25098,7 +25098,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                               plt.figure(figsize=(6,4))
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                              plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -25134,7 +25134,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                               plt.figure(figsize=(6,4)) 
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                              plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -25797,9 +25797,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -25827,7 +25827,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                                     plt.figure(figsize=(6,4))
                                     plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                                    plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                                    plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                                     plt.ylabel('Probability', fontsize=14)
                                     plt.ylim(0,(np.max(h)*1.25))
                                     plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -26451,9 +26451,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -26666,9 +26666,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -27290,9 +27290,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -27504,9 +27504,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -27857,7 +27857,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_c[0]/(np.sum(hist_c[0])))
                               plt.figure(figsize=(6,4))
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel('\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
+                              plt.xlabel(r'\% \ \ \ \ \ Core \ \ \ \ \ Lost \ \ \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Crust Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-56,(np.max(h)*1.05),'Core Depleted, Mantle Enhanced', ha='center') 
@@ -27893,7 +27893,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                               h = np.ndarray.tolist(hist_o[0]/(np.sum(hist_o[0])))
                               plt.figure(figsize=(6,4)) 
                               plt.bar(xbar,h,width=1,color='k',edgecolor='k',label=str(Names[N]))
-                              plt.xlabel(' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
+                              plt.xlabel(r' \% \ \ \ \ \ Crust \ \ \ \ \ Lost  \ \ \ \ \ \ \ \ \ \ \ \ \% Mantle+Core Lost', fontsize=14)
                               plt.ylabel('Probability', fontsize=14)
                               plt.ylim(0,(np.max(h)*1.25))
                               plt.text(-50,(np.max(h)*1.05),'Crust Depleted', ha='center') 
@@ -28983,9 +28983,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -29197,9 +29197,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -29412,9 +29412,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
@@ -29626,9 +29626,9 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
                                     upper = [0.114145511, 0.131417374, 0.152552378, 0.138930603, 0.151802017, 0.132419952, 0.095546878, 0.230676051, 0.281268694, 0.172593095, 0.318840642]
                                     lower = [-0.300126301, -0.062910874, -0.13177587, -0.161069397, -0.252526231, -0.251908295, -0.12878137, -0.203652197, -0.228731306, -0.234382055, -0.321159357]
                                     solar = [-0.015854489, -0.042910874, -0.05177587, -0.011069397, -0.032526231, -0.021908295, -0.00878137, -0.013652197, -0.098731306, 0.008264847, -0.061159358]
-                                    plt.fill_between(x_axis,upper,lower, color='silver', label='Stellar 98\% Composition Range',zorder=1)
-                                    plt.xlabel('Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
-                                    plt.ylabel('$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
+                                    plt.fill_between(x_axis,upper,lower, color='silver', label=r'Stellar 98\% Composition Range',zorder=1)
+                                    plt.xlabel(r'Lithophiles \, \, \, \, \, \, \, \, \, \, \, \, Siderophiles \, \, \, \, \, \, \, Volatile Lithophiles \, \, \, \, Atmophiles', fontsize=14, horizontalalignment='left', x=0.08)
+                                    plt.ylabel(r'$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$', fontsize=16)
                                     plt.yticks(np.arange(-2, 2.5, step=0.5))
                                     plt.plot(x_axis, solar, label='Solar Composition', color='k', linestyle='--')
                                     plt.ylim(-2,2)
