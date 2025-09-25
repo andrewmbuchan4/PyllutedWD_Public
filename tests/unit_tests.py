@@ -2066,7 +2066,7 @@ class AbundanceTests(unittest.TestCase):
         with open(get_path_to_data() + input_filename) as generic_csv:
             generic_list =  [row for row in csv.reader(generic_csv)]
         generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def test_abundances(self):
         linear_d_formation = 0.5
@@ -5268,7 +5268,7 @@ class CompleteModelTests(unittest.TestCase):
         with open(get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
             generic_list = [row for row in csv.reader(generic_csv)]
         generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def test_complete_model(self):
         manager = mn.Manager()

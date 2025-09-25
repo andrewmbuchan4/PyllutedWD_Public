@@ -281,7 +281,7 @@ class Manager:
         with open(pu.get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
             generic_list = [row for row in csv.reader(generic_csv)]
             generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def publish_live_data(self, N_wd, timescale_type):
         elements_to_model = ci.usual_elements

@@ -259,11 +259,10 @@ class Modeller:
                         other_population.pop_ks_test_results[pop_name][parameter] = result
 
     def load_generic_float_data_csv(self, input_filename):
-        # TODO: Change this to a with clause to prevent ResourceWarnings
         with open(pu.get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
             generic_list = [row for row in csv.reader(generic_csv)]
             generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def apply_simple_fcf_interpolation(self, system):
         MgHx = system.observed_abundances.get(ci.Element.Mg, None)

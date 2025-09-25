@@ -321,7 +321,7 @@ def load_generic_float_data_csv(input_filename):
         generic_list.append(['0.006', '0.0035', '0.0036', '0.0025', '0.0027', '0.003', '0.0059', '0.0052', '0.002', '0.003', '0.006', '0.004'])  # PG0843+516
         generic_list.append(['837529', '523600', '568853', '576766', '559758', '540754', '866962', '843335', '833681', '862979', '961612', '881049'])  # WD1551+175
     generic_array = np.asarray(generic_list)
-    return generic_array.astype(np.float)
+    return generic_array.astype(float)
 
 def run_complete_model(trial_fits, extended_fits):
     # This section is basically replicating some set up functionality in the Manager which I want to avoid using directly

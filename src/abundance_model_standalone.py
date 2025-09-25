@@ -9,10 +9,10 @@ import live_data as ld
 import solar_abundances as sa
 
 def load_generic_float_data_csv(input_filename):
-    generic_csv = open('../data/' + input_filename)
-    generic_list =  [row for row in csv.reader(generic_csv)]
+    with open('../data/' + input_filename) as generic_csv:
+        generic_list =  [row for row in csv.reader(generic_csv)]
     generic_array = np.asarray(generic_list)
-    return generic_array.astype(np.float)
+    return generic_array.astype(float)
 
 def get_abundances(d_formation, z_formation, t_formation, stellar_metallicity_index):
     ld._live_stellar_compositions = load_generic_float_data_csv('StellarCompositionsSortFE.csv')
