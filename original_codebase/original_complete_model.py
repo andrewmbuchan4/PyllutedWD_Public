@@ -34,7 +34,7 @@ def PWDCodeMultiple(Nmin, Nmax, complexity, fe_star_to_test, t_sinceaccretion_to
     import math
     try: os.mkdir('chains')
     except OSError: pass
-    warnings.simplefilter('ignore', np.RankWarning)
+    warnings.simplefilter('ignore', np.exceptions.RankWarning)
     warnings.simplefilter('ignore', RuntimeWarning)
     warnings.simplefilter('ignore', FutureWarning)
     #PERSONAL FAVOURITE GRAPH SETTINGS
