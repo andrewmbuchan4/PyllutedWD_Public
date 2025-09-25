@@ -384,6 +384,10 @@ class SyntheticPopulation:
             list_of_str = input_string[1:-1].split(',')
             toret = [self.cast_string_to_float_or_int(foi.strip()) for foi in list_of_str]
             return toret
+        if input_string.startswith('np.float'):
+            # Extract the number from inside the brackets
+            number_str = input_string[input_string.find('(')+1:input_string.rfind(')')]
+            return float(number_str)
         if '.' in input_string:
             return float(input_string)
         if 'e+' in input_string or 'e-' in input_string or 'E+' in input_string or 'E-' in input_string:
