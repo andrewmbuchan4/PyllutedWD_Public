@@ -1,0 +1,4 @@
+__pycache__/
+
+# Test outputs
+tests/test_synth_dump_v*_golden.csv
