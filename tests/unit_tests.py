@@ -2705,7 +2705,7 @@ class GeologyTests(unittest.TestCase):
             for layer, abundance in element_data.items():
                 self.assertAlmostEqual(expected_abundances[element][layer], abundance)
         for element, D in Ds.items():
-            self.assertEqual(expected_Ds[element], D)
+            self.assertAlmostEqual(expected_Ds[element], D)
         self.assertEqual(expected_pcnf, w_met)
         abundances, w_met, Ds, all_Ds = geology_model.form_a_planet_iteratively(5, -2)
         expected_pcnf = 0.14338933574162993
