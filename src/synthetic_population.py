@@ -384,6 +384,10 @@ class SyntheticPopulation:
             list_of_str = input_string[1:-1].split(',')
             toret = [self.cast_string_to_float_or_int(foi.strip()) for foi in list_of_str]
             return toret
+        if input_string.startswith('np.float'):
+            # Extract the number from inside the brackets
+            number_str = input_string[input_string.find('(')+1:input_string.rfind(')')]
+            return float(number_str)
         if '.' in input_string:
             return float(input_string)
         if 'e+' in input_string or 'e-' in input_string or 'E+' in input_string or 'E-' in input_string:
@@ -548,7 +552,7 @@ class SyntheticPopulation:
         with open(pu.get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
             generic_list = [row for row in csv.reader(generic_csv)]
             generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def get_next_id(self):
         id_list = list()

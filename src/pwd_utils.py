@@ -96,6 +96,11 @@ def get_path_to_da_pollution_tables_dir():
     toret = config_wrapper.get('Paths', 'da_pollution_tables_dir')
     if not toret.endswith('/'):
         toret += '/'
+    assert Path(toret).is_dir(), (
+        'Path to DA pollution tables directory does not exist: ' +
+        toret +
+        '\nMost likely you have not set this path in configuration.ini'
+    )
     return toret
 
 def get_path_to_pocomc_dir():

@@ -483,6 +483,8 @@ class WhiteDwarf():
     def abbreviated_name(self, chars_to_remove):
         toret = self.full_name()
         max_length = len(toret) - chars_to_remove
+        if max_length <= 0:
+            raise ValueError(f'Was asked to abbreviate name to {max_length} characters')
         abbreviated_system_names = self.get_abbreviated_system_names()
         abbreviated_variants = self.get_abbreviated_variants()
         system_name_index = 0

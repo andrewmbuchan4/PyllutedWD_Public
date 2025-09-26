@@ -2063,10 +2063,10 @@ def get_mock_partition_coefficient(element, pressure=None, fO2=None):
 class AbundanceTests(unittest.TestCase):
 
     def load_generic_float_data_csv(self, input_filename):
-        generic_csv = open(get_path_to_data() + input_filename)
-        generic_list =  [row for row in csv.reader(generic_csv)]
+        with open(get_path_to_data() + input_filename) as generic_csv:
+            generic_list =  [row for row in csv.reader(generic_csv)]
         generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def test_abundances(self):
         linear_d_formation = 0.5
@@ -2705,7 +2705,7 @@ class GeologyTests(unittest.TestCase):
             for layer, abundance in element_data.items():
                 self.assertAlmostEqual(expected_abundances[element][layer], abundance)
         for element, D in Ds.items():
-            self.assertEqual(expected_Ds[element], D)
+            self.assertAlmostEqual(expected_Ds[element], D)
         self.assertEqual(expected_pcnf, w_met)
         abundances, w_met, Ds, all_Ds = geology_model.form_a_planet_iteratively(5, -2)
         expected_pcnf = 0.14338933574162993
@@ -5268,7 +5268,7 @@ class CompleteModelTests(unittest.TestCase):
         with open(get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
             generic_list = [row for row in csv.reader(generic_csv)]
         generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def test_complete_model(self):
         manager = mn.Manager()

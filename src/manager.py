@@ -281,7 +281,7 @@ class Manager:
         with open(pu.get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
             generic_list = [row for row in csv.reader(generic_csv)]
             generic_array = np.asarray(generic_list)
-        return generic_array.astype(np.float)
+        return generic_array.astype(float)
 
     def publish_live_data(self, N_wd, timescale_type):
         elements_to_model = ci.usual_elements
@@ -371,8 +371,8 @@ class Manager:
         # NB: The following logic is a bit fragile: It only works if assuming that all other timescale items/thermohaline flags that
         # we're going to run have the same length as this current one (otherwise we'll find that one of those other combinations
         # may have a different length, so will get abbreviated differently, and end up in a different output directory)
+        ideal_output_dir = self.get_chains_dir(white_dwarf.full_name(), timescale_type, consider_thermohaline, False)
         for model_name, model in self.models[timescale_type][consider_thermohaline].items():
-            ideal_output_dir = self.get_chains_dir(white_dwarf.full_name(), timescale_type, consider_thermohaline, False)
             filename_overflow = model.get_file_name_overflow(ideal_output_dir)
             if filename_overflow > max_filename_overflow:
                 max_filename_overflow = filename_overflow
