@@ -117,23 +117,51 @@ python main.py configuration.ini
 ```
 
 The only command line argument is the name of a configuration file (by default, it looks in configuration.ini), which contains the various parameters and settings. These are:
+```
+[Paths]
+output_dir: Location to save output data
+da_pollution_tables_dir: Location of the DA_Pollution_Tables directory
+pocomc_dir: Install location of pocoMC (For experimentation - not necessary!)
 
-- output_dir: The location to save output data
-- da_pollution_tables_dir: The location of the DA_Pollution_Tables directory
-- pocomc_dir: The install location of pocoMC (For experimentation - not necessary!)
-- wd_input_file: The csv file containing data from polluted white dwarfs to be modelled. Compatible with PEWDD. The code will look for this file in the /data/ directory. The abundance columns (e.g., 'log(O/H(e))') should specify number abundances of the relevant element (O in this case) relative to the dominant atmospheric element (the element specified in 'atmosphere'). A typical entry will just be a negative number (e.g., '-8.5') but the minus sign can be omitted for convenience. The corresponding error column (e.g., 'log(O/H(e))e') should contain the 1 sigma error estimate on the abundance, or a -1 to indicate that the abundance is an upper bound. Asymmetric errors are not yet supported. For abundances and errors, indicate no data by leaving the entry blank. Timescale columns (e.g., 't_Al') are ignored in this version of the code.
-- stellar_compositions_file: The csv file containing stellar compositions. The code will look for this file in the /data/ directory. This file contains 11 columns, corresponding to the following (number) abundance ratios, on a linear scale (not log): Al/Mg, Ti/Mg, Ca/Mg, Ni/Mg, Fe/Mg, Cr/Mg, Si/Mg, Na/Mg, O/Mg, C/Mg, N/Mg. The rows can be sorted according to the application. The default file, StellarCompositionsSortFE.csv, is sorted by Fe abundance, which makes sense if iron core formation is considered to be the main (or one of the main) compositional variables.
-- timescale_types: The set(s) of timescale grids to use, comma separated. configuration.ini lists all possible options.
+[Files]
+- wd_input_file: csv file containing data from polluted WDs to be modelled, relative to /data/ directory.
+    Compatible with PEWDD.
+    The abundance columns (e.g., 'log(O/{H,He})') should specify number abundances of the relevant element (O in this case) relative to the dominant atmospheric element (the element specified in 'atmosphere').
+    A typical entry will just be a negative number (e.g., '-8.5') but the minus sign can be omitted for convenience.
+    The corresponding error column (e.g., 'log(O/{H,He})e') should contain the 1 sigma error estimate on the abundance, or a -1 to indicate that the abundance is an upper bound (asymmetric errors are not yet supported).
+    For abundances and errors, indicate no data by leaving the entry blank.
+    (Timescale columns (e.g., 't_Al') are ignored in this version of the code).
+- stellar_compositions_file: csv file containing stellar compositions, relative to /data/ directory.
+    This file contains 11 columns, corresponding to the following (number) abundance ratios, on a linear scale (not log): Al/Mg, Ti/Mg, Ca/Mg, Ni/Mg, Fe/Mg, Cr/Mg, Si/Mg, Na/Mg, O/Mg, C/Mg, N/Mg.
+    The rows can be sorted according to the application.
+    The default file, StellarCompositionsSortFE.csv, is sorted by Fe abundance, which makes sense if iron core formation is considered to be the main (or one of the main) compositional variables.
+
+[Settings]
+- timescale_types: Set(s) of timescale grids to use, comma separated.  
+    By default, configuration.ini lists all possible options.
 - thermohaline_modes: Either 'True', 'False', or 'True, False', to indicate whether thermohaline mixing should be included, neglected, or both.
 - suppress_graphical_output: If True, do not produce any graphical output. If False, graphs will be generated in post-processing.
-- live_points: the number of live points that PyMultiNest will use. The higher the number, the slower the code will run but the better constrained the Bayesian evidence/posteriors will be - I typically use 2000, or 20 for testing purposes.
-- differentiation_model: This essentially sets the prescription for how core--mantle differentiation is calculated. In normal usage, this should be either 'Earthlike' or 'NonEarthlike' (other options listed in enhancement_model.py). I typically use NonEarthlike - this allows the model to use pressure/oxygen fugacity variables to explore a range of compositions
-- pollution_models: Sets the parameters to be explored. By default, 'Hierarchy_Default' is used, which means that multiple combinations of parameters will be explored using a hierarchy of lists of parameters, which is the typical use case. Multiple hierarchies exist, see model_parameters.py. It is also possible to specify multiple individual models (not hierarchies) by listing them one after another.
-- seed: The seed used for random number generation in PyMultiNest. By default, this is -1 (which means it will use the system clock).
-- default_logg: The value of log(g), in cgs units, to assume for white dwarfs if no value is specified. By default, this is 8.
-- default_ca: The default abundance of Ca to assume for white dwarfs with no Ca detection, in log10 number abundance relative to H/He. This is only used when calculating sinking timescales with grids which use this as a parameter. The default value is -15.
-- verbose: Whether to run PyMultiNest in verbose mode. True (default) or False.
-- resume: Whether to run PyMultiNest in resume mode. If True (default), this means that if a system has already been run (or partially run) for a given set of parameters, the code will continue where it left off, which is a useful timesaver. If False, the code will start from scratch, which is useful (and necessary!) if you are rerunning with edited abundance data or something like that.
+- live_points: the number of live points that PyMultiNest will use.
+    The higher the number, the slower the code will run but the better constrained the Bayesian evidence/posteriors will be - I typically use 2000, or 20 for testing purposes.
+- differentiation_model: Prescription for how core-mantle differentiation is calculated.
+    In normal usage, this should be either 'Earthlike' or 'NonEarthlike' (other options listed in src/enhancement_model.py).
+    I typically use 'NonEarthlike' - this allows the model to use pressure/oxygen fugacity variables to explore a range of compositions.
+- pollution_models: Parameter set to be explored.
+    By default, 'Hierarchy_Default' is used, which means that multiple combinations of parameters will be explored using a hierarchy of lists of parameters, which is the typical use case.
+    Multiple hierarchies exist, see src/model_parameters.py.
+    It is also possible to specify multiple individual models (not hierarchies) by listing them one after another.
+- seed: Seed used for random number generation in PyMultiNest.
+    By default, this is -1 (which means it will use the system clock).
+- default_logg: The value of log(g), in cgs units, to assume for white dwarfs if no value is specified.
+    By default, this is 8.
+- default_ca: The default abundance of Ca to assume for white dwarfs with no Ca detection, in log10 number abundance relative to H/He.
+    This is only used when calculating sinking timescales with grids which use this as a parameter.
+    The default value is -15.
+- verbose: Whether to run PyMultiNest in verbose mode.
+- resume: Whether to run PyMultiNest in resume mode.
+    If True (default), this means that if a system has already been run (or partially run) for a given set of parameters, the code will continue where it left off, which is a useful timesaver.
+    If False, the code will start from scratch, which is useful (and necessary!) if you are rerunning with edited abundance data or something like that.
+```
 
 By default, the code will run on all systems specified in the white dwarf data input file. To run on a subset of these systems, change the argument in the call to manager.run() in main.py. The argument should be a list containing integers specifying the row(s) in the white dwarf input file of the systems to run (the first row below the header is row 0).
 
