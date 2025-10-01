@@ -413,7 +413,11 @@ class ModelAnalyser:
         accretion_timescale_index = parameter_indices[mp.ModelParameter.accretion_timescale]
         modes = list()
         for index, param in enumerate(model.get_model_params()):
-            modes.append(np.asscalar(stat.mode(np.around(weightpost[:,index], decimals=2))[0]))
+            mode = stat.mode(np.around(weightpost[:,index], decimals=2))[0]
+            if mode is not None:
+                modes.append(mode.item())
+            else:
+                modes.append(None)
         medians = self.get_param_vals_by_percentile(model, weightpost, 50)
         percentile_5 = self.get_param_vals_by_percentile(model, weightpost, 5)
         percentile_16 = self.get_param_vals_by_percentile(model, weightpost, 16)
