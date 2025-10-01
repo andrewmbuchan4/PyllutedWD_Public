@@ -108,13 +108,15 @@ To run the synthetic pipeline code, which generates and models synthetic pollute
 python synthetic_pipeline.py
 ```
 
-## Input and output for the Bayesian code (main.py)
+## The Bayesian code (main.py)
 
 The entry point is main.py. A typical command line call to main.py can be found in run_main.sh, and looks like this:
 
 ```
 python main.py configuration.ini
 ```
+
+### Input
 
 The only command line argument is the name of a configuration file (by default, it looks in configuration.ini), which contains the various parameters and settings. These are:
 ```
@@ -165,22 +167,61 @@ pocomc_dir: Install location of pocoMC (For experimentation - not necessary!)
 
 By default, the code will run on all systems specified in the white dwarf data input file. To run on a subset of these systems, change the argument in the call to manager.run() in main.py. The argument should be a list containing integers specifying the row(s) in the white dwarf input file of the systems to run (the first row below the header is row 0).
 
-Output will be stored in /path/to/output/r where path/to/output is the output_dir specified above. Each system will have its own subdirectory. This subdirectory contains any generated graphs, a further subdirectory called c containing the PyMultiNest output, and a .csv file with a variety of output quantities. Here I briefly summarise the key/potentially unclear outputs in the csv file:
-- Near the top is a table listing all the models that were run (column Model), and the Bayesian evidence of each (column ln_Z_model). Higher (less negative) is better!
-- The third column in this table is called 'Good fit?'. Use this column to check whether the best model is actually able to fit the data well
-- Below the sinking timescales should be a line saying 'Results from model:' followed by the name of a model. Below this point, until you reach another such line, the results refer to this model specifically
-- The percentile values on each parameter are calculated from resampling randomly from the individual posteriors - forward modelling using these median values will not necessarily be the same as the median fit!
-- The Disc Composition row contains the relative abundances of each element (specified in the Elements row) in the disc at the point of formation, i.e., the bulk composition of the pollutant's parent body
-- The Parent Core Number Fraction entry specifies the predicted core fraction of the pollutant's parent body (based on pressure/oxygen fugacity), not the pollutant itself. If this is extremely low (i.e., << 0.01), it indicates that the differentiation model converged to an unphysical result.
-- Similarly, the Radius and Mass entries refer to the parent body
-- delta time is the median value of t - t_event, where t is the time since accretion and t_event is accretion event lifetime. The 3rd and 4th columns are the upper and lower errors on this value (similarly elsewhere)
-- The Build Up, Steady State and Declining entries specify the posterior probability of accretion being in each of those phases
-- The Temperature entry specifies the median temperature characterising the extent of volatile depletion (which can be interpreted as the temperature during formation)
-- Among the various oxygen excess outputs, the key ones are at the bottom under Excess Oxygen Semi-Sampling results
-- Sigma excess (default) is the sigma significance of an oxygen excess or deficit, using the default oxidation scheme
-- Median fractional excess (default) is the (median value of) the fraction of oxygen which cannot be assigned to metal oxides, using the default oxidation scheme
+### Output
 
-## Input and output for the synthetic white dwarf code (synthetic_pipeline.py)
+The output data folders often have truncated names, to accommodate MultiNest's awkward 100-character path limit. The output directory is structured thus:
+
+```
+<output_dir>/
+├── pipeline
+└── r[esults]
+    ├── <system1>
+    :   ├── <timescale type abbrev.>
+    :   :   └── {n[ot considering thermohaline mixing], t[hermohaline mixing considered]}
+        :       ├── c
+                |   └── <pymultinest output files>
+                ├── <plot>.pdf
+                ├── <plot>.pdf.txt
+                ├── <plot>.png
+                └── ..._stats.csv
+
+```
+
+Outputs are stored in `output_dir/r` based on the `output_dir` specified in the configuration file (see above).
+Within `r/`, each system has its own subdirectory.
+Within each system's directory, there is a folder corresponding to each of the timescale types specified in the config (see above); the abbreviations used are as follows (and also in `src/timescale_interpolator.py`):
+- `3o` : `Bedard3DOvershoot`
+- `3p` : `Bedard3DOvershootPatched`
+- `bn` : `BedardNoOvershoot`
+- `bo` : `BedardOvershoot`
+- `kn` : `KoesterNoOvershoot`
+- `ko` : `KoesterOvershoot`
+- `m`  : `MWDD`
+- `vo` : `BedardVariableOvershoot`
+
+Within each of these is a folder for each of the thermohaline modes specified in the config (see above):
+`n` if `thermohaline_modes` is `False`;
+`t` if `True`;
+both if `True, False`.
+
+Within these folders is a folder `c/` (containing `pymultinest` outputs), any generated graphs (in pdf, png, and .pdf.txt forms), and a file called `..._stats.csv`. This csv file contains the important quantitative outputs for this particular system/(timescale type)/(thermohaline mode). Here I briefly summarise the key/potentially unclear outputs in the csv file:
+- Near the top is a table listing all the models that were run (`Model` column), and the Bayesian evidence of each (`ln_Z_model` column). Higher (less negative) is better!
+    - The third column in this table is called `Good fit?`. This column checks whether the best model is actually able to fit the data well.
+- The next table shows sinking timescales for each element.
+- Below is a line saying `Results from model:` followed by the name of a model. Below this point, the results refer to this model specifically (until you reach another such line).
+    - The percentile values on each parameter are calculated from resampling randomly from the individual posteriors - forward modelling using these median values will not necessarily be the same as the median fit!
+- The `Disc Composition` row contains the relative abundances of each element (specified in the `Elements` row) in the disc at the point of formation, i.e., the bulk composition of the pollutant's parent body
+- The `Parent Core Number Fraction` entry specifies the predicted core fraction of the pollutant's parent body (based on pressure/oxygen fugacity), not the pollutant itself. If this is extremely low (i.e., << 0.01), it indicates that the differentiation model converged to an unphysical result.
+- Similarly, the `Radius /km` and `Mass /M_Earth` entries refer to the parent body
+- `delta time/Myrs` is the median value of t - t_event, where t is the time since accretion and t_event is accretion event lifetime. The 3rd and 4th columns are the upper and lower errors on this value (similarly elsewhere)
+- The `Build Up %`, `Steady State %` and `Declining %` entries specify the posterior probability of accretion being in each of those phases
+- The `Temperature /K` entry specifies the median temperature characterising the extent of volatile depletion (which can be interpreted as the temperature during formation)
+- Among the various oxygen excess outputs, the key ones are at the bottom under `Excess Oxygen Semi-Sampling results`
+    - `Sigma excess (default)` is the sigma significance of an oxygen excess or deficit, using the default oxidation scheme
+    - `Median fractional excess (default)` is the (median value of) the fraction of oxygen which cannot be assigned to metal oxides, using the default oxidation scheme
+
+
+## The synthetic WD code (`synthetic_pipeline.py`)
 
 The entry point is synthetic_pipeline.py. There are no command line arguments.
 
