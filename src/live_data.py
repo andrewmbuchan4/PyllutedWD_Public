@@ -3,9 +3,11 @@
 import csv
 import numpy as np
 
-# This file is a bit of a hack. It exists because we need to pass external information into the prior function,
-# but the prior function can only contain one argument (cube) otherwise pymultinest complains.
-# So the idea here is that the manager will update the following variables, which can then be accessed by the prior
+# This file is a bit of a hack. It exists because we need to pass external information
+# into the prior function, but the prior function can only contain one argument (cube)
+# otherwise pymultinest complains.
+# So the idea here is that the manager will update the following variables, which can
+# then be accessed by the prior
 
 _live_model = None
 _live_prior = None
@@ -31,9 +33,12 @@ _live_prior = None
 _live_enhancement_model = None
 _live_consider_thermohaline = None
 
-# These last few variables are particularly egregious - they're ultimately here because the complete_model function needs to work for both Bayesian and Synthetic code
-# From the point of view of the Bayesian code, we would ideally just send the white dwarf object in as an argument
-# But in the Synthetic code, there is no white dwarf. Setting these global variables to the relevant values is a compromise
+# These last few variables are particularly egregious - they're ultimately here because
+# the complete_model function needs to work for both Bayesian and Synthetic code.
+# From the point of view of the Bayesian code, we would ideally just send the white
+# dwarf object in as an argument.
+# But in the Synthetic code, there is no white dwarf. Setting these global variables to
+# the relevant values is a compromise.
 
 _live_Hx = None
 _live_M_cvz = None

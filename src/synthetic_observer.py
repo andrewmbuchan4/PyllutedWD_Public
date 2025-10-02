@@ -8,6 +8,7 @@ import detection_thresholds as dt
 import model_parameters as mp
 import synthetic_bandpass as sb
 
+
 class ObservationType(Enum):
     NoCut = 0
     CaMgFeCutoff = 1
@@ -18,15 +19,18 @@ class ObservationType(Enum):
     def __str__(self):
         return self.name
 
+
 class Observer:
 
-    def __init__(self, observation_type, error_dict=dict(), threshold_type='Default'):
+    def __init__(self, observation_type, error_dict=dict(), threshold_type="Default"):
         self.error_dict = error_dict
         self.observation_type = observation_type
         self.threshold_offset = 0
         try:
-            self.threshold_offset += threshold_type # This means you can set threshold_type to -1 and it'll use the default thresholds but all reduced by 1 dex
-            self.threshold_type = 'Default'
+            self.threshold_offset += threshold_type
+            # ^ This means you can set threshold_type to -1 and it'll use the default
+            # thresholds but all reduced by 1 dex
+            self.threshold_type = "Default"
         except TypeError:
             self.threshold_type = threshold_type
         self.threshold_def_dict = dt.threshold_bank[self.threshold_type]
@@ -41,7 +45,7 @@ class Observer:
         elif self.observation_type == ObservationType.TeffIndividualElementCutoff:
             self.observation_function = self.apply_TeffDependentIndividualElementCutoff
         else:
-            raise ValueError('Unrecognised observation type ' + str(observation_type))
+            raise ValueError("Unrecognised observation type " + str(observation_type))
 
     def observe_populations(self, population_dict, overwrite=False):
         observed_populations = dict()
@@ -51,10 +55,14 @@ class Observer:
     def observe_population(self, population, overwrite=False):
         for system in population:
             if overwrite or system.observed is None:
-                print('Trying to observe system ' + str(system.id))
+                print("Trying to observe system " + str(system.id))
                 self.observe_system(system)
             else:
-                print('System ' + str(system.id) + ' already assessed for observability, skipping')
+                print(
+                    "System "
+                    + str(system.id)
+                    + " already assessed for observability, skipping"
+                )
 
     def observe_system(self, system):
         abundances_as_observed = self.observation_function(system)
@@ -91,10 +99,11 @@ class Observer:
             return dict()
         y = u - g
         x = g - r
-        y_in_bounds = y > 0.5 and y < 3.8  # All this is eyeballed from Fig 4 of Hollands 2017
-        #        left edge defined by y = 3x + 1.5, right edge defined by y=3x-0.5 roughly
+        y_in_bounds = y > 0.5 and y < 3.8
+        # ^ All this is eyeballed from Fig 4 of Hollands 2017
+        # left edge defined by y = 3x + 1.5, right edge defined by y = 3x - 0.5 roughly
         # rearranging, we require x > y/3 - 0.5, x < y/3 + 1/6
-        x_in_bounds = x > (y - 1.5)/3 and x < (y + 0.5)/3
+        x_in_bounds = x > (y - 1.5) / 3 and x < (y + 0.5) / 3
         if y_in_bounds and x_in_bounds:
             return self.apply_errors(system.pollution_abundances)
         return dict()
@@ -104,7 +113,8 @@ class Observer:
 
     def apply_IndividualElementCutoff(self, system):
         # Numbers here are arbitrary - this function is unused!
-        cutoff_thresholds = {  # Abundances have to be above this in order to detect element
+        cutoff_thresholds = {
+            # Abundances have to be above this in order to detect element
             ci.Element.Al: -7 + self.threshold_offset,
             ci.Element.Ti: -7 + self.threshold_offset,
             ci.Element.Ca: -9 + self.threshold_offset,
@@ -116,7 +126,7 @@ class Observer:
             ci.Element.Na: -7 + self.threshold_offset,
             ci.Element.O: -7 + self.threshold_offset,
             ci.Element.C: -7 + self.threshold_offset,
-            ci.Element.N: -7 + self.threshold_offset
+            ci.Element.N: -7 + self.threshold_offset,
         }
         # Firstly, apply random noise:
         noisy_abundances = self.apply_errors(system.pollution_abundances)
@@ -128,14 +138,25 @@ class Observer:
         return toret
 
     def calculate_element_cutoff_threshold(self, element, spectral_type, teff):
-        # Assume there is a straight line defined by threshold = m*teff + c which sets the threshold
+        # Assume there is a straight line defined by threshold = m * teff + c
+        # which sets the threshold
         m_c_tuple = self.threshold_def_dict[spectral_type][element]
-        threshold = (m_c_tuple[0]*teff) + m_c_tuple[1] + self.threshold_offset # this is just y = mx + c, plus the threshold offset
+        threshold = (m_c_tuple[0] * teff) + m_c_tuple[1] + self.threshold_offset
+        # ^ this is just y = mx + c, plus the threshold offset
         return threshold
 
     def apply_TeffDependentIndividualElementCutoff(self, system):
-        potentially_detectable_elements = self.threshold_def_dict[system.wd_properties[mp.WDParameter.spectral_type]].keys()
-        cutoff_thresholds = {ped: self.calculate_element_cutoff_threshold(ped, system.wd_properties[mp.WDParameter.spectral_type], system.wd_properties[mp.WDParameter.temperature]) for ped in potentially_detectable_elements}
+        potentially_detectable_elements = self.threshold_def_dict[
+            system.wd_properties[mp.WDParameter.spectral_type]
+        ].keys()
+        cutoff_thresholds = {
+            ped: self.calculate_element_cutoff_threshold(
+                ped,
+                system.wd_properties[mp.WDParameter.spectral_type],
+                system.wd_properties[mp.WDParameter.temperature],
+            )
+            for ped in potentially_detectable_elements
+        }
         # Firstly, apply random noise:
         noisy_abundances = self.apply_errors(system.pollution_abundances)
         # Now remove any elements which fall below the cutoff threshold

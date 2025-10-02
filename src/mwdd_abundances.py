@@ -5,6 +5,7 @@ import csv
 import chemistry_info as ci
 import pwd_utils as pu
 
+
 def get_mwdd_abundances(element, Hx, include_teff=False, include_upper_bounds=False):
     element_indices = {
         (ci.Element.H, ci.Element.He): 5,
@@ -30,7 +31,7 @@ def get_mwdd_abundances(element, Hx, include_teff=False, include_upper_bounds=Fa
         (ci.Element.Fe, ci.Element.He): 25,
         (ci.Element.Fe, ci.Element.H): 26,
         (ci.Element.Ni, ci.Element.He): 27,
-        (ci.Element.Ni, ci.Element.H): 28
+        (ci.Element.Ni, ci.Element.H): 28,
     }
     teff_index = 4
     try:
@@ -42,10 +43,12 @@ def get_mwdd_abundances(element, Hx, include_teff=False, include_upper_bounds=Fa
             return None
     toret = list()
     toret_ub = list()
-    with open(pu.get_path_to_data() + 'MWDD-export-allpollution.csv', encoding='utf-8') as mwddcsv:
+    with open(
+        pu.get_path_to_data() + "MWDD-export-allpollution.csv", encoding="utf-8"
+    ) as mwddcsv:
         row_count = 0
         for row in csv.reader(mwddcsv):
-            if row_count == 0: # Heading row
+            if row_count == 0:  # Heading row
                 pass
             else:
                 teff = None
@@ -55,7 +58,7 @@ def get_mwdd_abundances(element, Hx, include_teff=False, include_upper_bounds=Fa
                     teff = float(row[teff_index])
                 except ValueError:
                     pass
-                if row[element_index].startswith('<'):
+                if row[element_index].startswith("<"):
                     try:
                         upper_bound = float(row[element_index][1:])
                     except ValueError:
@@ -82,12 +85,21 @@ def get_mwdd_abundances(element, Hx, include_teff=False, include_upper_bounds=Fa
     else:
         return toret
 
+
 def main():
     el1 = ci.Element.Mg
     el2 = ci.Element.H
     values = get_mwdd_abundances(el1, el2)
-    print(str(len(values)) + ' values for ' + str(el1) + '/' + str(el2) + ' found in MWDD:')
+    print(
+        str(len(values))
+        + " values for "
+        + str(el1)
+        + "/"
+        + str(el2)
+        + " found in MWDD:"
+    )
     print(values)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -8,6 +8,7 @@ import graph_factory as gf
 import manager as mn
 import timescale_interpolator as ti
 
+
 def plot_fits():
     graph_fac = gf.GraphFactory()
 
@@ -16,17 +17,65 @@ def plot_fits():
 
     manager = mn.Manager()
 
-    #Special logic bc this particular system is being run with a dedicated nebular composition
-    manager.wd_data_filename = 'WDJ0916InputData.csv'
-    manager.stellar_compositions_filename = 'WDJ0916StellarCompositionV2.csv'
+    # Special logic bc this particular system is being run with a dedicated nebular
+    # composition
+    manager.wd_data_filename = "WDJ0916InputData.csv"
+    manager.stellar_compositions_filename = "WDJ0916StellarCompositionV2.csv"
     manager.load_global_data()
 
     system_fits = {
-    #Stellar metallicity indices	Time since Accretion/Myrs	log(Formation Distance/AU)	Feeding Zone Size/AU	PCF PcrustF Fragment Core Fraction FCrustF	log(Fragment Mass /kg)	log(Accretion Event Timescale/Yrs)	Pressure /GPa	Oxygen Fugacity /ΔIW
-        'SDSSJ0916+2540': {
-            'MedianVals': [0, 0.467526553916363, -0.848113622562445, 0.088902947433765, None, None, None, None, 19.3866588618516, 2.37329810536358, None, None],
-            'SS': [0, 5, -0.848113622562445, 0.088902947433765, None, None, None, None, 19.3866588618516, 7, None, None],
-            'NoHeating': [0, 0.467526553916363, 2, 0.088902947433765, None, None, None, None, 19.3866588618516, 2.37329810536358, None, None]
+        # - Stellar metallicity indices
+        # - Time since Accretion/Myrs
+        # - log(Formation Distance/AU)
+        # - Feeding Zone Size/AU
+        # - PCF PcrustF Fragment Core Fraction FCrustF
+        # - log(Fragment Mass /kg)
+        # - log(Accretion Event Timescale/Yrs)
+        # - Pressure /GPa
+        # - Oxygen Fugacity /ΔIW
+        "SDSSJ0916+2540": {
+            "MedianVals": [
+                0,
+                0.467526553916363,
+                -0.848113622562445,
+                0.088902947433765,
+                None,
+                None,
+                None,
+                None,
+                19.3866588618516,
+                2.37329810536358,
+                None,
+                None,
+            ],
+            "SS": [
+                0,
+                5,
+                -0.848113622562445,
+                0.088902947433765,
+                None,
+                None,
+                None,
+                None,
+                19.3866588618516,
+                7,
+                None,
+                None,
+            ],
+            "NoHeating": [
+                0,
+                0.467526553916363,
+                2,
+                0.088902947433765,
+                None,
+                None,
+                None,
+                None,
+                19.3866588618516,
+                2.37329810536358,
+                None,
+                None,
+            ],
         }
     }
     print(system_fits)
@@ -51,10 +100,10 @@ def plot_fits():
             f_c = parameter_values[6]
             f_o = parameter_values[7]
             fragment_mass = parameter_values[8]
-            t_disc = 10**parameter_values[9]
+            t_disc = 10 ** parameter_values[9]
             pressure = parameter_values[10]
             fO2 = parameter_values[11]
-            enhancement_model = 'NonEarthlike'
+            enhancement_model = "NonEarthlike"
             t_formation = 1.5
             normalise_abundances = True
             result = cm.complete_model_calculation(
@@ -72,7 +121,7 @@ def plot_fits():
                 fO2,
                 enhancement_model,
                 t_formation,
-                normalise_abundances
+                normalise_abundances,
             )
             print(result)
             outputs[fit_name] = result[0]
@@ -80,12 +129,34 @@ def plot_fits():
         extra_text_dict = None
         video = False
         fit_dict_prescaled = False
-        hack_legend_to_only_show_pressure=False
-        graph_fac.make_composition_plot_mk3(white_dwarf, elements_to_plot, outputs, None, model_name, extra_text_dict, video, fit_dict_prescaled, hack_legend_to_only_show_pressure)
-        graph_fac.make_composition_plot_mk3(white_dwarf, elements_to_plot, outputs, ci.Element.Mg, model_name, extra_text_dict, video, fit_dict_prescaled, hack_legend_to_only_show_pressure)
+        hack_legend_to_only_show_pressure = False
+        graph_fac.make_composition_plot_mk3(
+            white_dwarf,
+            elements_to_plot,
+            outputs,
+            None,
+            model_name,
+            extra_text_dict,
+            video,
+            fit_dict_prescaled,
+            hack_legend_to_only_show_pressure,
+        )
+        graph_fac.make_composition_plot_mk3(
+            white_dwarf,
+            elements_to_plot,
+            outputs,
+            ci.Element.Mg,
+            model_name,
+            extra_text_dict,
+            video,
+            fit_dict_prescaled,
+            hack_legend_to_only_show_pressure,
+        )
+
 
 def main():
     plot_fits()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

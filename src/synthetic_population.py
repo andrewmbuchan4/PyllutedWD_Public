@@ -20,6 +20,7 @@ import synthetic_bandpass as sb
 import synthetic_configurations as sc
 import timescale_interpolator as ti
 
+
 class PopulationParameter(Enum):
     size = 0
     wd_config = 1
@@ -28,9 +29,20 @@ class PopulationParameter(Enum):
     def __str__(self):
         return self.name
 
+
 class SyntheticSystem:
 
-    def __init__(self, wd_properties, pollution_properties, pollution_abundances, observed=None, observed_abundances=None, bandpass_magnitudes=None, modelled_properties=None, id_no=None):
+    def __init__(
+        self,
+        wd_properties,
+        pollution_properties,
+        pollution_abundances,
+        observed=None,
+        observed_abundances=None,
+        bandpass_magnitudes=None,
+        modelled_properties=None,
+        id_no=None,
+    ):
         self.wd_properties = wd_properties
         self.pollution_properties = pollution_properties
         self.pollution_abundances = pollution_abundances
@@ -42,35 +54,65 @@ class SyntheticSystem:
 
     def __repr__(self):
         if self.id is None:
-            toret = '\nWD [No ID]:'
+            toret = "\nWD [No ID]:"
         else:
-            toret = '\nWD ' + str(self.id) + ':'
+            toret = "\nWD " + str(self.id) + ":"
         try:
-            toret += '\n' + ', '.join([str(parameter) + ': ' + str(value) for parameter, value in self.wd_properties.items()])
+            toret += "\n" + ", ".join(
+                [
+                    str(parameter) + ": " + str(value)
+                    for parameter, value in self.wd_properties.items()
+                ]
+            )
         except AttributeError:  # If wd_properties is None
-            toret += '\n[No WD properties]'
+            toret += "\n[No WD properties]"
         try:
-            toret += '\nPollution properties:\n' + ', '.join([str(parameter) + ': ' + str(value) for parameter, value in self.pollution_properties.items()])
+            toret += "\nPollution properties:\n" + ", ".join(
+                [
+                    str(parameter) + ": " + str(value)
+                    for parameter, value in self.pollution_properties.items()
+                ]
+            )
         except AttributeError:
-            toret += '\nPollution properties:\n[No Pollution properties]'
+            toret += "\nPollution properties:\n[No Pollution properties]"
         try:
-            toret += '\nPollution:\n' + ', '.join([str(el) + ': ' + str(abundance) for el, abundance in self.pollution_abundances.items()])
+            toret += "\nPollution:\n" + ", ".join(
+                [
+                    str(el) + ": " + str(abundance)
+                    for el, abundance in self.pollution_abundances.items()
+                ]
+            )
         except AttributeError:
-            toret += '\nPollution:\n[No Pollution values]'
-        toret += '\nObserved:\n' + str(self.observed)
+            toret += "\nPollution:\n[No Pollution values]"
+        toret += "\nObserved:\n" + str(self.observed)
         try:
-            toret += '\nObserved Abundances:\n' + ', '.join([str(el) + ': ' + str(abundance) for el, abundance in self.observed_abundances.items()])
+            toret += "\nObserved Abundances:\n" + ", ".join(
+                [
+                    str(el) + ": " + str(abundance)
+                    for el, abundance in self.observed_abundances.items()
+                ]
+            )
         except AttributeError:
-            toret += '\nObserved Abundances:\n[No observed abundance values]'
+            toret += "\nObserved Abundances:\n[No observed abundance values]"
         try:
-            toret += '\nBandpass Magnitudes:\n' + ', '.join([str(bandpass) + ': ' + str(magnitude) for bandpass, magnitude in self.bandpass_magnitudes.items()])
+            toret += "\nBandpass Magnitudes:\n" + ", ".join(
+                [
+                    str(bandpass) + ": " + str(magnitude)
+                    for bandpass, magnitude in self.bandpass_magnitudes.items()
+                ]
+            )
         except AttributeError:
-            toret += '\nBandpass Magnitudes:\n[No bandpass magnitude values]'
+            toret += "\nBandpass Magnitudes:\n[No bandpass magnitude values]"
         try:
-            toret += '\nModelled:\n' + ', '.join([str(parameter) + ': ' + str(value) for parameter, value in self.modelled_properties.items()])
+            toret += "\nModelled:\n" + ", ".join(
+                [
+                    str(parameter) + ": " + str(value)
+                    for parameter, value in self.modelled_properties.items()
+                ]
+            )
         except AttributeError:
-            toret += '\nModelled:\n[No Modelled properties]'
-        toret += '\n'
+            toret += "\nModelled:\n[No Modelled properties]"
+        toret += "\n"
         return toret
 
     def compare_dicts_ignoring_None(self, dict1, dict2):
@@ -93,52 +135,81 @@ class SyntheticSystem:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            wd_properties_match = self.compare_dicts_ignoring_None(self.wd_properties, other.wd_properties)
-            pollution_properties_match = self.compare_dicts_ignoring_None(self.pollution_properties, other.pollution_properties)
-            pollution_abundances_match = self.compare_dicts_ignoring_None(self.pollution_abundances, other.pollution_abundances)
-            observed_abundances_match = self.compare_dicts_ignoring_None(self.observed_abundances, other.observed_abundances)
-            bandpass_magnitudes_match = self.compare_dicts_ignoring_None(self.bandpass_magnitudes, other.bandpass_magnitudes)
-            modelled_properties_match = self.compare_dicts_ignoring_None(self.modelled_properties, other.modelled_properties)
+            wd_properties_match = self.compare_dicts_ignoring_None(
+                self.wd_properties, other.wd_properties
+            )
+            pollution_properties_match = self.compare_dicts_ignoring_None(
+                self.pollution_properties, other.pollution_properties
+            )
+            pollution_abundances_match = self.compare_dicts_ignoring_None(
+                self.pollution_abundances, other.pollution_abundances
+            )
+            observed_abundances_match = self.compare_dicts_ignoring_None(
+                self.observed_abundances, other.observed_abundances
+            )
+            bandpass_magnitudes_match = self.compare_dicts_ignoring_None(
+                self.bandpass_magnitudes, other.bandpass_magnitudes
+            )
+            modelled_properties_match = self.compare_dicts_ignoring_None(
+                self.modelled_properties, other.modelled_properties
+            )
             observed_matches = self.observed == other.observed
-            return wd_properties_match and pollution_properties_match and pollution_abundances_match and observed_abundances_match and bandpass_magnitudes_match and modelled_properties_match and observed_matches
+            return (
+                wd_properties_match
+                and pollution_properties_match
+                and pollution_abundances_match
+                and observed_abundances_match
+                and bandpass_magnitudes_match
+                and modelled_properties_match
+                and observed_matches
+            )
         else:
             return False
 
-    def to_csv_row(self, wd_property_keys, pollution_property_keys, pollution_abundance_keys, print_observed, observed_abundance_keys, bandpass_magnitude_keys, modelled_property_keys):
+    def to_csv_row(
+        self,
+        wd_property_keys,
+        pollution_property_keys,
+        pollution_abundance_keys,
+        print_observed,
+        observed_abundance_keys,
+        bandpass_magnitude_keys,
+        modelled_property_keys,
+    ):
         toret = list()
         toret.append(str(self.id))
         for wpk in wd_property_keys:
             try:
-                toret.append(str(self.wd_properties.get(wpk, 'None')))
+                toret.append(str(self.wd_properties.get(wpk, "None")))
             except AttributeError:
-                toret.append('None')
+                toret.append("None")
         for ppk in pollution_property_keys:
             try:
-                toret.append(str(self.pollution_properties.get(ppk, 'None')))
+                toret.append(str(self.pollution_properties.get(ppk, "None")))
             except AttributeError:
-                toret.append('None')
+                toret.append("None")
         for pak in pollution_abundance_keys:
             try:
-                toret.append(str(self.pollution_abundances.get(pak, 'None')))
+                toret.append(str(self.pollution_abundances.get(pak, "None")))
             except AttributeError:
-                toret.append('None')
+                toret.append("None")
         if print_observed:
             toret.append(str(self.observed))
         for oak in observed_abundance_keys:
             try:
-                toret.append(str(self.observed_abundances.get(oak, 'None')))
+                toret.append(str(self.observed_abundances.get(oak, "None")))
             except AttributeError:
-                toret.append('None')
+                toret.append("None")
         for bmk in bandpass_magnitude_keys:
             try:
-                toret.append(str(self.bandpass_magnitudes.get(bmk, 'None')))
+                toret.append(str(self.bandpass_magnitudes.get(bmk, "None")))
             except AttributeError:
-                toret.append('None')
+                toret.append("None")
         for mpk in modelled_property_keys:
             try:
-                toret.append(str(self.modelled_properties.get(mpk, 'None')))
+                toret.append(str(self.modelled_properties.get(mpk, "None")))
             except AttributeError:
-                toret.append('None')
+                toret.append("None")
         return toret
 
     def set_bandpass_magnitudes(self, bandpass_magnitudes):
@@ -153,8 +224,10 @@ class SyntheticSystem:
     def get_pollution_level(self, elements_to_consider=ci.all_elements):
         list_of_abundances_for_pol_frac = list()
         for el in elements_to_consider:
-            list_of_abundances_for_pol_frac.append(self.pollution_abundances.get(el, -np.inf))
-        return np.log10(sum([10**(a) for a in list_of_abundances_for_pol_frac]))
+            list_of_abundances_for_pol_frac.append(
+                self.pollution_abundances.get(el, -np.inf)
+            )
+        return np.log10(sum([10 ** (a) for a in list_of_abundances_for_pol_frac]))
 
     def pollution_abundance_log_ratio(self, element1, element2):
         el1 = self.pollution_abundances.get(element1)
@@ -184,7 +257,8 @@ class SyntheticSystem:
         return True
 
     def check_properties_modelled(self, list_of_properties):
-        # Returns True if all properties in list_of_properties were modelled (with no Nones or nans anywhere to be seen!)
+        # Returns True if all properties in list_of_properties were modelled
+        # (with no Nones or nans anywhere to be seen!)
         if self.modelled_properties is None:
             return False
         forbidden_values = [None, np.nan]
@@ -197,21 +271,28 @@ class SyntheticSystem:
                         return False
         return True
 
-    def distance_to(self, other, distance_elements=[ci.Element.Ca, ci.Element.Mg, ci.Element.Fe]):
+    def distance_to(
+        self, other, distance_elements=[ci.Element.Ca, ci.Element.Mg, ci.Element.Fe]
+    ):
         # Calculate "distance" to another SyntheticSystem in element space
-        # For present purposes, only care about Ca, Mg and Fe. I'm using a Euclidian in log space - (linear space is bad because Ca is naturally underabundant relative to Mg and Fe so would be ignored)
-        # But I normalise to the total quantities of these elements since I actually only care about relative abundances
+        # For present purposes, only care about Ca, Mg and Fe. I'm using a Euclidian in
+        # log space - (linear space is bad because Ca is naturally underabundant
+        # relative to Mg and Fe so would be ignored)
+        # But I normalise to the total quantities of these elements since I actually
+        # only care about relative abundances
         self_total_camgfe = 0
         other_total_camgfe = 0
         for element in distance_elements:
-            self_total_camgfe += 10**self.observed_abundances[element]
-            other_total_camgfe += 10**other.observed_abundances[element]
+            self_total_camgfe += 10 ** self.observed_abundances[element]
+            other_total_camgfe += 10 ** other.observed_abundances[element]
         self_total_camgfe = np.log10(self_total_camgfe)
         other_total_camgfe = np.log10(other_total_camgfe)
         normalisation_offset = self_total_camgfe - other_total_camgfe
         distance_list = list()
         for element in distance_elements:
-            distance = self.observed_abundances[element] - other.observed_abundances[element]
+            distance = (
+                self.observed_abundances[element] - other.observed_abundances[element]
+            )
             distance_mod = distance - normalisation_offset
             distance_list.append(distance_mod)
         total_distance = 0
@@ -220,22 +301,36 @@ class SyntheticSystem:
         total_distance = np.sqrt(total_distance)
         return total_distance
 
-    def water_content(self, excess_oxygen_calculator, oxidation_strategy, consider_thermohaline=False):
-        # An estimate of the water content associated with the pollutant, based on the true abundances (i.e., not the observed ones)
-        # So in principle we're using the pollution_abundances. But actually it makes more sense to just rerun the forward model using the pollution parameters
-        # (We can then just pull out the DiscAbundances. otherwise, need to rewind differential sinking)
-        #input_dict = {'Dummy': {el: 10**val for el,val in self.pollution_abundances.items()}} # Doesn't have to be normalised, the eoc does that
-        #wd_timescales = self.timescale_interpolator.extract_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)[timescale_type_to_use]
-        # This is just copied and pasted from the create_system function - bit messy, this should really be defined elsewhere
-        enhancement_model = 'NonEarthlike'
+    def water_content(
+        self, excess_oxygen_calculator, oxidation_strategy, consider_thermohaline=False
+    ):
+        # An estimate of the water content associated with the pollutant, based on the
+        # true abundances (i.e., not the observed ones)
+        # So in principle we're using the pollution_abundances. But actually it makes
+        # more sense to just rerun the forward model using the pollution parameters
+        # (We can then just pull out the DiscAbundances. otherwise, need to rewind
+        # differential sinking)
+        # input_dict = {
+        #     'Dummy': {el: 10**val for el,val in self.pollution_abundances.items()}
+        # } # Doesn't have to be normalised, the eoc does that
+        # wd_timescales = self.timescale_interpolator.extract_timescales(
+        #     HorHe,
+        #     wd_dict[mp.WDParameter.logg],
+        #     wd_dict[mp.WDParameter.temperature],
+        #     CaHe
+        # )[timescale_type_to_use]
+        # This is just copied and pasted from the create_system function - bit messy,
+        # this should really be defined elsewhere
+        enhancement_model = "NonEarthlike"
         t_formation = 1.5
         normalise_abundances = True
         # In principle consider_thermohaline should be set something like this:
-        #wd_config_dict = sc.wd_configurations[wd_config_to_use]
-        #consider_thermohaline = wd_config_dict[mp.WDParameter.consider_thermohaline]
-        ld._live_Hx = ci.Element.H # Doesn't matter! This only plays a part in irrelevant parts of the calculation
-        ld._live_M_cvz = 1 #Ditto
-        ld._live_all_wd_timescales = np.ones(len(ci.usual_elements)) # Ditto
+        # wd_config_dict = sc.wd_configurations[wd_config_to_use]
+        # consider_thermohaline = wd_config_dict[mp.WDParameter.consider_thermohaline]
+        ld._live_Hx = ci.Element.H
+        # Doesn't matter! This only plays a part in irrelevant parts of the calculation
+        ld._live_M_cvz = 1  # Ditto
+        ld._live_all_wd_timescales = np.ones(len(ci.usual_elements))  # Ditto
         dummy = cm.complete_model_calculation(
             self.pollution_properties[mp.ModelParameter.metallicity],
             self.pollution_properties[mp.ModelParameter.t_sinceaccretion],
@@ -252,19 +347,30 @@ class SyntheticSystem:
             enhancement_model,
             consider_thermohaline,
             t_formation,
-            normalise_abundances
+            normalise_abundances,
         )
-        input_dict = {'Dummy': dummy[1]['DiscAbundances']}
+        input_dict = {"Dummy": dummy[1]["DiscAbundances"]}
         output_dict = excess_oxygen_calculator.run_full_calculation(input_dict)
-        water_mass_fraction = output_dict['Dummy'][oxidation_strategy][4]
+        water_mass_fraction = output_dict["Dummy"][oxidation_strategy][4]
         return water_mass_fraction
+
 
 class SyntheticPopulation:
 
-    def __init__(self, population_size, wd_config_to_use, pollution_config_to_use, output_filename=None, pre_made_population=None, timescale_interpolator=None, mdot_threshold_dict=dict()):
+    def __init__(
+        self,
+        population_size,
+        wd_config_to_use,
+        pollution_config_to_use,
+        output_filename=None,
+        pre_made_population=None,
+        timescale_interpolator=None,
+        mdot_threshold_dict=dict(),
+    ):
         self.wd_config_to_use = wd_config_to_use
         self.stellar_compositions = None
-        self.stellar_compositions_filename = 'StellarCompositionsSortFE.csv' # This should really be an argument (similarly in the modeller)
+        self.stellar_compositions_filename = "StellarCompositionsSortFE.csv"
+        # This should really be an argument (similarly in the modeller)
         self.pollution_config_to_use = pollution_config_to_use
         if timescale_interpolator is None:
             self.timescale_interpolator = ti.TimescaleInterpolator()
@@ -273,124 +379,163 @@ class SyntheticPopulation:
         self.inverse_cdf_dict = dict()
         self.io_ks_test_results = dict()
         self.pop_ks_test_results = dict()
-        self.atmospheric_type_dict = {
-            'DA': ci.Element.H,
-            'DB': ci.Element.He
-        }
+        self.atmospheric_type_dict = {"DA": ci.Element.H, "DB": ci.Element.He}
         self.wd_configurations = sc.wd_configurations
         self.pollution_configurations = sc.pollution_configurations
-        self.id_string = 'ID'
+        self.id_string = "ID"
         self.output_filename = output_filename
-        #self.favoured_timescale_type = ti.TimescaleType.KoesterOvershoot
-        #self.consider_thermohaline = False
-        self.mdot_threshold_gradient = mdot_threshold_dict.get('gradient')
-        self.mdot_threshold_yintercept = mdot_threshold_dict.get('yintercept')
-        self.mdot_threshold_leeway = mdot_threshold_dict.get('leeway')
-        if self.wd_config_to_use is not None and self.wd_config_to_use not in self.wd_configurations:
-            # I don't think we should actually raise this error here? Raise it when it actually becomes a problem! TODO
-            raise ValueError('Unrecognised WD configuration ' + str(wd_config_to_use))
-        if self.pollution_config_to_use is not None and self.pollution_config_to_use not in self.pollution_configurations:
-            # I don't think we should actually raise this error here? Raise it when it actually becomes a problem! TODO
-            raise ValueError('Unrecognised pollution configuration ' + str(pollution_config_to_use))
+        # self.favoured_timescale_type = ti.TimescaleType.KoesterOvershoot
+        # self.consider_thermohaline = False
+        self.mdot_threshold_gradient = mdot_threshold_dict.get("gradient")
+        self.mdot_threshold_yintercept = mdot_threshold_dict.get("yintercept")
+        self.mdot_threshold_leeway = mdot_threshold_dict.get("leeway")
+        if (
+            self.wd_config_to_use is not None
+            and self.wd_config_to_use not in self.wd_configurations
+        ):
+            # I don't think we should actually raise this error here? Raise it when it
+            # actually becomes a problem! TODO
+            raise ValueError("Unrecognised WD configuration " + str(wd_config_to_use))
+        if (
+            self.pollution_config_to_use is not None
+            and self.pollution_config_to_use not in self.pollution_configurations
+        ):
+            # I don't think we should actually raise this error here? Raise it when it
+            # actually becomes a problem! TODO
+            raise ValueError(
+                "Unrecognised pollution configuration " + str(pollution_config_to_use)
+            )
         if pre_made_population is None:
-            if self.output_filename is not None and os.path.isfile(self.output_filename):
-                print(self.output_filename + ' already exists, loading population from file')
-                # Then assume we are making a population that has already been made (and outputted) - so just load it up
+            if self.output_filename is not None and os.path.isfile(
+                self.output_filename
+            ):
+                print(
+                    self.output_filename
+                    + " already exists, loading population from file"
+                )
+                # Then assume we are making a population that has already been made
+                # (and outputted) - so just load it up
                 self.load_from_csv(self.output_filename, population_size)
             else:
                 if output_filename is None:
-                    print('No output filename supplied. Creating new population')
+                    print("No output filename supplied. Creating new population")
                 else:
-                    print(self.output_filename + ' does not already exist, creating new population')
+                    print(
+                        self.output_filename
+                        + " does not already exist, creating new population"
+                    )
                 self.create_population(population_size)
         else:
             if isinstance(pre_made_population, str):
-                print('Pre-made population set to ' + pre_made_population + ', will attempt to load from that file')
+                print(
+                    "Pre-made population set to "
+                    + pre_made_population
+                    + ", will attempt to load from that file"
+                )
                 # Then try to load it from a file called pre_made_population
                 self.load_from_csv(pre_made_population, population_size)
             else:
-                print('Pre-made population of ' + str(len(pre_made_population)) + ' systems was supplied. Will re-use it.')
+                print(
+                    "Pre-made population of "
+                    + str(len(pre_made_population))
+                    + " systems was supplied. Will re-use it."
+                )
                 # Then assume this IS the pre made population, and they already have ids
                 self.population = pre_made_population
         self.unsampled_indices = list(range(len(self)))
 
     def __repr__(self):
-        toret = 'Synthetic Population of ' + str(len(self.population)) + ' systems:'
+        toret = "Synthetic Population of " + str(len(self.population)) + " systems:"
         system_count = 0
         for system in self.population:
-            toret += '\nSystem ' + str(system_count)
+            toret += "\nSystem " + str(system_count)
             toret += str(system)
             system_count += 1
         return toret
 
     def convert_property_to_readable_str(self, system_property):
         if isinstance(system_property, ci.Element):
-            return 'log(' + str(system_property) + '/Hx)'
+            return "log(" + str(system_property) + "/Hx)"
         elif isinstance(system_property, mp.WDParameter):
             if system_property == mp.WDParameter.logg:
-                return 'WD Log(g)'
+                return "WD Log(g)"
             else:
-                return 'WD ' + str(system_property)
+                return "WD " + str(system_property)
         else:
             return str(system_property)
 
     def convert_readable_str_to_property(self, header_string):
-        if header_string.startswith('WD'):
-            new_str = header_string[3:].replace(' ', '_').replace('(', '').replace(')', '').lower()
+        if header_string.startswith("WD"):
+            new_str = (
+                header_string[3:]
+                .replace(" ", "_")
+                .replace("(", "")
+                .replace(")", "")
+                .lower()
+            )
             return mp.WDParameter[new_str]
-        elif header_string.startswith('Input'):
-            new_str = header_string[6:].replace(' ', '_').lower()
-            if new_str == 'time_since_accretion':
+        elif header_string.startswith("Input"):
+            new_str = header_string[6:].replace(" ", "_").lower()
+            if new_str == "time_since_accretion":
                 return mp.ModelParameter.t_sinceaccretion
-            if new_str.endswith('fraction'):
+            if new_str.endswith("fraction"):
                 new_str = new_str[:-4]
-                new_str = new_str.replace('_number_', '_')
+                new_str = new_str.replace("_number_", "_")
             return mp.ModelParameter[new_str]
-        elif header_string.startswith('Output'):
-            new_str = header_string[7:].replace(' ', '_').lower()
-            if new_str == 'time_since_accretion':
+        elif header_string.startswith("Output"):
+            new_str = header_string[7:].replace(" ", "_").lower()
+            if new_str == "time_since_accretion":
                 return mp.ModelParameter.t_sinceaccretion
-            if new_str.endswith('fraction'):
+            if new_str.endswith("fraction"):
                 new_str = new_str[:-4]
-                new_str = new_str.replace('_number_', '_')
+                new_str = new_str.replace("_number_", "_")
             return mp.ModelParameter[new_str]
-        elif header_string.startswith('True'):
-            new_str = header_string.split('(')[1].split('/')[0]
+        elif header_string.startswith("True"):
+            new_str = header_string.split("(")[1].split("/")[0]
             return ci.Element[new_str]
-        elif header_string == 'Observed?':
-            return 'Observed'
-        elif header_string.startswith('Observed'):
-            new_str = header_string.split('(')[1].split('/')[0]
+        elif header_string == "Observed?":
+            return "Observed"
+        elif header_string.startswith("Observed"):
+            new_str = header_string.split("(")[1].split("/")[0]
             return ci.Element[new_str]
         elif header_string == self.id_string:
             return self.id_string
         elif len(header_string) == 1:
             return sb.Bandpass[header_string]
         else:
-            raise ValueError('Unrecognised header string: ' + header_string)
+            raise ValueError("Unrecognised header string: " + header_string)
 
     def cast_string_to_float_or_int(self, input_string):
-        if input_string == '' or input_string.isspace():
+        if input_string == "" or input_string.isspace():
             return None
-        if input_string == '-inf':
-            return float('-inf')
-        if input_string == 'None':
+        if input_string == "-inf":
+            return float("-inf")
+        if input_string == "None":
             return None
-        if input_string in ['nan', 'np.nan']:
+        if input_string in ["nan", "np.nan"]:
             return np.nan
-        if input_string.startswith('[') and input_string.endswith(']'):
+        if input_string.startswith("[") and input_string.endswith("]"):
             # Then it's a list
-            list_of_str = input_string[1:-1].split(',')
-            toret = [self.cast_string_to_float_or_int(foi.strip()) for foi in list_of_str]
+            list_of_str = input_string[1:-1].split(",")
+            toret = [
+                self.cast_string_to_float_or_int(foi.strip()) for foi in list_of_str
+            ]
             return toret
-        if input_string.startswith('np.float'):
+        if input_string.startswith("np.float"):
             # Extract the number from inside the brackets
-            number_str = input_string[input_string.find('(')+1:input_string.rfind(')')]
+            number_str = input_string[
+                input_string.find("(") + 1 : input_string.rfind(")")
+            ]
             return float(number_str)
-        if '.' in input_string:
+        if "." in input_string:
             return float(input_string)
-        if 'e+' in input_string or 'e-' in input_string or 'E+' in input_string or 'E-' in input_string:
-            return float(input_string) # To catch things like '1e+20'
+        if (
+            "e+" in input_string
+            or "e-" in input_string
+            or "E+" in input_string
+            or "E-" in input_string
+        ):
+            return float(input_string)  # To catch things like '1e+20'
         else:
             try:
                 return int(input_string)
@@ -398,9 +543,9 @@ class SyntheticPopulation:
                 try:
                     return ti.TimescaleType[input_string]
                 except KeyError:
-                    if input_string == 'True':
+                    if input_string == "True":
                         return True
-                    elif input_string == 'False':
+                    elif input_string == "False":
                         return False
                     else:
                         return input_string
@@ -413,37 +558,69 @@ class SyntheticPopulation:
         bandpasses = list() if only_raw else [b for b in sb.Bandpass]
         modelled_properties = list() if only_raw else [pp for pp in mp.ModelParameter]
         header = [self.id_string]
-        header += [self.convert_property_to_readable_str(item) for item in mp.wd_descriptive_parameters]
-        header += ['Input ' + self.convert_property_to_readable_str(item) for item in pollution_properties]
-        header += ['True ' + self.convert_property_to_readable_str(item) for item in pollution_abundance_keys]
+        header += [
+            self.convert_property_to_readable_str(item)
+            for item in mp.wd_descriptive_parameters
+        ]
+        header += [
+            "Input " + self.convert_property_to_readable_str(item)
+            for item in pollution_properties
+        ]
+        header += [
+            "True " + self.convert_property_to_readable_str(item)
+            for item in pollution_abundance_keys
+        ]
         if not only_raw:
-            header += ['Observed?']
-        header += ['Observed ' + self.convert_property_to_readable_str(item) for item in observed_abundance_keys]
+            header += ["Observed?"]
+        header += [
+            "Observed " + self.convert_property_to_readable_str(item)
+            for item in observed_abundance_keys
+        ]
         header += [self.convert_property_to_readable_str(item) for item in bandpasses]
-        header += ['Output ' + self.convert_property_to_readable_str(item) for item in modelled_properties]
+        header += [
+            "Output " + self.convert_property_to_readable_str(item)
+            for item in modelled_properties
+        ]
         if output_file is None:
             output_file = self.output_filename
         if output_file is None:
-            print('Warning! No output file supplied, could not dump')
+            print("Warning! No output file supplied, could not dump")
             return
         if os.path.isfile(output_file):
-            preexisting_pop_size = sum(1 for line in open(output_file)) - 1  # Remembering to subtract header line
+            preexisting_pop_size = sum(1 for line in open(output_file)) - 1
+            # Remembering to subtract header line  --------------------^^^^
             if preexisting_pop_size >= len(self.population):
-                # Then don't dump: this is a preexisiting population, which we presumably loaded up a subset from, and we're about to delete a bunch of data!
-                print('File ' + output_file + ' already exists, aborting dump')
+                # Then don't dump: this is a preexisiting population, which we
+                # presumably loaded up a subset from, and we're about to delete a bunch
+                # of data!
+                print("File " + output_file + " already exists, aborting dump")
                 return
             else:
-                print('Warning: ' + output_file + ' already exists, but is smaller than generated population, proceeding with dump')
+                print(
+                    "Warning: "
+                    + output_file
+                    + " already exists, but is smaller than generated population, proceeding with dump"
+                )
         else:
-            print('Dumping to file ' + output_file)
-        if '/' in output_file:
-            storage_dir = output_file[:output_file.rfind('/')]
+            print("Dumping to file " + output_file)
+        if "/" in output_file:
+            storage_dir = output_file[: output_file.rfind("/")]
             os.makedirs(storage_dir, exist_ok=True)
-        with open(output_file, 'w', newline='', encoding='utf-8') as f:
+        with open(output_file, "w", newline="", encoding="utf-8") as f:
             to_write = csv.writer(f)
             to_write.writerow(header)
             for system in self.population:
-                to_write.writerow(system.to_csv_row(mp.wd_descriptive_parameters, pollution_properties, pollution_abundance_keys, not only_raw, observed_abundance_keys, bandpasses, modelled_properties))
+                to_write.writerow(
+                    system.to_csv_row(
+                        mp.wd_descriptive_parameters,
+                        pollution_properties,
+                        pollution_abundance_keys,
+                        not only_raw,
+                        observed_abundance_keys,
+                        bandpasses,
+                        modelled_properties,
+                    )
+                )
 
     def load_from_csv(self, input_file, original_requested_pop_size=np.inf):
         if original_requested_pop_size is None:
@@ -453,7 +630,7 @@ class SyntheticPopulation:
         header_dict = dict()
         header_row = None
         self.population = list()
-        with open(input_file, encoding='utf-8') as input_csv:
+        with open(input_file, encoding="utf-8") as input_csv:
             row_number = 0
             for row in csv.reader(input_csv):
                 if row_number == 0:
@@ -473,54 +650,82 @@ class SyntheticPopulation:
                     for i, value in enumerate(row):
                         required_property = header_dict[i]
                         if isinstance(required_property, mp.WDParameter):
-                            wd_properties[required_property] = self.cast_string_to_float_or_int(value)
+                            wd_properties[required_property] = (
+                                self.cast_string_to_float_or_int(value)
+                            )
                         elif isinstance(required_property, mp.ModelParameter):
-                            if header_row[i].startswith('Input'):
-                                pollution_properties[required_property] = self.cast_string_to_float_or_int(value)
-                            elif header_row[i].startswith('Output'):
-                                if value != 'None':
-                                    modelled_properties[required_property] = self.cast_string_to_float_or_int(value)
+                            if header_row[i].startswith("Input"):
+                                pollution_properties[required_property] = (
+                                    self.cast_string_to_float_or_int(value)
+                                )
+                            elif header_row[i].startswith("Output"):
+                                if value != "None":
+                                    modelled_properties[required_property] = (
+                                        self.cast_string_to_float_or_int(value)
+                                    )
                             else:
-                                raise ValueError('Unrecognised header:' + header_row[i])
+                                raise ValueError("Unrecognised header:" + header_row[i])
                         elif isinstance(required_property, ci.Element):
-                            if header_row[i].startswith('True'):
-                                pollution_abundances[required_property] = self.cast_string_to_float_or_int(value)
-                            elif header_row[i].startswith('Observed'):
-                                if value != 'None':
-                                    observed_abundances[required_property] = self.cast_string_to_float_or_int(value)
+                            if header_row[i].startswith("True"):
+                                pollution_abundances[required_property] = (
+                                    self.cast_string_to_float_or_int(value)
+                                )
+                            elif header_row[i].startswith("Observed"):
+                                if value != "None":
+                                    observed_abundances[required_property] = (
+                                        self.cast_string_to_float_or_int(value)
+                                    )
                             else:
-                                raise ValueError('Unrecognised header:' + header_row[i])
+                                raise ValueError("Unrecognised header:" + header_row[i])
                         elif isinstance(required_property, sb.Bandpass):
-                            if value != 'None':
-                                bandpass_magnitudes[required_property] = self.cast_string_to_float_or_int(value)
+                            if value != "None":
+                                bandpass_magnitudes[required_property] = (
+                                    self.cast_string_to_float_or_int(value)
+                                )
                         elif required_property == self.id_string:
                             id_no = int(value)
-                        elif required_property == 'Observed':
-                            if value == 'True':
+                        elif required_property == "Observed":
+                            if value == "True":
                                 observed = True
-                            elif value == 'False':
+                            elif value == "False":
                                 observed = False
                             else:
                                 pass
                         else:
-                            raise ValueError('Unrecognised header:' + header_row[i])
+                            raise ValueError("Unrecognised header:" + header_row[i])
                     if bandpass_magnitudes == dict():
                         bandpass_magnitudes = None
                     if observed_abundances == dict():
                         observed_abundances = None
                     if modelled_properties == dict():
                         modelled_properties = None
-                    new_system = SyntheticSystem(wd_properties, pollution_properties, pollution_abundances, observed, observed_abundances, bandpass_magnitudes, modelled_properties, id_no)
+                    new_system = SyntheticSystem(
+                        wd_properties,
+                        pollution_properties,
+                        pollution_abundances,
+                        observed,
+                        observed_abundances,
+                        bandpass_magnitudes,
+                        modelled_properties,
+                        id_no,
+                    )
                     self.population.append(new_system)
                     if len(self.population) >= requested_pop_size:
-                        # If we only want to load up 5 systems, but the file contains 50, we should return early
+                        # If we only want to load up 5 systems, but the file contains
+                        # 50, we should return early
                         return
                 row_number += 1
 
         if requested_pop_size > len(self.population):
-            print('Warning! Requested population size ' + str(requested_pop_size) + ' was greater than systems available to load (' + str(len(self.population)) + ')')
+            print(
+                "Warning! Requested population size "
+                + str(requested_pop_size)
+                + " was greater than systems available to load ("
+                + str(len(self.population))
+                + ")"
+            )
             if np.isfinite(requested_pop_size):
-                print('Will create the remaining systems')
+                print("Will create the remaining systems")
                 self.create_population(requested_pop_size, False)
 
     def __len__(self):
@@ -534,7 +739,8 @@ class SyntheticPopulation:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.population == other.population  # This could potentially be edited to ignore order?
+            return self.population == other.population
+            # This could potentially be edited to ignore order?
         else:
             return False
 
@@ -542,13 +748,17 @@ class SyntheticPopulation:
         return self.population[index]
 
     def load_compositions(self):
-        if self.stellar_compositions is None: # So we only do this once
-            stellar_compositions = self.load_generic_float_data_csv(self.stellar_compositions_filename)
+        if self.stellar_compositions is None:  # So we only do this once
+            stellar_compositions = self.load_generic_float_data_csv(
+                self.stellar_compositions_filename
+            )
             ld._live_stellar_compositions = stellar_compositions
             self.stellar_compositions = stellar_compositions
 
     def load_generic_float_data_csv(self, input_filename):
-        with open(pu.get_path_to_data() + input_filename, encoding='utf-8') as generic_csv:
+        with open(
+            pu.get_path_to_data() + input_filename, encoding="utf-8"
+        ) as generic_csv:
             generic_list = [row for row in csv.reader(generic_csv)]
             generic_array = np.asarray(generic_list)
         return generic_array.astype(float)
@@ -565,26 +775,47 @@ class SyntheticPopulation:
     def extract_raw_population(self):
         toret = list()
         for system in self.population:
-            toret.append(SyntheticSystem(system.wd_properties, system.pollution_properties, system.pollution_abundances, None, None, None, None, system.id))
+            toret.append(
+                SyntheticSystem(
+                    system.wd_properties,
+                    system.pollution_properties,
+                    system.pollution_abundances,
+                    None,
+                    None,
+                    None,
+                    None,
+                    system.id,
+                )
+            )
         return toret
 
-    def check_sinking_timescales(self, reference_timescale=1E5):
+    def check_sinking_timescales(self, reference_timescale=1e5):
         total_count = 0
         long_timescale_count = 0
         for system in self.population:
             wd_timescales = self.timescale_interpolator.get_wd_timescales(
-                str(self.spectral_type_dict[system.wd_properties[mp.WDParameter.spectral_type]]),
+                str(
+                    self.spectral_type_dict[
+                        system.wd_properties[mp.WDParameter.spectral_type]
+                    ]
+                ),
                 system.wd_properties[mp.WDParameter.logg],
                 system.wd_properties[mp.WDParameter.temperature],
-                system.pollution_abundances[ci.Element.Ca]
+                system.pollution_abundances[ci.Element.Ca],
             )
             if wd_timescales[ci.Element.Mg] > reference_timescale:
                 long_timescale_count += 1
             total_count += 1
-        print(str(long_timescale_count) + '/' + str(total_count) + ' systems exceeded t_Mg = ' + str(reference_timescale))
+        print(
+            str(long_timescale_count)
+            + "/"
+            + str(total_count)
+            + " systems exceeded t_Mg = "
+            + str(reference_timescale)
+        )
 
     def create_population(self, population_size, reset_population=True):
-        print('Generating synthetic population of ' + str(population_size) + ' systems')
+        print("Generating synthetic population of " + str(population_size) + " systems")
         if reset_population:
             self.population = list()
         pop_count = len(self.population)
@@ -592,7 +823,7 @@ class SyntheticPopulation:
         last_reported_pop_count = None
         while pop_count < population_size:
             new_system = self.create_system()
-            #print(new_system)
+            # print(new_system)
             if new_system is None:
                 excluded_count += 1
             else:
@@ -606,14 +837,26 @@ class SyntheticPopulation:
                 else:
                     raise
                     excluded_count += 1
-            if pop_count % 100 == 0 and pop_count != last_reported_pop_count and pop_count > 0:
-                print('Made ' + str(pop_count) + ' systems so far, excluded ' + str(excluded_count))
+            if (
+                pop_count % 100 == 0
+                and pop_count != last_reported_pop_count
+                and pop_count > 0
+            ):
+                print(
+                    "Made "
+                    + str(pop_count)
+                    + " systems so far, excluded "
+                    + str(excluded_count)
+                )
                 last_reported_pop_count = pop_count
 
-    def create_system(self): # Bit odd that this function isn't in the SyntheticSystem constructor?
+    def create_system(self):
+        # Bit odd that this function isn't in the SyntheticSystem constructor?
         self.load_compositions()
-        enhancement_model = 'Earthlike' # TODO: Consider switching to NonEarthlike by default? I guess it depends on the application!
-        #enhancement_model = 'FixedLightElement'
+        enhancement_model = "Earthlike"
+        # TODO: Consider switching to NonEarthlike by default? I guess it depends on the
+        # application!
+        # enhancement_model = 'FixedLightElement'
         t_formation = 1.5
         normalise_abundances = True
         wd_config_dict = self.wd_configurations[self.wd_config_to_use]
@@ -622,55 +865,112 @@ class SyntheticPopulation:
             if parameter in mp.wd_meta_parameters:
                 wd_dict[parameter] = wd_config_dict[parameter]
             if parameter in mp.wd_synthesis_parameters:
-                wd_dict[parameter] = self.draw_variable_from_distribution(wd_config_dict[parameter])
-        pollution_config_dict = self.pollution_configurations[self.pollution_config_to_use]
+                wd_dict[parameter] = self.draw_variable_from_distribution(
+                    wd_config_dict[parameter]
+                )
+        pollution_config_dict = self.pollution_configurations[
+            self.pollution_config_to_use
+        ]
         input_dict = dict()
         for parameter in mp.ModelParameter:
-            if parameter == mp.ModelParameter.fragment_mass and pollution_config_dict[parameter][1][0] == 'LogCollisionalCascade':
-                attempts = 1 # Can increase this to pick the largest mass from N random samples - ie effectively assuming that we sample N bodies but the pollution is dominated by the most massive
+            if (
+                parameter == mp.ModelParameter.fragment_mass
+                and pollution_config_dict[parameter][1][0] == "LogCollisionalCascade"
+            ):
+                attempts = 1
+                # ^ Can increase this to pick the largest mass from N random samples
+                # ie effectively assuming that we sample N bodies but the pollution is
+                # dominated by the most massive
                 possible_masses = list()
                 while len(possible_masses) < attempts:
-                    possible_masses.append(self.draw_variable_from_distribution(pollution_config_dict[parameter]))
+                    possible_masses.append(
+                        self.draw_variable_from_distribution(
+                            pollution_config_dict[parameter]
+                        )
+                    )
                 input_dict[parameter] = max(possible_masses)
             else:
-                input_dict[parameter] = self.draw_variable_from_distribution(pollution_config_dict[parameter])
-        if isinstance(input_dict[mp.ModelParameter.formation_distance], (np.integer, int)):
-            input_dict[mp.ModelParameter.formation_distance] = float(input_dict[mp.ModelParameter.formation_distance])
+                input_dict[parameter] = self.draw_variable_from_distribution(
+                    pollution_config_dict[parameter]
+                )
+        if isinstance(
+            input_dict[mp.ModelParameter.formation_distance], (np.integer, int)
+        ):
+            input_dict[mp.ModelParameter.formation_distance] = float(
+                input_dict[mp.ModelParameter.formation_distance]
+            )
         if isinstance(input_dict[mp.ModelParameter.fragment_mass], (np.integer, int)):
-            input_dict[mp.ModelParameter.fragment_mass] = float(input_dict[mp.ModelParameter.fragment_mass]) # Otherwise 10**fragment mass can give wrong results!
+            input_dict[mp.ModelParameter.fragment_mass] = float(
+                input_dict[mp.ModelParameter.fragment_mass]
+            )
+            # ^ Otherwise 10**fragment mass can give wrong results!
         HorHe = self.atmospheric_type_dict[wd_dict[mp.WDParameter.spectral_type]]
-        CaHe = -9 # Based on this being kind of in the middle of the range of timescale variation, and a good compromise between high = less common but more observable
+        CaHe = -9
+        # ^ Based on this being kind of in the middle of the range of timescale
+        # variation, and a good compromise between high = less common but more
+        # observable
         timescale_type_to_use = wd_config_dict[mp.WDParameter.timescale_type]
         consider_thermohaline = wd_config_dict[mp.WDParameter.consider_thermohaline]
 
-        mdot = (6 + input_dict[mp.ModelParameter.fragment_mass]) - np.log10(input_dict[mp.ModelParameter.accretion_timescale]) # converting here from log(kg) and yr to kg per Myr
-        # In principle, doing the next bit of precompute should improve the efficiency of the mass cut
-        # By removing systems deep in declining phase (such that there's no chance of them having detectable pollution)
-        # However, it requires an estimate of the sinking timescales: this ends up being a bottleneck, to the point where the precompute saves negligible time
-        #declining_phase_time = (1000000*input_dict[mp.ModelParameter.t_sinceaccretion]) - input_dict[mp.ModelParameter.accretion_timescale] #yr
-        #declining_phase_tO = max(0, declining_phase_time/wd_timescales[ci.Element.O]) # in units of oxygen sinking times, but default to 0 if we're not actually in declining phase
-        #effective_mdot = mdot - (declining_phase_tO*0.43429) # rough approximation - every time we go through an O sinking time, the effective mdot goes down by a factor of e (so in log10 space you get this)
+        mdot = (6 + input_dict[mp.ModelParameter.fragment_mass]) - np.log10(
+            input_dict[mp.ModelParameter.accretion_timescale]
+        )  # converting here from log(kg) and yr to kg per Myr
+        # In principle, doing the next bit of precompute should improve the efficiency
+        # of the mass cut.
+        # By removing systems deep in declining phase (such that there's no chance of
+        # them having detectable pollution).
+        # However, it requires an estimate of the sinking timescales: this ends up being
+        # a bottleneck, to the point where the precompute saves negligible time.
+        # declining_phase_time = (
+        #     1000000 * input_dict[mp.ModelParameter.t_sinceaccretion]
+        # ) - input_dict[mp.ModelParameter.accretion_timescale]  # yr
+        # declining_phase_tO = max(0, declining_phase_time/wd_timescales[ci.Element.O])
+        # # ^ In units of oxygen sinking times, but default to 0 if we're not actually
+        # # in declining phase
+        # effective_mdot = mdot - (declining_phase_tO*0.43429)
+        # # ^ rough approximation - every time we go through an O sinking time, the
+        # # effective mdot goes down by a factor of e (so in log10 space you get this)
         minimum_detectable_mdot = self.calculate_minimum_detectable_mdot(
             wd_dict[mp.WDParameter.temperature],
             self.mdot_threshold_gradient,
             self.mdot_threshold_yintercept,
-            self.mdot_threshold_leeway
+            self.mdot_threshold_leeway,
         )
         if mdot < minimum_detectable_mdot:
             # No point doing the forward model!
             return None
         else:
 
-            wd_timescales = self.timescale_interpolator.extract_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)[timescale_type_to_use]
-            ld._live_all_wd_timescales = np.array([10**wd_timescales[el] for el in ci.writeable_elements])
-            #wd_timescales = self.timescale_interpolator.get_wd_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe)[timescale_type_to_use]
-            #ld._live_all_wd_timescales = np.array([wd_timescales[el] for el in ci.writeable_elements])
+            wd_timescales = self.timescale_interpolator.extract_timescales(
+                HorHe,
+                wd_dict[mp.WDParameter.logg],
+                wd_dict[mp.WDParameter.temperature],
+                CaHe,
+            )[timescale_type_to_use]
+            ld._live_all_wd_timescales = np.array(
+                [10 ** wd_timescales[el] for el in ci.writeable_elements]
+            )
+            # wd_timescales = self.timescale_interpolator.get_wd_timescales(
+            #     HorHe, wd_dict[mp.WDParameter.logg],
+            #     wd_dict[mp.WDParameter.temperature],
+            #     CaHe
+            # )[timescale_type_to_use]
+            # ld._live_all_wd_timescales = np.array(
+            #     [wd_timescales[el] for el in ci.writeable_elements]
+            # )
 
+            # wd_timescales = self.timescale_interpolator.get_wd_timescales(
+            #     HorHe,
+            #     wd_dict[mp.WDParameter.logg],
+            #     wd_dict[mp.WDParameter.temperature],
+            #     CaHe,
+            #     True
+            # )[timescale_type_to_use]
+            # ld._live_all_wd_timescales = np.array(
+            #     [wd_timescales[el] for el in fle.important_elements]
+            # )
 
-            #wd_timescales = self.timescale_interpolator.get_wd_timescales(HorHe, wd_dict[mp.WDParameter.logg], wd_dict[mp.WDParameter.temperature], CaHe, True)[timescale_type_to_use]
-            #ld._live_all_wd_timescales = np.array([wd_timescales[el] for el in fle.important_elements])
-
-            logq = wd_timescales['logq']
+            logq = wd_timescales["logq"]
             ld._live_Hx = HorHe
             ld._live_M_cvz = wd_dict[mp.WDParameter.mass] * (10**logq)
             ld._live_teff = wd_dict[mp.WDParameter.temperature]
@@ -691,13 +991,15 @@ class SyntheticPopulation:
                 enhancement_model,
                 consider_thermohaline,
                 t_formation,
-                normalise_abundances
+                normalise_abundances,
             )
         if output_dict is None:
-            print('Warning! WD creation had None result, returning None')
+            print("Warning! WD creation had None result, returning None")
             return None
 
-        new_system = SyntheticSystem(wd_dict, input_dict, output_dict, None, None, None, None, self.get_next_id())
+        new_system = SyntheticSystem(
+            wd_dict, input_dict, output_dict, None, None, None, None, self.get_next_id()
+        )
         return new_system
 
     def draw_variable_from_distribution(self, distribution_description):
@@ -717,20 +1019,26 @@ class SyntheticPopulation:
         elif distribution_type == sc.Distribution.Triangle:
             # distribution_args = [left, mode, right]
             assert len(distribution_args) == 3
-            return np.random.triangular(distribution_args[0], distribution_args[1], distribution_args[2])
+            return np.random.triangular(
+                distribution_args[0], distribution_args[1], distribution_args[2]
+            )
         elif distribution_type == sc.Distribution.Slope:
-            # distribution_args = [left_edge_x, left_edge_y relative to right_edge_y, right_edge_x]
+            # distribution_args = [
+            #     left_edge_x, left_edge_y relative to right_edge_y, right_edge_x
+            # ]
             assert len(distribution_args) == 3
             left_edge_x = distribution_args[0]
             left_edge_y = distribution_args[1]
             right_edge_x = distribution_args[2]
             right_edge_y = 1
-            inv_gradient = (right_edge_x - left_edge_x)/(right_edge_y - left_edge_y)
-            x_intercept = left_edge_x - (inv_gradient*left_edge_y)
+            inv_gradient = (right_edge_x - left_edge_x) / (right_edge_y - left_edge_y)
+            x_intercept = left_edge_x - (inv_gradient * left_edge_y)
             if left_edge_y < right_edge_y:
                 sample = left_edge_x - 1
                 while sample < left_edge_x:
-                    sample = np.random.triangular(x_intercept, right_edge_x, right_edge_x)
+                    sample = np.random.triangular(
+                        x_intercept, right_edge_x, right_edge_x
+                    )
                 return sample
             elif left_edge_y > right_edge_y:
                 sample = right_edge_x + 1
@@ -741,18 +1049,33 @@ class SyntheticPopulation:
                 return np.random.uniform(left_edge_x, right_edge_x)
         elif distribution_type == sc.Distribution.CustomFunction:
             # distribution_args = [function name, function, min, max]
-            # First time we use this, we should cache some information about the function, i.e. the cdf
+            # First time we use this, we should cache some information about the
+            # function, i.e. the cdf
             if distribution_args[0] not in self.inverse_cdf_dict:
-                self.cache_inverse_cdf(distribution_args[0], distribution_args[1], distribution_args[2], distribution_args[3])
-            return float(self.inverse_cdf_dict[distribution_args[0]](np.random.uniform(0, 1)))
+                self.cache_inverse_cdf(
+                    distribution_args[0],
+                    distribution_args[1],
+                    distribution_args[2],
+                    distribution_args[3],
+                )
+            return float(
+                self.inverse_cdf_dict[distribution_args[0]](np.random.uniform(0, 1))
+            )
         elif distribution_type == sc.Distribution.CustomDistribution:
             # distribution_args = [function name, bins, counts]
-            # First time we use this, we should cache some information about the function, i.e. the cdf
+            # First time we use this, we should cache some information about the
+            # function, i.e. the cdf
             if distribution_args[0] not in self.inverse_cdf_dict:
-                self.cache_inverse_cdf_from_table(distribution_args[0], distribution_args[1], distribution_args[2])
-            return float(self.inverse_cdf_dict[distribution_args[0]](np.random.uniform(0, 1)))
+                self.cache_inverse_cdf_from_table(
+                    distribution_args[0], distribution_args[1], distribution_args[2]
+                )
+            return float(
+                self.inverse_cdf_dict[distribution_args[0]](np.random.uniform(0, 1))
+            )
         else:
-            raise ValueError('Unrecognised distribution type: ' + repr(distribution_type))
+            raise ValueError(
+                "Unrecognised distribution type: " + repr(distribution_type)
+            )
 
     def cache_inverse_cdf(self, function_name, function, min_val, max_val):
         sample_count = 100000
@@ -760,20 +1083,22 @@ class SyntheticPopulation:
         points_to_sample = np.linspace(min_val, max_val, sample_count)
         for i, pts in enumerate(points_to_sample):
             area, error = scint.quad(function, min_val, pts)
-            if area > 0 and error/area > 0.1:
-                print('Warning! Integration error was: ' + str(error))
+            if area > 0 and error / area > 0.1:
+                print("Warning! Integration error was: " + str(error))
                 raise
             areas[i] = area
-            #if i > 10:
+            # if i > 10:
             #    raise
         total_area = areas[-1]
         normalised_areas = np.zeros(sample_count)
         for i, area in enumerate(areas):
-            normalised_areas[i] = area/total_area
-        self.inverse_cdf_dict[function_name] = si.interp1d(normalised_areas, points_to_sample)
+            normalised_areas[i] = area / total_area
+        self.inverse_cdf_dict[function_name] = si.interp1d(
+            normalised_areas, points_to_sample
+        )
 
     def cache_inverse_cdf_from_table(self, function_name, bins, counts):
-        #Assume bins is a list of (left edge, right edge) tuples
+        # Assume bins is a list of (left edge, right edge) tuples
         bin_boundaries = np.zeros(len(counts) + 1)
         for i, bin_tuple in enumerate(bins):
             bin_boundaries[i] = bin_tuple[0]
@@ -786,31 +1111,37 @@ class SyntheticPopulation:
         count_so_far = 0
         for i, c in enumerate(counts):
             count_so_far += c
-            normalised_counts[i + 1] = count_so_far/total_counts
-        # WARNING: This caching seems to have a strange bug where it's possible to sample above the maximum input value
-        # if you supply it with bins that go above that value (even if there's nothing in those bins). Workaround:
+            normalised_counts[i + 1] = count_so_far / total_counts
+        # WARNING: This caching seems to have a strange bug where it's possible to
+        # sample above the maximum input value if you supply it with bins that go above
+        # that value (even if there's nothing in those bins). Workaround:
         # Make sure that your bins extend as far as the values and no further!
-        self.inverse_cdf_dict[function_name] = si.interp1d(normalised_counts, bin_boundaries)
+        self.inverse_cdf_dict[function_name] = si.interp1d(
+            normalised_counts, bin_boundaries
+        )
 
     def input_values(self, parameter):
         if isinstance(parameter, mp.ModelParameter):
             return self.pollution_input_values(parameter)
-        else: # Then it must be a WDParameter
+        else:
+            # Then it must be a WDParameter
             return self.wd_values(parameter)
 
     def wd_values(self, wd_parameter):
         toret = list()
         for system in self.population:
             if wd_parameter == mp.WDParameter.spectral_type:
-                toret.append(0 if system.wd_properties[wd_parameter] == 'DA' else 1)
+                toret.append(0 if system.wd_properties[wd_parameter] == "DA" else 1)
             else:
                 toret.append(system.wd_properties.get(wd_parameter))
         return toret
 
-    def calculate_minimum_detectable_mdot(self, wd_teff, gradient=None, yintercept=None, leeway=0):
+    def calculate_minimum_detectable_mdot(
+        self, wd_teff, gradient=None, yintercept=None, leeway=0
+    ):
         if gradient is None or yintercept is None:
             return -np.inf
-        return (wd_teff*gradient) + (yintercept-leeway)
+        return (wd_teff * gradient) + (yintercept - leeway)
 
     def pollution_input_values(self, input_parameter):
         toret = list()
@@ -906,7 +1237,9 @@ class SyntheticPopulation:
                 else:
                     if collapse:
                         if isinstance(system.modelled_properties.get(parameter), list):
-                            for sampled_val in system.modelled_properties.get(parameter):
+                            for sampled_val in system.modelled_properties.get(
+                                parameter
+                            ):
                                 toret.append(sampled_val)
                         else:
                             toret.append(system.modelled_properties.get(parameter))
@@ -925,7 +1258,9 @@ class SyntheticPopulation:
                 output_val = system.modelled_properties.get(parameter)
             if output_val in [np.nan, None]:
                 unmodelled_i_vals.append(input_val)
-            elif isinstance(output_val, list) and all(ov in [np.nan, None] for ov in output_val):
+            elif isinstance(output_val, list) and all(
+                ov in [np.nan, None] for ov in output_val
+            ):
                 unmodelled_i_vals.append(input_val)
             else:
                 i_vals.append(input_val)
@@ -958,7 +1293,13 @@ class SyntheticPopulation:
         if len(toret) == 0:
             return None
         if len(toret) > 1:
-            print('Warning! Found ' + str(len(toret)) + ' systems with id ' + str(id_no) + ', returning the first one')
+            print(
+                "Warning! Found "
+                + str(len(toret))
+                + " systems with id "
+                + str(id_no)
+                + ", returning the first one"
+            )
         return toret[0]
 
     def assess_core_mantle_trustworthiness(self):
@@ -966,11 +1307,17 @@ class SyntheticPopulation:
         mantle_drop_outs = 0
         core_drop_outs = 0
         for system in self.population:
-            is_core_rich = system.pollution_properties[mp.ModelParameter.fragment_core_frac] > 0.17
+            is_core_rich = (
+                system.pollution_properties[mp.ModelParameter.fragment_core_frac] > 0.17
+            )
             appears_core_rich = None
             if system.modelled_properties is not None:
-                min_fcnf = min(system.modelled_properties[mp.ModelParameter.fragment_core_frac])
-                max_fcnf = max(system.modelled_properties[mp.ModelParameter.fragment_core_frac])
+                min_fcnf = min(
+                    system.modelled_properties[mp.ModelParameter.fragment_core_frac]
+                )
+                max_fcnf = max(
+                    system.modelled_properties[mp.ModelParameter.fragment_core_frac]
+                )
                 if min_fcnf is None or max_fcnf is None:
                     pass
                 else:
@@ -1011,94 +1358,186 @@ class SyntheticPopulation:
                     # ... and it was
                     true_negatives += 1
         print()
-        print('Testing for Core-Richness')
-        print('True Positives: ' + str(true_positives))
-        print('False Positives: ' + str(false_positives))
-        print('Total Positives: ' + str(false_positives+true_positives))
-        print('True Negatives: ' + str(true_negatives))
-        print('False Negatives: ' + str(false_negatives))
-        print('Total Negatives: ' + str(true_negatives+false_negatives))
+        print("Testing for Core-Richness")
+        print("True Positives: " + str(true_positives))
+        print("False Positives: " + str(false_positives))
+        print("Total Positives: " + str(false_positives + true_positives))
+        print("True Negatives: " + str(true_negatives))
+        print("False Negatives: " + str(false_negatives))
+        print("Total Negatives: " + str(true_negatives + false_negatives))
         try:
-            print('Core-Rich Trustworthiness: ' + str(true_positives/(true_positives+false_positives)))
-            print('Mantle-Rich Trustworthiness: ' + str(true_negatives/(true_negatives+false_negatives)))
-            print('Apparent Core-rich proportion: ' + str((false_positives+true_positives)/(false_positives+true_positives+true_negatives+false_negatives)))
+            print(
+                "Core-Rich Trustworthiness: "
+                + str(true_positives / (true_positives + false_positives))
+            )
+            print(
+                "Mantle-Rich Trustworthiness: "
+                + str(true_negatives / (true_negatives + false_negatives))
+            )
+            print(
+                "Apparent Core-rich proportion: "
+                + str(
+                    (false_positives + true_positives)
+                    / (
+                        false_positives
+                        + true_positives
+                        + true_negatives
+                        + false_negatives
+                    )
+                )
+            )
         except ZeroDivisionError:
-            print('Could not calculate Core-Rich/Mantle-Rich Trustworthiness')
-        print('Core-rich dropouts: ' + str(core_drop_outs))
-        print('Mantle-rich dropouts: ' + str(mantle_drop_outs))
+            print("Could not calculate Core-Rich/Mantle-Rich Trustworthiness")
+        print("Core-rich dropouts: " + str(core_drop_outs))
+        print("Mantle-rich dropouts: " + str(mantle_drop_outs))
 
     def get_observed_subset(self):
         subset = list()
         for system in self.population:
             if system.observed:
                 subset.append(system)
-        return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
+        return SyntheticPopulation(
+            None,
+            self.wd_config_to_use,
+            self.pollution_config_to_use,
+            None,
+            subset,
+            self.timescale_interpolator,
+        )
 
     def get_subset_with_detected_elements(self, list_of_elements):
         # Pick out only systems with detections of all elements listed in list_of_elements
         subset = list()
         hack_to_exclude_systems_in_dec = False
         for system in self.population:
-            #if system.check_elements_detected(list_of_elements):
-                #subset.append(system)
+            # if system.check_elements_detected(list_of_elements):
+            # subset.append(system)
             if system.check_elements_detected(list_of_elements):
                 if hack_to_exclude_systems_in_dec:
-                    if system.pollution_properties[mp.ModelParameter.t_sinceaccretion]*1000000 < (system.pollution_properties[mp.ModelParameter.accretion_timescale] + 3000000):
+                    if system.pollution_properties[
+                        mp.ModelParameter.t_sinceaccretion
+                    ] * 1000000 < (
+                        system.pollution_properties[
+                            mp.ModelParameter.accretion_timescale
+                        ]
+                        + 3000000
+                    ):
                         subset.append(system)
                 else:
                     subset.append(system)
         if hack_to_exclude_systems_in_dec:
-            print('Warning! Current sample selection excludes systems > 3 Myr into declining phase!')
-        return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
+            print(
+                "Warning! Current sample selection excludes systems > 3 Myr into declining phase!"
+            )
+        return SyntheticPopulation(
+            None,
+            self.wd_config_to_use,
+            self.pollution_config_to_use,
+            None,
+            subset,
+            self.timescale_interpolator,
+        )
 
     def get_subset_with_modelled_properties(self, list_of_properties):
-        # Pick out only systems with detections of all elements listed in list_of_elements
+        # Pick out only systems with detections of all elements in list_of_elements
         subset = list()
         for system in self.population:
             if system.check_properties_modelled(list_of_properties):
                 subset.append(system)
-        return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
+        return SyntheticPopulation(
+            None,
+            self.wd_config_to_use,
+            self.pollution_config_to_use,
+            None,
+            subset,
+            self.timescale_interpolator,
+        )
 
     def get_duplicate_population(self):
         subset = list()
         for system in self.population:
             subset.append(system)
-        return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
+        return SyntheticPopulation(
+            None,
+            self.wd_config_to_use,
+            self.pollution_config_to_use,
+            None,
+            subset,
+            self.timescale_interpolator,
+        )
 
     def get_ca_noise_threshold(self, pollution_frac):
         # Leftover from an earlier, more complicated function...
         return 0
 
-    def get_most_polluted_subset(self, subset_size=None, element=None, impose_noise_pol_frac_correlation=False):
-        # By default, we'll measure pollution by the (true) pollution fraction. (Ideally, should probably calculate would you would infer the pollution fraction to be based on the observed elements)
-        # Supplying an element as the element argument means we'll instead look for the highest observed values of that element
+    def get_most_polluted_subset(
+        self, subset_size=None, element=None, impose_noise_pol_frac_correlation=False
+    ):
+        # By default, we'll measure pollution by the (true) pollution fraction.
+        # (Ideally, should probably calculate would you would infer the pollution
+        # fraction to be based on the observed elements)
+        # Supplying an element as the element argument means we'll instead look for the
+        # highest observed values of that element
         if subset_size is None:
             subset_size = np.inf
         subset_size = min(subset_size, len(self))
         if element is None:
-            sorted_pop = sorted(self.population, key=lambda x: x.get_pollution_level(), reverse=True)
+            sorted_pop = sorted(
+                self.population, key=lambda x: x.get_pollution_level(), reverse=True
+            )
         else:
-            sorted_pop = sorted(self.population, key=lambda x: x.observed_abundances.get(element, -np.inf), reverse=True)
+            sorted_pop = sorted(
+                self.population,
+                key=lambda x: x.observed_abundances.get(element, -np.inf),
+                reverse=True,
+            )
         if impose_noise_pol_frac_correlation:
-            # Experimental! In order to try and reproduce the Hollands Ca/Fe dist, filter out systems where the Ca was overestimated
-            # This is a bit of a hacky way to do it post hoc - a better way would of course be to impose this at the point of synthesis
+            # Experimental! In order to try and reproduce the Hollands Ca/Fe dist,
+            # filter out systems where the Ca was overestimated
+            # This is a bit of a hacky way to do it post hoc - a better way would of
+            # course be to impose this at the point of synthesis
             # The name impose_noise_pol_frac_correlation is a misnomer now
-            sorted_pop = list(filter(lambda x: x.observed_abundances.get(ci.Element.Ca, np.inf) - x.pollution_abundances[ci.Element.Ca] < self.get_ca_noise_threshold(x.pollution_properties[mp.ModelParameter.pollution_frac]), sorted_pop))
+            sorted_pop = list(
+                filter(
+                    lambda x: x.observed_abundances.get(ci.Element.Ca, np.inf)
+                    - x.pollution_abundances[ci.Element.Ca]
+                    < self.get_ca_noise_threshold(
+                        x.pollution_properties[mp.ModelParameter.pollution_frac]
+                    ),
+                    sorted_pop,
+                )
+            )
         subset = sorted_pop[0:subset_size]
-        return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
+        return SyntheticPopulation(
+            None,
+            self.wd_config_to_use,
+            self.pollution_config_to_use,
+            None,
+            subset,
+            self.timescale_interpolator,
+        )
 
     def get_random_subset(self, subset_size=None, prevent_reuse=False):
         if subset_size is None:
-            #subset_size = np.inf
+            # subset_size = np.inf
             subset_size = len(self)
-        #subset_size = min(subset_size, len(self)) <-- what on earth was this line doing here?? It meant that we were returning subsets smaller than requested - we should return None instead!
-        #We're going round the houses (i.e. sampling the indices, rather than the population itself) so that we can maintain order
+        # subset_size = min(subset_size, len(self))
+        # ^What on earth was this line doing here?? It meant that we were returning
+        # subsets smaller than requested - we should return None instead!
+        # We're going round the houses (i.e. sampling the indices, rather than the
+        # population itself) so that we can maintain order.
         if prevent_reuse:
             indices = self.unsampled_indices
         else:
             indices = range(len(self))
         if len(indices) < subset_size:
-            print('Could not extract subset, requested size (' + str(subset_size) + ') > available systems (' + str(len(indices)) + ')')
+            print(
+                "Could not extract subset, requested size ("
+                + str(subset_size)
+                + ") > available systems ("
+                + str(len(indices))
+                + ")"
+            )
             return None
         random_sample = random.sample(indices, k=subset_size)
         subset = list()
@@ -1107,8 +1546,18 @@ class SyntheticPopulation:
             if i in random_sample:
                 subset.append(system)
             i += 1
-        self.unsampled_indices = [i for i in self.unsampled_indices if i not in random_sample]  # For now, let's always keep track of this regardless of prevent_reuse
-        return SyntheticPopulation(None, self.wd_config_to_use, self.pollution_config_to_use, None, subset, self.timescale_interpolator)
+        self.unsampled_indices = [
+            i for i in self.unsampled_indices if i not in random_sample
+        ]
+        # ^ For now, let's always keep track of this regardless of prevent_reuse
+        return SyntheticPopulation(
+            None,
+            self.wd_config_to_use,
+            self.pollution_config_to_use,
+            None,
+            subset,
+            self.timescale_interpolator,
+        )
 
     def reset_unsampled_indices(self):
         self.unsampled_indices = list(range(len(self)))
@@ -1120,10 +1569,14 @@ class SyntheticPopulation:
         for pop_index, comparison_pop in enumerate([self.population, other.population]):
             for system in comparison_pop:
                 if system.id is None:
-                    raise ValueError('System ID must not be None')
-                pop_distance_tuples = list() # [(bool, numerical) ... ] where bool is whether it was from 'self', numerical is the distance
+                    raise ValueError("System ID must not be None")
+                pop_distance_tuples = list()
+                # ^ [(bool, numerical) ... ] where bool is whether it was from 'self',
+                # numerical is the distance
                 if pop_index == 0:
-                    id_to_ignore = random.choice(other.get_all_ids()) # Pick an id to ignore randomly to even up the sample sizes (since we cannot compare a data point to itself)
+                    # Pick an id to ignore randomly to even up the sample sizes
+                    # (since we cannot compare a data point to itself)
+                    id_to_ignore = random.choice(other.get_all_ids())
                 else:
                     id_to_ignore = random.choice(self.get_all_ids())
                 for other_system in self.population:
@@ -1142,8 +1595,13 @@ class SyntheticPopulation:
                     else:
                         distance = system.distance_to(other_system)
                         pop_distance_tuples.append((False, distance))
-                random.shuffle(pop_distance_tuples) # Just in case of any ties when sorting, the outcome of the tie breaker is now random rather than going in the order added
-                nearest_id_distance_tuples = sorted(pop_distance_tuples, key=lambda x: x[1])[0:nearest_neighbours] # Sort by distance, take closest ones
+                # Just in case of any ties when sorting, the outcome of the tie breaker
+                # is now random rather than going in the order added
+                random.shuffle(pop_distance_tuples)
+                # Sort by distance, take closest ones
+                nearest_id_distance_tuples = sorted(
+                    pop_distance_tuples, key=lambda x: x[1]
+                )[0:nearest_neighbours]
                 votes_for_self = 0
                 votes_for_other = 0
                 for nidt in nearest_id_distance_tuples:
@@ -1151,7 +1609,8 @@ class SyntheticPopulation:
                         votes_for_self += 1
                     else:
                         votes_for_other += 1
-                if votes_for_self > votes_for_other: # nearest_neighbours should be odd, so no need to worry about draws
+                if votes_for_self > votes_for_other:
+                    # nearest_neighbours should be odd, so no need to worry about draws
                     if pop_index == 0:
                         correct_classification += 1
                     else:
@@ -1161,13 +1620,21 @@ class SyntheticPopulation:
                         incorrect_classification += 1
                     else:
                         correct_classification += 1
-        return correct_classification, incorrect_classification, SyntheticPopulation.get_knn_p_value(correct_classification, incorrect_classification)
+        return (
+            correct_classification,
+            incorrect_classification,
+            SyntheticPopulation.get_knn_p_value(
+                correct_classification, incorrect_classification
+            ),
+        )
 
     def output_water_content(self, excess_oxygen_calculator, oxidation_strategy):
         self.load_compositions()
         toret = list()
         for synth_wd in self.population:
-            toret.append(synth_wd.water_content(excess_oxygen_calculator, oxidation_strategy))
+            toret.append(
+                synth_wd.water_content(excess_oxygen_calculator, oxidation_strategy)
+            )
         return toret
 
     @staticmethod
@@ -1175,10 +1642,14 @@ class SyntheticPopulation:
         N = correct_classification + incorrect_classification
         if correct_classification < 0 or incorrect_classification < 0 or N <= 0:
             return None
-        # If this p_value is less than 0.5, it suggests that the two populations were different to some extent (since we were able to tell which group a randomly selected point belonged to (better than guessing))
-        # If p_value > 0.5, the classification is mostly incorrect which is a bit odd - it suggests that the populations are non-randomly interleaved to some extent
+        # If this p_value is less than 0.5, it suggests that the two populations were
+        # different to some extent (since we were able to tell which group a randomly
+        # selected point belonged to (better than guessing))
+        # If p_value > 0.5, the classification is mostly incorrect which is a bit odd -
+        # it suggests that the populations are non-randomly interleaved to some extent
         p_value = 1 - binom.cdf(correct_classification - 1, N, 0.5)
         return p_value
+
 
 def generate_hollands_cool_dz_sample():
     list_of_systems = list()
@@ -1188,45 +1659,50 @@ def generate_hollands_cool_dz_sample():
         abundances = abundances_list[wd_index]
         list_of_systems.append(
             SyntheticSystem(
-                wd_properties,
-                None,
-                None,
-                True,
-                abundances,
-                None,
-                None,
-                wd_index
+                wd_properties, None, None, True, abundances, None, None, wd_index
             )
         )
-    synth_pop = SyntheticPopulation(
-        None,
-        None,
-        None,
-        None,
-        list_of_systems
-    )
+    synth_pop = SyntheticPopulation(None, None, None, None, list_of_systems)
     return synth_pop
 
+
 def demonstrate_synthesis():
-    synth_pop = SyntheticPopulation(
-        3,
-        'HollandsDBs',
-        'DBDeltaFcf'
-    )
+    synth_pop = SyntheticPopulation(3, "HollandsDBs", "DBDeltaFcf")
     print(synth_pop)
+
 
 def visualise_distributions():
     import graph_factory as gf
     import physical_constants as pc
-    synthetic_pop = SyntheticPopulation(1, 'TestWDConfig', 'TestPollutionConfig') # A dummy population
+
+    synthetic_pop = SyntheticPopulation(1, "TestWDConfig", "TestPollutionConfig")
+    # ^ A dummy population
     uniform_distribution = (sc.Distribution.Uniform, [0, 1])
     normal_distribution = (sc.Distribution.Normal, [0.525, 0.065])
     delta_distribution = (sc.Distribution.Delta, [0, 1])
     triangle_distribution = (sc.Distribution.Triangle, [0, 0.7, 1])
     slope_distribution = (sc.Distribution.Slope, [0, 0.7, 1])
-    #coll_casc_distribution = (sc.Distribution.CustomFunction, ['CollisionalCascade', sc.predefined_functions['CollisionalCascade'], 0.1, 1])
-    log_coll_casc_distribution = (sc.Distribution.CustomFunction, ['LogCollisionalCascade', sc.predefined_functions['LogCollisionalCascade'], 0.1, 1])
-    custom_distribution = (sc.Distribution.CustomDistribution, ['CD', [(0.0, 0.2), (0.2, 0.4), (0.4, 0.6), (0.6, 0.8), (0.8, 1.0)], np.array([1, 4, 6, 5, 3])])
+    # coll_casc_distribution = (
+    #     sc.Distribution.CustomFunction,
+    #     ['CollisionalCascade', sc.predefined_functions['CollisionalCascade'], 0.1, 1]
+    # )
+    log_coll_casc_distribution = (
+        sc.Distribution.CustomFunction,
+        [
+            "LogCollisionalCascade",
+            sc.predefined_functions["LogCollisionalCascade"],
+            0.1,
+            1,
+        ],
+    )
+    custom_distribution = (
+        sc.Distribution.CustomDistribution,
+        [
+            "CD",
+            [(0.0, 0.2), (0.2, 0.4), (0.4, 0.6), (0.6, 0.8), (0.8, 1.0)],
+            np.array([1, 4, 6, 5, 3]),
+        ],
+    )
     sample_size = 100000
     distribution_samples = {
         sc.Distribution.Uniform: list(),
@@ -1235,33 +1711,86 @@ def visualise_distributions():
         sc.Distribution.Triangle: list(),
         sc.Distribution.Slope: list(),
         sc.Distribution.CustomFunction: list(),
-        sc.Distribution.CustomDistribution: list()
+        sc.Distribution.CustomDistribution: list(),
     }
     i = 0
     while i < sample_size:
-        distribution_samples[sc.Distribution.Uniform].append(synthetic_pop.draw_variable_from_distribution(uniform_distribution))
-        distribution_samples[sc.Distribution.Normal].append(synthetic_pop.draw_variable_from_distribution(normal_distribution))
-        distribution_samples[sc.Distribution.Delta].append(synthetic_pop.draw_variable_from_distribution(delta_distribution))
-        distribution_samples[sc.Distribution.Triangle].append(synthetic_pop.draw_variable_from_distribution(triangle_distribution))
-        distribution_samples[sc.Distribution.Slope].append(synthetic_pop.draw_variable_from_distribution(slope_distribution))
-        distribution_samples[sc.Distribution.CustomFunction].append(synthetic_pop.draw_variable_from_distribution(log_coll_casc_distribution))
-        distribution_samples[sc.Distribution.CustomDistribution].append(synthetic_pop.draw_variable_from_distribution(custom_distribution))
+        distribution_samples[sc.Distribution.Uniform].append(
+            synthetic_pop.draw_variable_from_distribution(uniform_distribution)
+        )
+        distribution_samples[sc.Distribution.Normal].append(
+            synthetic_pop.draw_variable_from_distribution(normal_distribution)
+        )
+        distribution_samples[sc.Distribution.Delta].append(
+            synthetic_pop.draw_variable_from_distribution(delta_distribution)
+        )
+        distribution_samples[sc.Distribution.Triangle].append(
+            synthetic_pop.draw_variable_from_distribution(triangle_distribution)
+        )
+        distribution_samples[sc.Distribution.Slope].append(
+            synthetic_pop.draw_variable_from_distribution(slope_distribution)
+        )
+        distribution_samples[sc.Distribution.CustomFunction].append(
+            synthetic_pop.draw_variable_from_distribution(log_coll_casc_distribution)
+        )
+        distribution_samples[sc.Distribution.CustomDistribution].append(
+            synthetic_pop.draw_variable_from_distribution(custom_distribution)
+        )
         i += 1
 
     graph_fac = gf.GraphFactory()
     for dist_type, samples in distribution_samples.items():
         print()
         print(str(dist_type))
-        print('Min: ' + str(min(samples)))
-        print('Max: ' + str(max(samples)))
-        bins = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
-        heights, bins2 = np.histogram(
-            samples,
-            bins,
-            density=True
-        )
+        print("Min: " + str(min(samples)))
+        print("Max: " + str(max(samples)))
+        bins = [
+            0,
+            0.05,
+            0.1,
+            0.15,
+            0.2,
+            0.25,
+            0.3,
+            0.35,
+            0.4,
+            0.45,
+            0.5,
+            0.55,
+            0.6,
+            0.65,
+            0.7,
+            0.75,
+            0.8,
+            0.85,
+            0.9,
+            0.95,
+            1,
+        ]
+        heights, bins2 = np.histogram(samples, bins, density=True)
 
-        bin_centres = [0.025, 0.075, 0.125, 0.175, 0.225, 0.275, 0.325, 0.375, 0.425, 0.475, 0.525, 0.575, 0.625, 0.675, 0.725, 0.775, 0.825, 0.875, 0.925, 0.975]
+        bin_centres = [
+            0.025,
+            0.075,
+            0.125,
+            0.175,
+            0.225,
+            0.275,
+            0.325,
+            0.375,
+            0.425,
+            0.475,
+            0.525,
+            0.575,
+            0.625,
+            0.675,
+            0.725,
+            0.775,
+            0.825,
+            0.875,
+            0.925,
+            0.975,
+        ]
         graph_fac.make_histogram(
             bin_centres,
             [heights],
@@ -1269,15 +1798,17 @@ def visualise_distributions():
             str(dist_type),
             0.05,
             1.1,
-            'Value',
-            '_visualisation',
+            "Value",
+            "_visualisation",
             None,
-            None
+            None,
         )
+
 
 def main():
     demonstrate_synthesis()
     visualise_distributions()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
