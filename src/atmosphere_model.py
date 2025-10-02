@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # A newer, neater version of white_dwarf_model.py which uses mass
 

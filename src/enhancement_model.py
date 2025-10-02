@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # This is more of a fragment abundance calculator now, rather than an enhancement model!
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # A script to produce some new plots/results for my thesis, based
 # on having a second go at the analysis of the sample of oxygen-bearing WDs,
