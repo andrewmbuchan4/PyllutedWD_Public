@@ -113,9 +113,7 @@ def print_synthetic_observations(obs_dict):
     for fcf, obs_set in obs_dict.items():
         strings_to_print = list()
         for element in ci.usual_elements:
-            strings_to_print.append(
-                str(obs_set[element][0]) + "," + str(obs_set[element][1])
-            )
+            strings_to_print.append(f"{obs_set[element][0]},{obs_set[element][1]}")
         print(",".join(strings_to_print))
 
 

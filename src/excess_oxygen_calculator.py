@@ -341,7 +341,7 @@ class ExcessOxygenCalculator:
                         ci.Element.Mg,
                         gi.Layer.bulk,
                     )
-                    additional_abundances[composition_name + ", data (SS)"] = ss_comp
+                    additional_abundances[f"{composition_name}, data (SS)"] = ss_comp
         for composition_name, abundances in additional_abundances.items():
             favoured_layer = self.get_favoured_layer(abundances)
             eoc_stat_dict[composition_name] = dict()

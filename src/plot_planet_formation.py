@@ -125,7 +125,8 @@ def form_planets(geo_model, start_from_prev_result=False):
                 for element in abundances.keys():
                     if element == ci.Element.O:
                         print(
-                            "We currently skip O, but could proabbly reinstate it now that it has partitioning implemented..."
+                            "We currently skip O, but could proabbly reinstate it"
+                            + " now that it has partitioning implemented..."
                         )
                         continue
                     if prev_Ds is None or prev_cnf is None or prev_P is None:

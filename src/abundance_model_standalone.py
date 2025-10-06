@@ -10,7 +10,7 @@ import solar_abundances as sa
 
 
 def load_generic_float_data_csv(input_filename):
-    with open("../data/" + input_filename) as generic_csv:
+    with open(f"../data/{input_filename}") as generic_csv:
         generic_list = [row for row in csv.reader(generic_csv)]
     generic_array = np.asarray(generic_list)
     return generic_array.astype(float)
@@ -65,33 +65,20 @@ def output_el_el_values(
         T_vals.append(dm.T_disc(d_formation, t_formation))
     d_formation_title = "d_formation /AU "
     T_title = "          T /K           "
-    OCa_title = "       " + str(element1) + "/" + str(element2) + "            "
-    log_elel_title = "   log(" + str(element1) + "/" + str(element2) + ")           "
-    normalised_elel_title = (
-        "       [" + str(element1) + "/" + str(element2) + "]           "
-    )
+    OCa_title = f"       {element1}/{element2}            "
+    log_elel_title = f"   log({element1}/{element2})   "
+    normalised_elel_title = f"       [{element1}/{element2}]           "
     print(
-        d_formation_title
-        + " | "
-        + T_title
-        + " | "
-        + OCa_title
-        + " | "
-        + log_elel_title
-        + " | "
-        + normalised_elel_title
+        f"{d_formation_title} | {T_title} | {OCa_title} | {log_elel_title} "
+        + f"| {normalised_elel_title}"
     )
     for d_index, d in enumerate(d_formation_vals):
         print(
-            str(d).ljust(len(d_formation_title))
-            + " | "
-            + str(T_vals[d_index]).ljust(len(T_title))
-            + " | "
-            + str(o_ca_values[d_index]).ljust(len(OCa_title))
-            + " | "
-            + str(log_elel_values[d_index]).ljust(len(log_elel_title))
-            + " | "
-            + str(normalised_elel_values[d_index]).ljust(len(normalised_elel_title))
+            f"{str(d).ljust(len(d_formation_title))} | "
+            f"{str(T_vals[d_index]).ljust(len(T_title))} | "
+            f"{str(o_ca_values[d_index]).ljust(len(OCa_title))} | "
+            f"{str(log_elel_values[d_index]).ljust(len(log_elel_title))} | "
+            f"{str(normalised_elel_values[d_index]).ljust(len(normalised_elel_title))}"
         )
 
 

@@ -51,8 +51,8 @@ class ModelParameter(Enum):
     def full_unit_string(self):
         pre_unit, post_unit = self.units()
         if post_unit != "":
-            post_unit = " /" + post_unit
-        return pre_unit + str(self) + post_unit
+            post_unit = f" /{post_unit}"
+        return f"{pre_unit}{self}{post_unit}"
 
 
 class WDParameter(Enum):

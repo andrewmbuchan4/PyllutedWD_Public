@@ -17,7 +17,7 @@ def find_stats_files(path, system_prefixes):
             ):
                 for filename in os.listdir(path + directory_or_file):
                     if filename.endswith("stats.csv"):
-                        stats_files.append(path + directory_or_file + "/" + filename)
+                        stats_files.append(f"{path}{directory_or_file}/{filename}")
     stats_files.sort()
     return stats_files
 
@@ -55,7 +55,7 @@ def extract_retrieval_data(path, system_prefixes):
         pcf_50 = None
         with open(stat_file, encoding="utf-8") as output_csv:
             print()
-            print("Reading " + stat_file)
+            print(f"Reading {stat_file}")
             reading_from_correct_section = False
             for row in csv.reader(output_csv):
                 if len(row) > 0:
@@ -63,7 +63,7 @@ def extract_retrieval_data(path, system_prefixes):
                         system = row[1]
                     if row[0] == "Best model name:":
                         best_model_name = row[1]
-                        print("Best model was " + best_model_name)
+                        print(f"Best model was {best_model_name}")
             output_csv.seek(0)
             for row in csv.reader(output_csv):
                 if len(row) > 0:
@@ -208,13 +208,12 @@ def preprocess_data(data, systems=["Earthfcf", "Marsfcf"]):
             print(test_system)
             if system.startswith(test_system):
                 # Then this is one we care about
-                fragment_core_fraction_str = system.split(test_system + "Fcf")[1]
+                fragment_core_fraction_str = system.split(f"{test_system}Fcf")[1]
                 # ^ 0p4 or something like that
                 if "p" in fragment_core_fraction_str:
                     fragment_core_fraction = float(
                         fragment_core_fraction_str.split("p")[0]
-                        + "."
-                        + fragment_core_fraction_str.split("p")[1]
+                        + f".{fragment_core_fraction_str.split("p")[1]}"
                     )
                 else:
                     fragment_core_fraction = float(fragment_core_fraction_str)
@@ -307,7 +306,7 @@ def plot_retrieved_stats():
             [earth_plot, mars_plot],
             2,
             1,
-            "retrieved_" + variable + "_Synthetic_multipanel.pdf",
+            f"retrieved_{variable}_Synthetic_multipanel.pdf",
             15,
             10,
             0.07,

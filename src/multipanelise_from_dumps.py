@@ -19,23 +19,32 @@ dump_config1 = {
     "sharex_axes": True,
     "list_of_dumps": [
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsTidal_Hollands_Ca_Fe_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsTidal_Hollands"
+        + "_Ca_Fe_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsTidal_Hollands_Mg_Fe_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsTidal_Hollands"
+        + "_Mg_Fe_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsTidal_Hollands_Ca_Mg_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsTidal_Hollands"
+        + "_Ca_Mg_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsCollisional_Hollands_Ca_Fe_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsCollisional_Hollands"
+        + "_Ca_Fe_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsCollisional_Hollands_Mg_Fe_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsCollisional_Hollands"
+        + "_Mg_Fe_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsCollisional_Hollands_Ca_Mg_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsCollisional_Hollands"
+        + "_Ca_Mg_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsDeltaPop_Hollands_Ca_Fe_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsDeltaPop_Hollands"
+        + "_Ca_Fe_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsDeltaPop_Hollands_Mg_Fe_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsDeltaPop_Hollands"
+        + "_Mg_Fe_fragment_core_frac.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsDeltaPop_Hollands_Ca_Mg_fragment_core_frac.pdf.txt",
+        + "deltavarerr/pipeline_ksp_comparison_SyntheticHollandsDeltaPop_Hollands"
+        + "_Ca_Mg_fragment_core_frac.pdf.txt",
     ],
 }
 
@@ -54,11 +63,17 @@ dump_config2 = {
     "sharex_axes": False,
     "list_of_dumps": [
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/SyntheticHollandsDeltaPop_RealisticObservererr0p1_StandardModeller/fcf_Observed_pdf_Ca_Fe.pdf.txt",
+        + "deltavarerr"
+        + "/SyntheticHollandsDeltaPop_RealisticObservererr0p1_StandardModeller"
+        + "/fcf_Observed_pdf_Ca_Fe.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/SyntheticHollandsDeltaPop_RealisticObservererr0p1_StandardModeller/fcf_Observed_pdf_Mg_Fe.pdf.txt",
+        + "deltavarerr"
+        + "/SyntheticHollandsDeltaPop_RealisticObservererr0p1_StandardModeller"
+        + "/fcf_Observed_pdf_Mg_Fe.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "deltavarerr/SyntheticHollandsDeltaPop_RealisticObservererr0p1_StandardModeller/fcf_Observed_pdf_Ca_Mg.pdf.txt",
+        + "deltavarerr"
+        + "/SyntheticHollandsDeltaPop_RealisticObservererr0p1_StandardModeller"
+        + "/fcf_Observed_pdf_Ca_Mg.pdf.txt",
     ],
 }
 
@@ -74,23 +89,38 @@ dump_config3 = {
     "sharex_axes": False,
     "list_of_dumps": [
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsDeltaPop_HollandsObservererr0_NullModeller/ternary_plot_sampled_SyntheticHollandsDeltaPop_HollandsObservererr0.pdf.txt",
+        + "dzcomparison/SyntheticHollandsDeltaPop_HollandsObservererr0_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsDeltaPop_HollandsObservererr0.pdf"
+        + ".txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsDeltaPop_HollandsObservererr0p2_NullModeller/ternary_plot_sampled_SyntheticHollandsDeltaPop_HollandsObservererr0p2.pdf.txt",
+        + "dzcomparison/SyntheticHollandsDeltaPop_HollandsObservererr0p2_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsDeltaPop_HollandsObservererr0p2.pdf"
+        + ".txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsDeltaPop_HollandsObservererr0p4_NullModeller/ternary_plot_sampled_SyntheticHollandsDeltaPop_HollandsObservererr0p4.pdf.txt",
+        + "dzcomparison/SyntheticHollandsDeltaPop_HollandsObservererr0p4_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsDeltaPop_HollandsObservererr0p4.pdf"
+        + ".txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsCollisional_HollandsObservererr0_NullModeller/ternary_plot_sampled_SyntheticHollandsCollisional_HollandsObservererr0.pdf.txt",
+        + "dzcomparison/SyntheticHollandsCollisional_HollandsObservererr0_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsCollisional_HollandsObservererr0.pdf"
+        + ".txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsCollisional_HollandsObservererr0p2_NullModeller/ternary_plot_sampled_SyntheticHollandsCollisional_HollandsObservererr0p2.pdf.txt",
+        + "dzcomparison/SyntheticHollandsCollisional_HollandsObservererr0p2_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsCollisional_HollandsObservererr0p2"
+        + ".pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsCollisional_HollandsObservererr0p4_NullModeller/ternary_plot_sampled_SyntheticHollandsCollisional_HollandsObservererr0p4.pdf.txt",
+        + "dzcomparison/SyntheticHollandsCollisional_HollandsObservererr0p4_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsCollisional_HollandsObservererr0p4"
+        + ".pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsTidal_HollandsObservererr0_NullModeller/ternary_plot_sampled_SyntheticHollandsTidal_HollandsObservererr0.pdf.txt",
+        + "dzcomparison/SyntheticHollandsTidal_HollandsObservererr0_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsTidal_HollandsObservererr0.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsTidal_HollandsObservererr0p2_NullModeller/ternary_plot_sampled_SyntheticHollandsTidal_HollandsObservererr0p2.pdf.txt",
+        + "dzcomparison/SyntheticHollandsTidal_HollandsObservererr0p2_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsTidal_HollandsObservererr0p2.pdf.txt",
         pu.get_path_to_pipeline_base_dir()
-        + "dzcomparison/SyntheticHollandsTidal_HollandsObservererr0p4_NullModeller/ternary_plot_sampled_SyntheticHollandsTidal_HollandsObservererr0p4.pdf.txt",
+        + "dzcomparison/SyntheticHollandsTidal_HollandsObservererr0p4_NullModeller"
+        + "/ternary_plot_sampled_SyntheticHollandsTidal_HollandsObservererr0p4.pdf.txt",
     ],
 }
 
@@ -308,13 +338,22 @@ dump_config10 = {
     "sharex_axes": True,
     "list_of_dumps": [
         pu.get_path_to_default_graphs()
-        + "../../../Graphs of Robust Systems/WDJ183352.68+321757.25_TremblayGR_kn_n_p2000_HD0123_NEL_D_composition_rel_Mg.pdf.txt",
+        + "../../../"
+        + "Graphs of Robust Systems"
+        + "/WDJ183352.68+321757.25"
+        + "_TremblayGR_kn_n_p2000_HD0123_NEL_D_composition_rel_Mg.pdf.txt",
         pu.get_path_to_default_graphs()
-        + "../../../Graphs of Robust Systems/HE0106-3253_XuGR_3p_t_p2000_HD013_NEL_D_composition_rel_Mg.pdf.txt",
+        + "../../../"
+        + "Graphs of Robust Systems"
+        + "/HE0106-3253_XuGR_3p_t_p2000_HD013_NEL_D_composition_rel_Mg.pdf.txt",
         pu.get_path_to_default_graphs()
-        + "../../../Graphs of Robust Systems/PG1225-079Model2_KleinGR_kn_n_p2000_HD01_NEL_D_composition_rel_Mg.pdf.txt",
+        + "../../../"
+        + "Graphs of Robust Systems"
+        + "/PG1225-079Model2_KleinGR_kn_n_p2000_HD01_NEL_D_composition_rel_Mg.pdf.txt",
         pu.get_path_to_default_graphs()
-        + "../../../Graphs of Robust Systems/GD133_XuGR_3p_t_p2000_HD01_NEL_D_composition_rel_Mg.pdf.txt",
+        + "../../../"
+        + "Graphs of Robust Systems"
+        + "/GD133_XuGR_3p_t_p2000_HD01_NEL_D_composition_rel_Mg.pdf.txt",
     ],
 }
 

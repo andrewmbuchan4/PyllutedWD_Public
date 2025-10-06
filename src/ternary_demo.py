@@ -23,7 +23,7 @@ def golden_example():
     td.plot([[1, 1, 1], [1, 2, 3]], color="black")
 
     # Save figure
-    td.fig.savefig(pu.get_path_to_default_graphs() + "testternarygolden.pdf", dpi=144)
+    td.fig.savefig(f"{pu.get_path_to_default_graphs()}testternarygolden.pdf", dpi=144)
 
 
 def mimic_golden_example():

@@ -7,31 +7,31 @@ def S_disc(t_formation):
     # define the constants
     Mstar = 2.34
     s0 = 33 * 1.496 * 10**11
-    sigma = 5.67 * 10 ** (-8)
-    k = 1.38 * 10 ** (-23)
-    mH = 1.67 * 10 ** (-27)
+    sigma = 5.67 * 10 ** -8
+    k = 1.38 * 10 ** -23
+    mH = 1.67 * 10 ** -27
     alpha = 0.01
     gamma = 1.7
     mu = 2.4
     k0 = 0.3
     sun = 2.0e30
-    G = 6.674 * 10 ** (-11)
+    G = 6.674 * 10 ** -11
     # stellar evolution tracks from Siess 2000
     Tstar = (
-        259.5822261222 * (Mstar**3)
-        - 1424.0943845798 * (Mstar**2)
-        + 2808.5873546861 * (Mstar)
+        259.5822261222 * Mstar**3
+        - 1424.0943845798 * Mstar**2
+        + 2808.5873546861 * Mstar
         + 2644.9291158227
     )
     Rstar = (6.955 * 10**8) * (
-        0.1543971235 * (Mstar**8)
-        - 1.2349012901 * (Mstar**7)
-        + 2.7854995 * (Mstar**6)
-        + 3.0573592544 * (Mstar**5)
-        - 25.2247969873 * (Mstar**4)
-        + 47.9947080829 * (Mstar**3)
-        - 42.5877850958 * (Mstar**2)
-        + 18.4521562096 * (Mstar)
+        0.1543971235 * Mstar**8
+        - 1.2349012901 * Mstar**7
+        + 2.7854995 * Mstar**6
+        + 3.0573592544 * Mstar**5
+        - 25.2247969873 * Mstar**4
+        + 47.9947080829 * Mstar**3
+        - 42.5877850958 * Mstar**2
+        + 18.4521562096 * Mstar
         - 0.3995121438
     )
     # disc model constants from Chambers 2009
@@ -207,7 +207,7 @@ def T_disc(d_formation, t_formation):
         )
         / (1.496 * 10**11)
     ):
-        T = Trad * (((((1.496 * 10**11) * d_formation) / s0) ** (-3 / 7)))
+        T = Trad * (((1.496 * 10**11) * d_formation) / s0) ** (-3 / 7)
     else:
         # An arbitrary value high enough to sublimate everything (used in cases where
         # the feeding zone nominally extends to negative distances)

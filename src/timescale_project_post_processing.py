@@ -138,7 +138,7 @@ def get_results_dir_and_file_name(entry, entry_dir, grid, thermohaline):
 
 
 def retrieve_stats_from_file(results_dir, file_name):
-    file_path = results_dir + "/" + file_name
+    file_path = f"{results_dir}/{file_name}"
     print(file_path)
     with open(file_path, encoding="utf-8") as input_csv:
         models_outputted = 0
@@ -218,7 +218,7 @@ def combine_stats(stats_1, stats_2):
 
 
 def process_entry(entry, grid1, grid2, thermohaline):
-    entry_dir = output_dir + entry + "/"
+    entry_dir = f"{output_dir}{entry}/"
     results_dir_1, file_1 = get_results_dir_and_file_name(
         entry, entry_dir, grid1, thermohaline
     )

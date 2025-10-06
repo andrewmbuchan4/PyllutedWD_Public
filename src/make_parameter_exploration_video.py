@@ -687,7 +687,7 @@ def produce_pngs(
         )
         while step <= interpolation_steps_to_use:
             frame += 1
-            print("Outputting frame " + str(frame) + "/" + str(max_frames))
+            print(f"Outputting frame {frame}/{max_frames}")
             interpolation_fraction = step / interpolation_steps_to_use
             coords_to_use = interpolate_between_coords(
                 coord, next_coord, interpolation_fraction
@@ -710,8 +710,7 @@ def produce_pngs(
             )
             fit_desc = leg_descriptors[leg]
             fit_dict = {
-                fit_desc[0]
-                + " = {:.3f}".format(coords_to_use[fit_desc[1]]): {
+                f"{fit_desc[0]} = {coords_to_use[fit_desc[1]]:0.3f}": {
                     el: N_X[el] for el in elements_to_plot
                 }
             }
@@ -728,7 +727,7 @@ def produce_pngs(
             )
             step += 1
         leg += 1
-    print("Produced " + str(frame) + " frames")
+    print(f"Produced {frame} frames")
 
 
 def main():
@@ -782,8 +781,7 @@ def main():
     print("(Might need minor modifications to match the filename format)")
     print(
         'ffmpeg -framerate 25 -i  Example_%03d_composition_rel_He.png  -c:v libx264 -r 30 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" '
-        + configuration
-        + "_video.mp4"
+        + f"{configuration}_video.mp4"
     )
 
 

@@ -66,15 +66,15 @@ class Pipeline:
         return path_name
 
     def get_base_pipeline_dir(self):
-        path_name = self.base_dir + self.name + "/"
+        path_name = f"{self.base_dir}{self.name}/"
         os.makedirs(path_name, exist_ok=True)
         return path_name
 
     def get_pipeline_name(self, pop_name, obs_name, mod_name):
-        return pop_name + "_" + obs_name + "_" + mod_name
+        return f"{pop_name}_{obs_name}_{mod_name}"
 
     def get_popdump_dir(self):
-        return self.base_dir + "popdumps/"
+        return f"{self.base_dir}popdumps/"
 
     def create_mv_plots(
         self,
@@ -118,7 +118,9 @@ class Pipeline:
             if len(threshold_offsets) == 1:
                 # Give a warning!
                 print(
-                    "WARNING! It's not clear whether we're varying error at constant threshold offset, or varying threshold offset at constant error, because only one value was supplied for each"
+                    "WARNING! It's not clear whether we're varying error at constant"
+                    + " threshold offset, or varying threshold offset at constant"
+                    + " error, because only one value was supplied for each."
                 )
                 print("Assuming it's the former.")
                 errors_or_thresholds = errors
@@ -141,25 +143,22 @@ class Pipeline:
         for N in N_values:
             for et in errors_or_thresholds:
                 if error_mode:
-                    obs_name = base_obs_name + "err" + str(et).replace(".", "p")
+                    obs_name = f"{base_obs_name}err{str(et).replace('.', 'p')}"
                     comparison_obs_name = (
                         obs_name
                         if comparison_et_value is None
-                        else base_obs_name
-                        + "err"
+                        else f"{base_obs_name}err"
                         + str(comparison_et_value).replace(".", "p")
                     )
                 else:
                     obs_name = (
-                        base_obs_name
-                        + "off"
-                        + str(et).replace("-", "m").replace(".", "p")
+                        f"{base_obs_name}off"
+                        + str(et).replace('-', 'm').replace('.', 'p')
                     )
                     comparison_obs_name = (
                         obs_name
                         if comparison_et_value is None
-                        else base_obs_name
-                        + "off"
+                        else f"{base_obs_name}off"
                         + str(comparison_et_value).replace("-", "m").replace(".", "p")
                     )
                 if not pool:
@@ -354,13 +353,7 @@ class Pipeline:
                 # This roughly mimics Hollands et al 2017
                 pop_size = most_polluted[0]
                 pol_element = most_polluted[1]
-                print(
-                    "Sampling the "
-                    + str(pop_size)
-                    + " most polluted WDs (by "
-                    + str(pol_element)
-                    + ")"
-                )
+                print(f"Sampling the {pop_size} most polluted WDs (by {pol_element})")
                 pop1_sample = pop1.get_most_polluted_subset(pop_size, pol_element)
                 pop2_sample = pop2.get_most_polluted_subset(pop_size, pol_element)
                 resample_count = 1
@@ -387,26 +380,26 @@ class Pipeline:
                     data_set1_r = mv.convert_data_to_r_format(sample1_values)
                     data_set2_r = mv.convert_data_to_r_format(sample2_values)
                 if len(ternary_abundance_dict.keys()) < max_no_ternary_series:
-                    ternary_abundance_dict[combination1[2] + "_" + combination1[1]] = (
+                    ternary_abundance_dict[f"{combination1[2]}_{combination1[1]}"] = (
                         dict()
                     )
-                    ternary_abundance_dict[combination2[2] + "_" + combination2[1]] = (
+                    ternary_abundance_dict[f"{combination2[2]}_{combination2[1]}"] = (
                         dict()
                     )
                     for i, el in enumerate(filter_on_elements):
                         if normalise_abundance_values:
                             ternary_abundance_dict[
-                                combination1[2] + "_" + combination1[1]
+                                f"{combination1[2]}_{combination1[1]}"
                             ][el] = sample1_values_normalised[i]
                             ternary_abundance_dict[
-                                combination2[2] + "_" + combination2[1]
+                                f"{combination2[2]}_{combination2[1]}"
                             ][el] = sample2_values_normalised[i]
                         else:
                             ternary_abundance_dict[
-                                combination1[2] + "_" + combination1[1]
+                                f"{combination1[2]}_{combination1[1]}"
                             ][el] = sample1_values[i]
                             ternary_abundance_dict[
-                                combination2[2] + "_" + combination2[1]
+                                f"{combination2[2]}_{combination2[1]}"
                             ][el] = sample2_values[i]
                 for test_type, test_function in mv.get_mv_test_method_dict().items():
                     p_value = test_function(data_set1_r, data_set2_r)
@@ -422,18 +415,9 @@ class Pipeline:
             graph_fac.make_ternary_plot(
                 filter_on_elements,
                 ternary_abundance_dict,
-                "ternary_plot_sampled_"
-                + combination1[2]
-                + "_"
-                + combination1[1]
-                + "_compared_against_"
-                + combination2[2]
-                + "_"
-                + combination2[1]
-                + "_"
-                + str(pop1_size)
-                + "_"
-                + str(pop2_size),
+                f"ternary_plot_sampled_{combination1[2]}_{combination1[1]}"
+                + f"_compared_against_{combination2[2]}_{combination2[1]}"
+                + f"_{pop1_size}_{pop2_size}",
                 self.ternary_scaling_factors,
                 # additional_text_dict
             )
@@ -497,13 +481,7 @@ class Pipeline:
                 # This roughly mimics Hollands et al 2017
                 pop_size = most_polluted[0]
                 pol_element = most_polluted[1]
-                print(
-                    "Sampling the "
-                    + str(pop_size)
-                    + " most polluted WDs (by "
-                    + str(pol_element)
-                    + ")"
-                )
+                print(f"Sampling the {pop_size} most polluted WDs (by {pol_element})")
                 pop_sample = pop.get_most_polluted_subset(pop_size, pol_element)
                 resample_count = 1
             else:
@@ -555,7 +533,7 @@ class Pipeline:
             graph_fac.make_ternary_plot(
                 filter_on_elements,
                 ternary_abundance_dict,
-                "ternary_plot_sampled_" + combination[2] + "_" + combination[1],
+                f"ternary_plot_sampled_{combination[2]}_{combination[1]}",
                 self.ternary_scaling_factors,
                 # additional_text_dict
             )
@@ -620,7 +598,9 @@ class Pipeline:
             if len(threshold_offsets) == 1:
                 # Give a warning!
                 print(
-                    "WARNING! It's not clear whether we're varying error at constant threshold offset, or varying threshold offset at constant error, because only one value was supplied for each"
+                    "WARNING! It's not clear whether we're varying error at constant"
+                    + " threshold offset, or varying threshold offset at constant"
+                    + " error, because only one value was supplied for each."
                 )
                 print("Assuming it's the former.")
                 errors_or_thresholds = errors
@@ -639,37 +619,34 @@ class Pipeline:
             ks_values_dict[N] = list()
             for et in errors_or_thresholds:
                 if error_mode:
-                    obs_name = base_obs_name + "err" + str(et).replace(".", "p")
+                    obs_name = f"{base_obs_name}err{str(et).replace('.', 'p')}"
                     comparison_obs_name = (
                         obs_name
                         if comparison_et_value is None
-                        else base_obs_name
-                        + "err"
+                        else f"{base_obs_name}err"
                         + str(comparison_et_value).replace(".", "p")
                     )
                 else:
                     obs_name = (
-                        base_obs_name
-                        + "off"
+                        f"{base_obs_name}off"
                         + str(et).replace("-", "m").replace(".", "p")
                     )
                     comparison_obs_name = (
                         obs_name
                         if comparison_et_value is None
-                        else base_obs_name
-                        + "off"
+                        else f"{base_obs_name}off"
                         + str(comparison_et_value).replace("-", "m").replace(".", "p")
                     )
                 if not pool:
                     pop1_name = (
                         base_pop1_name
                         if len(N_values) == 1
-                        else base_pop1_name + "N" + str(N)
+                        else f"{base_pop1_name}N{str(N)}"
                     )
                     pop2_name = (
                         base_pop2_name
                         if len(N_values) == 1
-                        else base_pop2_name + "N" + str(N)
+                        else f"{base_pop2_name}N{str(N)}"
                     )
 
                     if pop2_name.startswith("Hollands"):
@@ -930,7 +907,7 @@ class Pipeline:
         dprob_grid = np.empty((len(errors), len(N_values)))
 
         for error in errors:  # can generalise to errors or thresholds later!
-            obs_name = base_obs_name + "err" + str(error).replace(".", "p")
+            obs_name = f"{base_obs_name}err{str(error).replace('.', 'p')}"
             dprob_values_dict[error] = list()
             ks_values_dict[error] = list()
             for N in N_values:
@@ -981,7 +958,7 @@ class Pipeline:
         y_label = (
             "P(Input != Output)"
             if base_pop1_name == base_pop2_name
-            else "P(" + base_pop1_name + " != " + base_pop2_name + ")"
+            else f"P({base_pop1_name} != {base_pop2_name})"
         )
         graph_fac.make_dprob_v_N_plot(
             N_values,
@@ -1037,15 +1014,15 @@ class Pipeline:
         print(base_pop1_name)
         print(base_obs1_name)
         print(modeller1)
-        pop1_key = base_pop1_name + "_" + base_obs1_name + "_" + modeller1
-        pop2_key = base_pop2_name + "_" + base_obs2_name + "_" + modeller2
+        pop1_key = f"{base_pop1_name}_{base_obs1_name}_{modeller1}"
+        pop2_key = f"{base_pop2_name}_{base_obs2_name}_{modeller2}"
         dprob_values_dict = {pop1_key: dict(), pop2_key: dict()}
         ks_values_dict = {pop1_key: dict(), pop2_key: dict()}
         N_values_dict = {pop1_key: dict(), pop2_key: dict()}
 
         for error in errors:  # can generalise to errors or thresholds later!
-            obs1_name = base_obs1_name + "err" + str(error).replace(".", "p")
-            obs2_name = base_obs2_name + "err" + str(error).replace(".", "p")
+            obs1_name = f"{base_obs1_name}err{str(error).replace('.', 'p')}"
+            obs2_name = f"{base_obs2_name}err{str(error).replace('.', 'p')}"
             dprob_values_dict[pop1_key][error] = list()
             dprob_values_dict[pop2_key][error] = list()
             ks_values_dict[pop1_key][error] = list()
@@ -1260,13 +1237,13 @@ class Pipeline:
                 except IndexError:
                     threshold_type = "Default"
                 observer = so.Observer(obs_description[0], error_dict, threshold_type)
-                print("About to generate populations in pipeline " + self.name)
+                print(f"About to generate populations in pipeline {self.name}")
                 generated_pops = self.generate_populations(
                     self.population_parameter_dict, obs_name, mod_name
                 )
-                print("About to observe in pipeline " + self.name)
+                print(f"About to observe in pipeline {self.name}")
                 observer.observe_populations(generated_pops)
-                print("About to model in pipeline " + self.name)
+                print(f"About to model in pipeline {self.name}")
                 modeller.model_populations(generated_pops)
                 for pop_name, pop in generated_pops.items():
                     self.results_dict[mod_name][obs_name][pop_name] = pop
@@ -1453,13 +1430,7 @@ class Pipeline:
                 # This roughly mimics Hollands et al 2017
                 pop_size = most_polluted[0]
                 pol_element = most_polluted[1]
-                print(
-                    "Sampling the "
-                    + str(pop_size)
-                    + " most polluted WDs (by "
-                    + str(pol_element)
-                    + ")"
-                )
+                print(f"Sampling the {pop_size} most polluted WDs (by {pol_element})")
                 pop_sample = pop.get_most_polluted_subset(pop_size, pol_element)
                 resample_count = 1
             else:
@@ -1561,7 +1532,9 @@ class Pipeline:
             pop2 = pop2_including_unobserved.get_duplicate_population()
         else:
             raise NotImplementedError(
-                "For other variable types, need to pick the appropriate subset. e.g. for Observed, should pick out systems with detections of relevant elements"
+                "For other variable types, need to pick the appropriate subset."
+                + " e.g. for Observed, should pick out systems with detections of"
+                + " relevant elements"
             )
         try:
             pop1_size = combination1[4]
@@ -1666,41 +1639,25 @@ class Pipeline:
             write_mode = "w"
         to_write.append("Comparison between: ")
         to_write.append(
-            "Modeller = "
-            + combination1[0]
-            + ", Observer = "
-            + combination1[1]
-            + ", Pop = "
-            + combination1[2]
-            + " (N = "
-            + str(pop1_size)
-            + "), Variable = "
-            + combination1[3]
-            + " "
-            + variable
+            f"Modeller = {combination1[0]},"
+            + f" Observer = {combination1[1]},"
+            + f" Pop = {combination1[2]} (N = {pop1_size}),"
+            + f" Variable = {combination1[3]} {variable}"
         )
         if isinstance(combination2, str):
-            to_write.append("Comparison sample: " + combination2)
+            to_write.append(f"Comparison sample: {combination2}")
         else:
             to_write.append(
-                "Modeller = "
-                + combination2[0]
-                + ", Observer = "
-                + combination2[1]
-                + ", Pop = "
-                + combination2[2]
-                + " (N = "
-                + str(pop2_size)
-                + "), Variable = "
-                + combination2[3]
-                + " "
-                + variable
+                f"Modeller = {combination2[0]},"
+                f" Observer = {combination2[1]},"
+                f" Pop = {combination2[2]} (N = {pop2_size}),"
+                f" Variable = {combination2[3]} {variable}"
             )
         distinguishable_count = 0
         total_count = 0
         for result in results_list:
-            to_write.append("KS statistic = " + str(result[0]))
-            to_write.append("KS p-value = " + str(result[1]))
+            to_write.append(f"KS statistic = {result[0]}")
+            to_write.append(f"KS p-value = {result[1]}")
             if result[1] is not None and not np.isnan(result[1]):
                 if result[1] > p_threshold:
                     to_write.append("Could not distinguish distributions")
@@ -1712,15 +1669,12 @@ class Pipeline:
                 to_write.append("(skipping)")
             to_write.append("")
         to_write.append(
-            "Rate of distinguishing samples: "
-            + str(distinguishable_count)
-            + "/"
-            + str(total_count)
+            f"Rate of distinguishing samples: {distinguishable_count}/{total_count}"
         )
         to_write.append("")
-        print("Writing to " + self.get_base_pipeline_dir() + "ks_results.txt")
+        print(f"Writing to {self.get_base_pipeline_dir()}ks_results.txt")
         with open(
-            self.get_base_pipeline_dir() + "ks_results.txt",
+            f"{self.get_base_pipeline_dir()}ks_results.txt",
             write_mode,
             newline="",
             encoding="utf-8",
@@ -1748,38 +1702,26 @@ class Pipeline:
             write_mode = "w"
         to_write.append("Comparison between: ")
         to_write.append(
-            "Modeller = "
-            + combination1[0]
-            + ", Observer = "
-            + combination1[1]
-            + ", Pop = "
-            + combination1[2]
-            + " (N = "
-            + str(pop1_size)
-            + "), "
-            + combination1[3]
+            f"Modeller = {combination1[0]},"
+            + f" Observer = {combination1[1]},"
+            + f" Pop = {combination1[2]} (N = {pop1_size}),"
+            + f" Variable = {combination1[3]}"
         )
         if isinstance(combination2, str):
-            to_write.append("Comparison sample: " + combination2)
+            to_write.append(f"Comparison sample: {combination2}")
         else:
             to_write.append(
-                "Modeller = "
-                + combination2[0]
-                + ", Observer = "
-                + combination2[1]
-                + ", Pop = "
-                + combination2[2]
-                + " (N = "
-                + str(pop2_size)
-                + "), "
-                + combination2[3]
+                f"Modeller = {combination2[0]},"
+                f" Observer = {combination2[1]},"
+                f" Pop = {combination2[2]} (N = {pop2_size}),"
+                f" Variable = {combination2[3]}"
             )
         toret = dict()
         for test_type in mv.get_mv_test_method_dict():
             distinguishable_count = 0
             total_count = 0
             for result in results_dict[test_type]:
-                to_write.append(str(test_type) + " p-value = " + str(result))
+                to_write.append(f"{test_type} p-value = {result}")
                 if result is not None and not np.isnan(result):
                     if result > self.p_threshold:
                         to_write.append("Could not distinguish distributions")
@@ -1793,16 +1735,13 @@ class Pipeline:
                     to_write.append("(skipping)")
                 to_write.append("")
             to_write.append(
-                "Rate of distinguishing samples: "
-                + str(distinguishable_count)
-                + "/"
-                + str(total_count)
+                f"Rate of distinguishing samples: {distinguishable_count}/{total_count}"
             )
             to_write.append("")
             toret[test_type] = (distinguishable_count, total_count)
-        print("Writing to " + self.get_base_pipeline_dir() + "mv_results.txt")
+        print(f"Writing to {self.get_base_pipeline_dir()}mv_results.txt")
         with open(
-            self.get_base_pipeline_dir() + "mv_results.txt",
+            f"{self.get_base_pipeline_dir()}mv_results.txt",
             write_mode,
             newline="",
             encoding="utf-8",
@@ -1834,10 +1773,8 @@ class Pipeline:
             # only load the raw population data, not any outputs
 
             file_to_look_for = (
-                self.get_popdump_dir()
-                + "popdump_"
-                + self.get_pipeline_name(pop_name, obs_name, mod_name)
-                + ".csv"
+                f"{self.get_popdump_dir()}popdump_"
+                + f"{self.get_pipeline_name(pop_name, obs_name, mod_name)}.csv"
             )
 
             premade_pop = None
@@ -2102,7 +2039,7 @@ class Pipeline:
                     graph_fac.make_ternary_plot(
                         el_list,
                         el_abundance_dict,
-                        "ternary_plot_" + pop_name + "_" + obs_name,
+                        f"ternary_plot_{pop_name}_{obs_name}",
                         self.ternary_scaling_factors,
                         additional_text_dict,
                     )
@@ -2378,7 +2315,9 @@ class Pipeline:
                                 print(val)
                                 print(vfilter[1])
                                 raise ValueError(
-                                    "For now, this should be forbidden! (Just increase the bounds in the plot_description if it's an issue)"
+                                    "For now, this should be forbidden!"
+                                    + " (Just increase the bounds in the"
+                                    + " plot_description if it's an issue)"
                                 )
                             if val > vfilter[2]:
                                 variable_above_threshold_dict[vl][plot_name][
@@ -2387,7 +2326,9 @@ class Pipeline:
                                 print(val)
                                 print(vfilter[2])
                                 raise ValueError(
-                                    "For now, this should be forbidden! (Just increase the bounds in the plot_description if it's an issue)"
+                                    "For now, this should be forbidden!"
+                                    + " (Just increase the bounds in the"
+                                    + " plot_description if it's an issue)"
                                 )
                     except TypeError:
                         pass
@@ -2421,18 +2362,15 @@ class Pipeline:
             vfilter = self.get_vfilter("Input", plot_descriptions[plot_name])
             initial_text_height = 1
             for pop_name, values in variable_dict["Input"][plot_name].items():
-                series_name = "Initial" if paper_version else pop_name + " Initial"
+                series_name = "Initial" if paper_version else f"{pop_name} Initial"
                 io_variable_dict[series_name] = values
                 io_weights_dict[series_name] = weights_dict["Input"][plot_name][
                     pop_name
                 ]
                 if not paper_version:
-                    io_text_dict[pop_name + " Initial excluded"] = {
-                        "text_string": pop_name
-                        + " Initial"
-                        + ": "
-                        + str(sum(weights_dict["Input"][plot_name][pop_name]))
-                        + " total, "
+                    io_text_dict[f"{pop_name} Initial excluded"] = {
+                        "text_string": f"{pop_name} Initial: "
+                        + f"{sum(weights_dict["Input"][plot_name][pop_name])} total, "
                         + str(
                             variable_below_threshold_dict["Input"][plot_name][pop_name]
                         )
@@ -2450,16 +2388,14 @@ class Pipeline:
                     }
                     initial_text_height -= 0.1
             for pop_name, values in variable_dict["Modelled"][plot_name].items():
-                series_name = "Final" if paper_version else pop_name + " Final"
+                series_name = "Final" if paper_version else f"{pop_name} Final"
                 io_variable_dict[series_name] = values
                 io_weights_dict[series_name] = weights_dict["Modelled"][plot_name][
                     pop_name
                 ]
                 if not paper_version:
-                    io_text_dict[pop_name + " Final excluded"] = {
-                        "text_string": pop_name
-                        + " Final"
-                        + ": "
+                    io_text_dict[f"{pop_name} Final excluded"] = {
+                        "text_string": f"{pop_name} Final: "
                         + str(sum(weights_dict["Modelled"][plot_name][pop_name]))
                         + " total, "
                         + str(
@@ -2490,7 +2426,7 @@ class Pipeline:
                     vfilter[2],
                     vfilter[3],
                     io_text_dict,
-                    plot_name + "_io_dist_" + pop_name + "_" + mode,
+                    f"{plot_name}_io_dist_{pop_name}_{mode}",
                     mode == "cdf",
                     dict(),
                     io_weights_dict,
@@ -2522,7 +2458,7 @@ class Pipeline:
                 modelled_output_vals,
                 heights,
                 x_bar_centres,
-                plot_name + "_io_scatter_" + pop_name + ".pdf",
+                f"{plot_name}_io_scatter_{pop_name}.pdf",
                 vfilter[0],
                 vfilter[1],
                 vfilter[2],
@@ -2564,7 +2500,7 @@ class Pipeline:
                 el2,
                 None,
                 None,
-                str(el1) + "_" + str(el2) + "_scatter_" + pop_name + ".pdf",
+                f"{el1}_{el2}_scatter_{pop_name}.pdf",
                 hx,
             )
 
@@ -2589,11 +2525,9 @@ class Pipeline:
                 excluded_text_dict = dict()
                 initial_text_height = 1
                 for pop_name in variable_dict[vl][plot_name].keys():
-                    excluded_text_dict[pop_name + "_excluded"] = {
-                        "text_string": pop_name
-                        + ": "
-                        + str(sum(weights_dict[vl][plot_name][pop_name]))
-                        + " total, "
+                    excluded_text_dict[f"{pop_name}_excluded"] = {
+                        "text_string": f"{pop_name}: "
+                        + f"{str(sum(weights_dict[vl][plot_name][pop_name]))} total, "
                         + str(variable_below_threshold_dict[vl][plot_name][pop_name])
                         + " below, "
                         + str(variable_above_threshold_dict[vl][plot_name][pop_name])
@@ -2622,10 +2556,10 @@ class Pipeline:
                 if isinstance(vfilter[0], ci.Element) and mwdd_hx is not None:
                     # comment one of these out as appropriate!
                     comparison_dist_dict[
-                        "MWDD " + str(vfilter[0]) + "/" + str(mwdd_hx)
+                        f"MWDD {vfilter[0]}/{mwdd_hx}"
                     ] = mwdd.get_mwdd_abundances(vfilter[0], mwdd_hx)
                     comparison_dist_dict[
-                        "Hollands+ 2017 " + str(vfilter[0]) + "/" + str(mwdd_hx)
+                        f"Hollands+ 2017 {vfilter[0]}/{mwdd_hx}"
                     ] = ha.get_hollands_abundance_values(vfilter[0], self.manager)
                     variable_name = (vfilter[0], mwdd_hx)
                 if isinstance(vfilter[0], list):
@@ -2638,7 +2572,7 @@ class Pipeline:
                         min(10, vfilter[2]),  # x_max
                         vfilter[3],  # half_bin_size
                         excluded_text_dict,  # text_dict
-                        plot_name + "_" + vl + "_" + mode,  # file_prefix
+                        f"{plot_name}_{vl}_{mode}",  # file_prefix
                         mode == "cdf",  # cumulative (True or False)
                         dict(),  # text_size_dict
                         weights_dict[vl][plot_name],  # weights_dict
@@ -2654,7 +2588,7 @@ class Pipeline:
                                 vfilter[2],
                                 vfilter[3],
                                 None,
-                                plot_name + "_" + vl + "_" + mode + "_standalone",
+                                f"{plot_name}_{vl}_{mode}_standalone",
                                 mode == "cdf",
                                 {
                                     "legend_text_size": 14,
@@ -2690,7 +2624,7 @@ class Pipeline:
                     plots_to_multipanelise,
                     2,
                     2,
-                    [plot_name + "_FullPipeline_" + mode + ".pdf"],
+                    [f"{plot_name}_FullPipeline_{mode}.pdf"],
                     15,
                     18,
                     0.2,
@@ -3282,7 +3216,7 @@ def run_delta_fcf_variable_error_pipeline():
         (0.4, "0p4"),
     ]
     for error_tuple in list_of_error_tuples:
-        observer_dict["HollandsObservererr" + error_tuple[1]] = [
+        observer_dict[f"HollandsObservererr{error_tuple[1]}"] = [
             so.ObservationType.TeffIndividualElementCutoff,
             error_tuple[0],
             "Hollands",
@@ -3572,10 +3506,14 @@ def run_profiling_pipeline():
     # plot_descriptions = {
     #     # input description, output description
     #     # (each is variable, min bin value, max bin value, half bin size)
-    #    'fcf': ((mp.ModelParameter.fragment_core_frac, 0, 1, 0.025), (ci.Element.Fe, -20, -2, 0.1)),
-    #    'distance': ((mp.ModelParameter.formation_distance, -2, 1, 0.0125), (ci.Element.Na, -20, -4, 0.1)),
-    #    'time': ((mp.ModelParameter.t_sinceaccretion, 0, 100000, 1), (ci.Element.Ca, -20, -4, 0.1)),
-    #    'metallicity': ((mp.ModelParameter.metallicity, 0, 958, 24), (ci.Element.Ca, -20, -4, 0.1))
+    #    'fcf': ((mp.ModelParameter.fragment_core_frac, 0, 1, 0.025),
+    # (ci.Element.Fe, -20, -2, 0.1)),
+    #    'distance': ((mp.ModelParameter.formation_distance, -2, 1, 0.0125),
+    # (ci.Element.Na, -20, -4, 0.1)),
+    #    'time': ((mp.ModelParameter.t_sinceaccretion, 0, 100000, 1),
+    # (ci.Element.Ca, -20, -4, 0.1)),
+    #    'metallicity': ((mp.ModelParameter.metallicity, 0, 958, 24),
+    # (ci.Element.Ca, -20, -4, 0.1))
     # }
     # pipeline.plot_results(plot_descriptions, ci.Element.H)
 
@@ -3652,7 +3590,7 @@ def run_variable_timescale_pipeline():
         (0.4, "0p4"),
     ]
     for error_tuple in list_of_error_tuples:
-        observer_dict["HollandsObservererr" + error_tuple[1]] = [
+        observer_dict[f"HollandsObservererr{error_tuple[1]}"] = [
             so.ObservationType.TeffIndividualElementCutoff,
             error_tuple[0],
             "Hollands",
@@ -3777,7 +3715,7 @@ def run_volatile_pipeline():
     observer_dict = dict()
     list_of_error_tuples = [(0.1, "0p1")]
     for error_tuple in list_of_error_tuples:
-        observer_dict["ELB_DTObservererr" + error_tuple[1]] = [
+        observer_dict[f"ELB_DTObservererr{error_tuple[1]}"] = [
             so.ObservationType.TeffIndividualElementCutoff,
             error_tuple[0],
             "ELB_DT",
@@ -3817,8 +3755,10 @@ def run_volatile_pipeline():
     #    'Dry': water_content_to_plot_dry
     # }
 
-    # bins = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
-    # bin_centres = [0.025, 0.075, 0.125, 0.175, 0.225, 0.275, 0.325, 0.375, 0.425, 0.475, 0.525, 0.575, 0.625, 0.675, 0.725, 0.775, 0.825, 0.875, 0.925, 0.975]
+    # bins = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65,
+    # 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1]
+    # bin_centres = [0.025, 0.075, 0.125, 0.175, 0.225, 0.275, 0.325, 0.375, 0.425,
+    # 0.475, 0.525, 0.575, 0.625, 0.675, 0.725, 0.775, 0.825, 0.875, 0.925, 0.975]
     # graph_fac = gf.GraphFactory(pipeline.get_base_pipeline_dir())
     # for pop_name, vals in wc_to_plot_dict.items():
     #    heights, bins2 = np.histogram(
@@ -4028,8 +3968,11 @@ def run_volatile_pipeline():
         [0.1],
         [0],
         [5, 10, 15, 20, 25, 30, 40, 50],
-        # [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
-        #  47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
+        # [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        # 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
+        # 44, 45, 46,
+        #  47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65,
+        # 66, 67, 68, 69, 70, 71],
         "NullModeller",
         "ELB_DTObserver",
         True,
@@ -4110,7 +4053,7 @@ def run_light_element_pipeline():
     observer_dict = dict()
     list_of_error_tuples = [(0.1, "0p1")]
     for error_tuple in list_of_error_tuples:
-        observer_dict["ELB_DTObservererr" + error_tuple[1]] = [
+        observer_dict[f"ELB_DTObservererr{error_tuple[1]}"] = [
             so.ObservationType.TeffIndividualElementCutoff,
             error_tuple[0],
             "ELB_DT",
@@ -4239,7 +4182,8 @@ def run_light_element_pipeline():
         "HWOSiOrichCore",
         [0.1],
         [0],
-        # [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100],
+        # [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95,
+        # 100],
         [
             5,
             6,
@@ -4350,7 +4294,7 @@ def thermohaline_pipeline():
     observer_dict = dict()
     list_of_error_tuples = [(0.1, "0p1")]
     for error_tuple in list_of_error_tuples:
-        observer_dict["DefaultObservererr" + error_tuple[1]] = [
+        observer_dict[f"DefaultObservererr{error_tuple[1]}"] = [
             so.ObservationType.NoCut,
             error_tuple[0],
             "Default",

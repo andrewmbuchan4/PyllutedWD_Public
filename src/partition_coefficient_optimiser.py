@@ -102,7 +102,7 @@ def chi_squared(ds, target_name):
         error = target_logd_errors[element]
         calculated_value = np.log10(ds.get(element))
         if calculated_value is None:
-            print("Warning! No calculated value for " + str(element))
+            print(f"Warning! No calculated value for {element}")
             print(ds)
             raise
         weight = penalty_weights[element]
@@ -129,9 +129,9 @@ def run_search(target_name):
                 chi_sq = chi_squared(ds, target_name)
                 print()
                 print(" --- Trying case:")
-                print(" --- Pressure = " + str(p) + " GPa")
-                print(" --- fo2 = IW" + str(fo2))
-                print(" --- Penalty = " + str(chi_sq))
+                print(f" --- Pressure = {p} GPa")
+                print(f" --- fo2 = IW{fo2}")
+                print(f" --- Penalty = {chi_sq}")
                 if chi_sq < min_penalty:
                     min_penalty = chi_sq
                     best_combo = (p, fo2)
@@ -139,9 +139,9 @@ def run_search(target_name):
     print()
     print()
     print("The Best Combo Is...")
-    print(" --- Pressure = " + str(best_combo[0]) + " GPa")
-    print(" --- fo2 = IW" + str(best_combo[1]))
-    print(" --- Penalty = " + str(min_penalty))
+    print(f" --- Pressure = {best_combo[0]} GPa")
+    print(f" --- fo2 = IW{best_combo[1]}")
+    print(f" --- Penalty = {min_penalty}")
     composition, pcnf, ds, diagnostics = geo_model.form_a_planet_iteratively(
         best_combo[0], best_combo[1]
     )

@@ -29,13 +29,13 @@ def load_water_content(file_including_path):
 
 
 def main():
-    directory = pu.get_path_to_pipeline_base_dir() + "volatiles/"
+    directory = f"{pu.get_path_to_pipeline_base_dir()}volatiles/"
     print(directory)
     wet_linear, wet_linear_positive, wet_log = load_water_content(
-        directory + "raw_water_content_wet.csv"
+        f"{directory}raw_water_content_wet.csv"
     )
     dry_linear, dry_linear_positive, dry_log = load_water_content(
-        directory + "raw_water_content_dry.csv"
+        f"{directory}raw_water_content_dry.csv"
     )
     wc_to_plot_dict_linear = {
         "Wet_Linear": wet_linear,

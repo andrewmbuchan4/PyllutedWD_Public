@@ -54,20 +54,13 @@ class WhiteDwarfDataPoint:
     def __str__(self):
         if self.data_point_type == WhiteDwarfDataPointType.measurement:
             if self.upper_error == self.lower_error:
-                return str(self.value) + "±" + str(self.upper_error)
+                return f"{self.value}±{self.upper_error}"
             else:
-                return (
-                    str(self.value)
-                    + "^{+"
-                    + str(self.upper_error)
-                    + "}_{-"
-                    + str(self.lower_error)
-                    + "}"
-                )
+                return (f"{self.value}^{{+{self.upper_error}}}_{{-{self.lower_error}}}")
         elif self.data_point_type == WhiteDwarfDataPointType.upper_bound:
-            return "<" + str(self.value)
+            return f"<{self.value}"
         elif self.data_point_type == WhiteDwarfDataPointType.lower_bound:
-            return ">" + str(self.value)
+            return f">{self.value}"
         elif self.data_point_type == WhiteDwarfDataPointType.label:
             return str(self.value)
         else:
@@ -115,9 +108,8 @@ class WhiteDwarfAbundanceData:
         # Switch included to False to get the excluded points
         if reference_element not in self.abundance_data_dict:
             raise ValueError(
-                "Requested abundances relative to "
-                + str(reference_element)
-                + ", which is absent from the WhiteDwarfAbundanceData"
+                f"Requested abundances relative to {reference_element},"
+                + " which is absent from the WhiteDwarfAbundanceData"
             )
         values_toret = list()
         upper_errors_toret = list()
@@ -400,10 +392,10 @@ class WhiteDwarfAbundanceData:
                 el_data = self.abundance_data_dict[el]
             except KeyError:
                 continue
-            individual_str = str(el) + ": " + str(el_data)
+            individual_str = f"{el}: {el_data}"
             if not el_data.included:
                 individual_str += " (not included)"
-            toret += individual_str + "\n"
+            toret += f"{individual_str}\n"
         return toret
 
     def __repr__(self):
@@ -534,12 +526,12 @@ class WhiteDwarfPropertyData:
                 # data
                 property_value = self.property_dict.get(wd_property, "---")
                 # for wd_property, property_value in self.property_dict.items():
-                individual_str = str(wd_property) + ": " + str(property_value)
+                individual_str = f"{wd_property}: {property_value}"
                 if self.property_dict.get(wd_property) is not None:
                     unit = mp.wd_parameter_units.get(wd_property, "")
                     if unit != "":
-                        individual_str += " " + unit
-                toret += individual_str + "\n"
+                        individual_str += f" {unit}"
+                toret += f"{individual_str}\n"
         return toret
 
     def __repr__(self):
@@ -583,9 +575,9 @@ class WhiteDwarfAtmosphereData:
         }
 
     def __str__(self):
-        toret = "log(q): " + str(self.logq) + "\n"
+        toret = f"log(q): {self.logq}\n"
         for element, timescale in self.timescale_dict.items():
-            toret += str(element) + ": " + str(timescale) + " yr\n"
+            toret += f"{element}: {timescale} yr\n"
         toret += "\n"
         return toret
 
@@ -617,7 +609,7 @@ class WhiteDwarfAtmosphereDataset:
     def __str__(self):
         toret = ""
         for key, add in self.atmosphere_data_dict.items():
-            toret += str(key) + " Sinking Timescales:\n" + str(add)
+            toret += f"{key} Sinking Timescales:\n{add}"
         toret += "\n"
         return toret
 
@@ -692,7 +684,7 @@ class WhiteDwarf:
     def full_name(self):
         if self.variant is None:
             return self.system_name
-        return self.system_name + "_" + self.variant
+        return f"{self.system_name}_{self.variant}"
 
     def abbreviated_name(self, chars_to_remove):
         toret = self.full_name()
@@ -1083,9 +1075,8 @@ class WhiteDwarf:
                 break
         if ref_el is None:
             raise ValueError(
-                "White dwarf "
-                + self.name
-                + " has no measurements to normalise solar abundances against"
+                f"White dwarf {self.name} has no measurements to normalise solar"
+                + " abundances against"
             )
         list_of_abundances_for_pol_frac = list()
         for el in elements_to_consider:
@@ -1222,12 +1213,10 @@ class WhiteDwarf:
         return self.atmosphere_data.get_available_timescale_types()
 
     def __str__(self):
-        toret = "\n"
-        toret += "--- " + self.full_name() + " ---\n\n"
-        toret += str(self.properties)
-        toret += "\n"
-        toret += str(self.abundances)
-        toret += "\n"
+        toret = f"\n"
+        toret += f"--- {self.full_name()} ---\n"
+        toret += f"\n{self.properties}"
+        toret += f"\n{self.abundances}\n"
         toret += str(self.atmosphere_data)
         return toret
 

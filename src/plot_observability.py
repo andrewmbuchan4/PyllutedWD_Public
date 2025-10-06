@@ -143,7 +143,7 @@ def generate_fcf_values():
 
 
 def get_element_key(element):
-    return str(element) + "/Hx"
+    return f"{element}/Hx"
 
 
 def import_MWDD_data(file_name):
@@ -166,7 +166,7 @@ def import_MWDD_data(file_name):
                     "Ni/H": row[7],
                 }
             row_i += 1
-    print(str(len(toret)) + " WDs imported")
+    print(f"{len(toret)} WDs imported")
     return toret
 
 
@@ -283,7 +283,8 @@ def tabulate_contour_data(contour_data_to_plot, path=None):
         if prev_args is not None:
             if prev_args != args:
                 print(
-                    "Could not tabulate data because args were inconsistent between elements"
+                    "Could not tabulate data because args were"
+                    + " inconsistent between elements"
                 )
                 return
         prev_args = args
@@ -485,10 +486,10 @@ def build_guideline(
         toret["x_data"].append(point[0])
         toret["y_data"].append(point[1])
         toret["z_data"].append(
-            "{:.2f}".format(
-                contour_data_to_plot_el[point][guideline_num_el]
-                - contour_data_to_plot_el[point][guideline_denom_el]
-            )
+            f"{(
+            contour_data_to_plot_el[point][guideline_num_el]
+            - contour_data_to_plot_el[point][guideline_denom_el]
+            ):.2f}"
         )
     return toret
 
@@ -589,8 +590,8 @@ def plot_el_v_teff_data(el_v_teff_data):
         teff_upper_bound_vals = {"H": list(), "He": list()}
         el_vals = {"H": list(), "He": list()}
         el_upper_bound_vals = {"H": list(), "He": list()}
-        He_key = str(element) + "/He"
-        H_key = str(element) + "/H"
+        He_key = f"{element}/He"
+        H_key = f"{element}/H"
         for WD, WD_data in el_v_teff_data.items():
             if WD_data[He_key] != "":
                 upper_bound = False

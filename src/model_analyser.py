@@ -126,8 +126,8 @@ class ModelAnalyser:
         # ^ Natural log of Bayesian evidence from model 2
 
         Bayes_factor, n_sigma = self.z_to_sigma(ln_Z_M1, ln_Z_M2)
-        print("Comparing " + basename_M1 + " with " + basename_M2)
-        print("Bayes Factor = " + str(Bayes_factor))
+        print(f"Comparing {basename_M1} with {basename_M2}")
+        print(f"Bayes Factor = {Bayes_factor}")
 
         return (
             ln_Z_M1,
@@ -166,10 +166,8 @@ class ModelAnalyser:
         self, model, base_model, observation_number, number_of_data_points
     ):
         print(
-            "Comparing result for model "
-            + str(model.basename)
-            + " with base_model "
-            + str(base_model.basename)
+            f"Comparing result for model {model.basename}"
+            + f" with base_model {base_model.basename}"
         )
         good_fit_threshold = 2
         (
@@ -291,9 +289,8 @@ class ModelAnalyser:
             # Then there was no model which actually omitted the parameter, so no point
             # continuing
             print(
-                "Could not find a model without parameter "
-                + str(parameter)
-                + ", no sigma significance could be calculated"
+                f"Could not find a model without parameter {parameter},"
+                + " no sigma significance could be calculated"
             )
             return
         else:
@@ -380,17 +377,15 @@ class ModelAnalyser:
             to_write.writerow(["Best model name:", best_model_name])
             to_write.writerow(
                 [
-                    "Best model name without " + process_name + ":",
+                    f"Best model name without {process_name}:",
                     best_non_param_model_name,
                 ]
             )
-            to_write.writerow([process_name + " Sigma:", param_sigma_str])
-            to_write.writerow([process_name + " Bayes Factor:", bayes_factor_str])
+            to_write.writerow([f"{process_name} Sigma:", param_sigma_str])
+            to_write.writerow([f"{process_name} Bayes Factor:", bayes_factor_str])
             to_write.writerow(
                 [
-                    "Chi squared per data point (best model without "
-                    + process_name
-                    + "):",
+                    f"Chi squared per data point (best model without {process_name}):",
                     chi_sq_nondiff_str,
                 ]
             )
@@ -1137,65 +1132,57 @@ class ModelAnalyser:
                             list_of_el_abundances.append(a[gi.Layer.bulk])
                         to_write.writerow(
                             [
-                                "Elements using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):"
+                                "Elements using SS corrected data points"
+                                + f" (oxidation {oa_strat}):"
                             ]
                             + list_of_els
                         )
                         to_write.writerow(
                             [
-                                "Composition using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):"
+                                "Composition using SS corrected data points"
+                                + f" (oxidation {oa_strat}):"
                             ]
                             + list_of_el_abundances
                         )
                         to_write.writerow(
                             [
-                                "Excess Oxygen using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):",
+                                "Excess Oxygen using SS corrected data points"
+                                + f" (oxidation {oa_strat}):",
                                 oa_stats[0],
                             ]
                         )
                         to_write.writerow(
                             [
-                                "Fractional Excess Oxygen using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):",
+                                "Fractional Excess Oxygen using SS corrected data"
+                                + f" points (oxidation {oa_strat}):",
                                 oa_stats[1],
                             ]
                         )
                         to_write.writerow(
                             [
-                                "Excess O Sigma Significance using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):",
+                                "Excess O Sigma Significance using SS corrected data"
+                                + f" points (oxidation {oa_strat}):",
                                 oa_stats[8],
                             ]
                         )
                         to_write.writerow(
                             [
-                                "Water Mass using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):",
+                                "Water Mass using SS corrected data points"
+                                + f" (oxidation {oa_strat}):",
                                 oa_stats[3],
                             ]
                         )
                         to_write.writerow(
                             [
-                                "Water Mass Fraction using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):",
+                                "Water Mass Fraction using SS corrected data points"
+                                + f" (oxidation {oa_strat}):",
                                 oa_stats[4],
                             ]
                         )
                         to_write.writerow(
                             [
-                                "Excess Oxygen Mass using SS corrected data points (oxidation "
-                                + str(oa_strat)
-                                + "):",
+                                "Excess Oxygen Mass using SS corrected data points"
+                                + f" (oxidation {oa_strat}):",
                                 oa_stats[5],
                             ]
                         )
@@ -1203,7 +1190,7 @@ class ModelAnalyser:
             to_write.writerow(["Excess Oxygen Sampling results:"])
             for ox_strat, stats in sampled_eo_stats.items():
                 to_write.writerow([])
-                to_write.writerow(["For Oxidation Strat: " + str(ox_strat)])
+                to_write.writerow([f"For Oxidation Strat: {ox_strat}"])
                 to_write.writerow(
                     [
                         "Sampled Excess Oxygen, +error, -error:",
@@ -1226,10 +1213,8 @@ class ModelAnalyser:
                 )
                 to_write.writerow(
                     [
-                        "Samples used:",
-                        str(stats[self.absolute_string][4])
-                        + "/"
-                        + str(stats[self.absolute_string][5]),
+                        f"Samples used: {stats[self.absolute_string][4]}",
+                        f"/{stats[self.absolute_string][5]}",
                     ]
                 )
                 to_write.writerow(
@@ -1248,16 +1233,15 @@ class ModelAnalyser:
                 )
                 to_write.writerow(
                     [
-                        "Sampled Fractional Oxygen Excess or Deficit Rate (whichever greater):",
+                        "Sampled Fractional Oxygen Excess or Deficit Rate"
+                        + " (whichever greater):",
                         stats[self.fractional_string][6],
                     ]
                 )
                 to_write.writerow(
                     [
-                        "Samples used (fractional):",
-                        str(stats[self.fractional_string][4])
-                        + "/"
-                        + str(stats[self.fractional_string][5]),
+                        f"Samples used (frac.): {stats[self.fractional_string][4]}",
+                        f"/{stats[self.fractional_string][5]}",
                     ]
                 )
             to_write.writerow([])
@@ -1265,25 +1249,21 @@ class ModelAnalyser:
             for key, value in semisampled_eo_dict.items():
                 to_write.writerow([key, str(value)])
         if print_all_eo_sample_vals:
-            sample_dump = (
-                stats_file.split(".")[0] + "_eo_samples_" + model_name + ".csv"
-            )
+            sample_dump = f"{stats_file.split('.')[0]}_eo_samples_{model_name}.csv"
             with open(sample_dump, "w", newline="", encoding="utf-8") as f:
                 to_write = csv.writer(f)
                 lists_to_zip = list()
                 names_of_zipped = list()
                 for ox_strat, stats in eo_sample_stats.items():
                     for key, list_to_zip in stats.items():
-                        names_of_zipped.append(str(ox_strat) + ", " + key)
+                        names_of_zipped.append(f"{ox_strat}, {key}")
                         lists_to_zip.append(list_to_zip)
                 to_write.writerow(names_of_zipped)
                 zipped = zip(*lists_to_zip)
                 for z in zipped:
                     to_write.writerow(z)
         if print_all_time_sample_vals:
-            sample_dump = (
-                stats_file.split(".")[0] + "_time_samples_" + model_name + ".csv"
-            )
+            sample_dump = f"{stats_file.split('.')[0]}_time_samples_{model_name}.csv"
             with open(sample_dump, "w", newline="", encoding="utf-8") as f:
                 to_write = csv.writer(f)
                 to_write.writerow(
@@ -1350,7 +1330,7 @@ class ModelAnalyser:
         )
         if not suppress_graphical_output:
             self.graph_fac.make_excess_oxygen_plot(
-                eoc_stats, system_name + "_" + model.get_prefix()
+                eoc_stats, f"{system_name}_{model.get_prefix()}"
             )
         return eoc_stats
 
@@ -1384,7 +1364,7 @@ class ModelAnalyser:
                 else:
                     delta_free_params.append(dfp)
         self.graph_fac.make_corner_plot(
-            weightpost, delta_free_params, wd_name_tuple[0] + "_" + model.get_prefix()
+            weightpost, delta_free_params, f"{wd_name_tuple[0]}_{model.get_prefix()}"
         )
 
     def make_composition_plot(
@@ -1470,7 +1450,7 @@ class ModelAnalyser:
         print("Sampling for Composition plot")
         for i in range(number_of_samples):
             if (i % 250) == 0:
-                print("Composition sample " + str(i))
+                print(f"Composition sample {i}")
             fe_star = (
                 weightpost[samples[i], parameter_indices[mp.ModelParameter.metallicity]]
                 if mp.model_uses_parameter(
@@ -1634,21 +1614,23 @@ class ModelAnalyser:
                 fixed_pressure_version and fp_expressions is None
             ):
                 print(
-                    "Warning! The sampled model does not converge! (Or otherwise returns None). Skipping this sample. Printing attempted params:"
+                    "Warning! The sampled model does not converge!"
+                    + " (Or otherwise returns None). Skipping this sample."
+                    + " Printing attempted params:"
                 )
-                print("fe_star: " + str(fe_star))
-                print("t_sinceaccretion: " + str(t_sinceaccretion))
-                print("d_formation: " + str(d_formation))
-                print("z_formation: " + str(z_formation))
-                print("N_c: " + str(N_c))
-                print("N_o: " + str(N_o))
-                print("f_c: " + str(f_c))
-                print("f_o: " + str(f_o))
-                print("fragment mass: " + str(fragment_mass))
-                print("log_t_disc: " + str(log_t_disc))
-                print("pressure: " + str(pressure))
-                print("fO2: " + str(fO2))
-                print("t_formation: " + str(t_formation))
+                print(f"fe_star: {fe_star}")
+                print(f"t_sinceaccretion: {t_sinceaccretion}")
+                print(f"d_formation: {d_formation}")
+                print(f"z_formation: {z_formation}")
+                print(f"N_c: {N_c}")
+                print(f"N_o: {N_o}")
+                print(f"f_c: {f_c}")
+                print(f"f_o: {f_o}")
+                print(f"fragment mass: {fragment_mass}")
+                print(f"log_t_disc: {log_t_disc}")
+                print(f"pressure: {pressure}")
+                print(f"fO2: {fO2}")
+                print(f"t_formation: {t_formation}")
                 eo_samples[eoc.OxidationStrategy.default][self.absolute_string].append(
                     None
                 )
@@ -1676,26 +1658,26 @@ class ModelAnalyser:
             except (TypeError, KeyError):
                 eoc_comp = diagnostics["DiscAbundances"]
             eoc_stats = self.excess_oxygen_calculator.run_full_calculation(
-                {"Sample " + str(i): eoc_comp}
+                {f"Sample {i}": eoc_comp}
             )
             try:
                 eo_samples[eoc.OxidationStrategy.default][self.absolute_string].append(
-                    eoc_stats["Sample " + str(i)][eoc.OxidationStrategy.default][0]
+                    eoc_stats[f"Sample {i}"][eoc.OxidationStrategy.default][0]
                 )
                 eo_samples[eoc.OxidationStrategy.default][
                     self.fractional_string
                 ].append(
-                    eoc_stats["Sample " + str(i)][eoc.OxidationStrategy.default][1]
+                    eoc_stats[f"Sample {i}"][eoc.OxidationStrategy.default][1]
                 )
                 eo_samples[eoc.OxidationStrategy.conservative][
                     self.absolute_string
                 ].append(
-                    eoc_stats["Sample " + str(i)][eoc.OxidationStrategy.conservative][0]
+                    eoc_stats[f"Sample {i}"][eoc.OxidationStrategy.conservative][0]
                 )
                 eo_samples[eoc.OxidationStrategy.conservative][
                     self.fractional_string
                 ].append(
-                    eoc_stats["Sample " + str(i)][eoc.OxidationStrategy.conservative][1]
+                    eoc_stats[f"Sample {i}"][eoc.OxidationStrategy.conservative][1]
                 )
             except TypeError:
                 # It was None
@@ -2046,7 +2028,7 @@ class ModelAnalyser:
                 )
                 mass_vals.append(str(round(rm_tuple[1], 2)).rstrip("0").rstrip("."))
         additional_x_axis_dict = {
-            "xlabel_text": "Mass / M" + r"$_{\oplus}$",
+            "xlabel_text": r"Mass / M$_{\oplus}$",
             "x_tick_locations": pressure_vals,
             "x_tick_labels": mass_vals,
             # 'x_max': 60
@@ -2055,7 +2037,7 @@ class ModelAnalyser:
             x_bar_centres,
             [heights],
             [wd_name_tuple[1]],
-            wd_name_tuple[0] + "_" + model.get_prefix(),
+            f"{wd_name_tuple[0]}_{model.get_prefix()}",
             half_bin_size * 2,
             1.1,
             "Pressure /GPa",
@@ -2094,14 +2076,14 @@ class ModelAnalyser:
                     nan_count = len(eo_stats_to_use) - len(eo_stats_no_nans)
                     text_to_write = str(ox_strat).capitalize() + " oxidation"
                     if nan_count > 0:
-                        text_to_write += ", " + str(nan_count) + " runs excluded"
+                        text_to_write += f", {nan_count} runs excluded"
                     text_dict = {
                         "ox_strat_string": {
                             "x_pos": min_bin + ((max_bin - min_bin) / 10),
                             "text_string": text_to_write,
                         }
                     }
-                    file_suffix = "eo_dist_" + str(ox_strat) + "_" + abs_or_frac
+                    file_suffix = f"eo_dist_{ox_strat}_{abs_or_frac}"
                     x_label = (
                         "Excess Oxygen"
                         if abs_or_frac == self.absolute_string
@@ -2111,7 +2093,7 @@ class ModelAnalyser:
                         x_bar_centres,
                         [heights],
                         [wd_name_tuple[1]],
-                        wd_name_tuple[0] + "_" + model.get_prefix(),
+                        f"{wd_name_tuple[0]}_{model.get_prefix()}",
                         half_bin_size * 2,
                         1.1,
                         x_label,
@@ -2320,7 +2302,7 @@ class ModelAnalyser:
         text_dict = {
             "sigma_display_text": {
                 "x_pos": 50 if p_excess_def > p_deficit_def else -100,
-                "text_string": "$" + str(np.round(sig_excess_def, 1)) + "\sigma$",
+                "text_string": f"${np.round(sig_excess_def, 1)}\sigma$",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 16,
@@ -2330,7 +2312,7 @@ class ModelAnalyser:
         text_dict_thesis = {
             "sigma_display_text": {
                 "x_pos": 0.8 if p_excess_def > p_deficit_def else 0.2,
-                "text_string": "$" + str(np.round(sig_excess_def, 1)) + "\sigma$",
+                "text_string": f"${np.round(sig_excess_def, 1)}\sigma$",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 16,
@@ -2371,7 +2353,7 @@ class ModelAnalyser:
                 x_bar_centres_percent,
                 [heights_default],
                 [white_dwarf.system_name],
-                white_dwarf.full_name() + "_" + model.get_prefix(),
+                f"{white_dwarf.full_name()}_{model.get_prefix()}",
                 half_bin_size * 2 * plot_scaling_factor,
                 1.2,
                 "Excess Oxygen (\%)",
@@ -2393,7 +2375,7 @@ class ModelAnalyser:
                 x_bar_centres_percent,
                 [heights_default],
                 [white_dwarf.system_name],
-                white_dwarf.full_name() + "_" + model.get_prefix(),
+                f"{white_dwarf.full_name()}_{model.get_prefix()}",
                 half_bin_size * 2 * plot_scaling_factor,
                 1.2,
                 "Excess Oxygen (\%)",
@@ -2470,12 +2452,12 @@ class ModelAnalyser:
             # Parse file name
             filename = candidate_files[0]
             system_name = filename.split("_")[0]
-            hierarchy_abbreviation = filename.split(system_name + "_")[1].split("_lv")[
+            hierarchy_abbreviation = filename.split(f"{system_name}_")[1].split("_lv")[
                 0
             ]
             hierarchy_level_list_str = filename.split("lv_")[1].split("_")[0]
             hierarchy_level_list = [int(c) for c in hierarchy_level_list_str]
-            model_name = hierarchy_abbreviation + "_lv_" + hierarchy_level_list_str
+            model_name = f"{hierarchy_abbreviation}_lv_{hierarchy_level_list_str}"
             for name, abbrev in pu.hierarchy_abbreviations.items():
                 if abbrev == hierarchy_abbreviation:
                     hierarchy_name = name
@@ -2524,19 +2506,17 @@ class ModelAnalyser:
             names.append(config_name)
             all_heights.append(heights)
 
-        file_suffix = "_" + str(variable_name).replace("/", "").replace(" ", "")
+        file_suffix = f"_{variable_name}".replace("/", "").replace(" ", "")
         xlabel = str(variable_name)
         if isinstance(variable_name, ci.Element):
-            xlabel = "log(" + str(variable_name) + "/Hx)"
+            xlabel = f"log({variable_name}/Hx)"
         if isinstance(variable_name, tuple):
             # Then these should be 2 elements
             if isinstance(variable_name[0], ci.Element) and isinstance(
                 variable_name[1], ci.Element
             ):
-                xlabel = (
-                    "log(" + str(variable_name[0]) + "/" + str(variable_name[1]) + ")"
-                )
-                file_suffix = "_" + str(variable_name[0]) + "_" + str(variable_name[1])
+                xlabel = f"log({variable_name[0]}/{variable_name[1]})"
+                file_suffix = f"_{variable_name[0]}_{variable_name[1]}"
                 # if (
                 #     (variable_name[0] == ci.Element.Ca)
                 #     and (variable_name[1] == ci.Element.Fe)
@@ -2605,7 +2585,7 @@ class ModelAnalyser:
 
         prefix = "multisys"
         for uon in used_observation_numbers_list:
-            prefix += "_" + uon
+            prefix += f"_{uon}"
 
         hist_plot = self.graph_fac.make_histogram(
             x_bar_centres,
@@ -2700,7 +2680,7 @@ class ModelAnalyser:
                 x_bar_centres,
                 [heights],
                 [wd_name_tuple[1]],
-                wd_name_tuple[0] + "_" + model.get_prefix(),
+                f"{wd_name_tuple[0]}_{model.get_prefix()}",
                 half_bin_size * 2,
                 1.1,
                 "Formation Temperature /K",
@@ -2868,7 +2848,7 @@ class ModelAnalyser:
                 x_bar_centres,
                 [heights],
                 [wd_name_tuple[1]],
-                wd_name_tuple[0] + "_" + model.get_prefix(),
+                f"{wd_name_tuple[0]}_{model.get_prefix()}",
                 half_bin_size * 2,
                 1.2,
                 "Log(Mass of Pollutant/kg)",
@@ -2918,7 +2898,7 @@ class ModelAnalyser:
                 x_bar_centres,
                 [heights],
                 [wd_name_tuple[1]],
-                wd_name_tuple[0] + "_" + model.get_prefix(),
+                f"{wd_name_tuple[0]}_{model.get_prefix()}",
                 half_bin_size * 2,
                 1.2,
                 "log(Accretion Rate /g/s)",
@@ -3162,13 +3142,10 @@ class ModelAnalyser:
             ],
             "x_tick_labels_override": [
                 "0",
-                str(t_ss_scaling_factor) + r"$\tau_{" + str(critical_element) + "}$",
+                f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
                 r"$t_{event}$",
                 r"$t_{event}$ + "
-                + str(t_ss_scaling_factor)
-                + r"$\tau_{"
-                + str(critical_element)
-                + "}$",
+                + f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
             ],
         }
 
@@ -3182,13 +3159,10 @@ class ModelAnalyser:
             ],
             "x_tick_labels_override": [
                 "0",
-                str(t_ss_scaling_factor) + r"$\tau_{" + str(critical_element) + "}$",
+                f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
                 r"$t_{event}$",
                 r"$t_{event}$ + "
-                + str(t_ss_scaling_factor)
-                + r"$\tau_{"
-                + str(critical_element)
-                + "}$",
+                + f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
             ],
             "x_min": 0,
             "x_max": 15,
@@ -3198,7 +3172,7 @@ class ModelAnalyser:
             x_bar_centres,
             [heights],
             names,
-            white_dwarf.full_name() + "_" + model.get_prefix(),
+            f"{white_dwarf.full_name()}_{model.get_prefix()}",
             half_bin_size * 2,
             1.2,
             "Time, $t$",
@@ -3216,7 +3190,7 @@ class ModelAnalyser:
             x_bar_centres,
             [heights],
             names,
-            white_dwarf.full_name() + "_" + model.get_prefix(),
+            f"{white_dwarf.full_name()}_{model.get_prefix()}",
             half_bin_size * 2,
             1.2,
             "Time, $t$",

@@ -267,7 +267,7 @@ def main():
     plot_dict = {
         "plot1": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_cr.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_cr.pdf"],
             "subplots": {
                 "d_cr": {
                     "subplot_region": 111,
@@ -462,12 +462,13 @@ def main():
         },
         "plot2": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_cr_3d.png"],
+            "filenames": [f"graphs/{run_tag}_d_cr_3d.png"],
             "dpi": 150,
             "subplots": {
                 "d_cr_3d": {
                     "subplot_region": 111,
-                    "title_text": r"Variation of $D_\textrm{Cr}$ with Pressure and Temperature",
+                    "title_text": r"Variation of $D_\textrm{Cr}$ with"
+                    + " Pressure and Temperature",
                     "title_fontsize": 16,
                     "title_fontweight": "bold",
                     "xlabel_text": "Pressure / GPa",
@@ -516,7 +517,7 @@ def main():
         },
         "plot3": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_ni.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_ni.pdf"],
             "subplots": {
                 "d_ni": {
                     "subplot_region": 111,
@@ -712,12 +713,13 @@ def main():
         },
         "plot4": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_ni_3d.png"],
+            "filenames": [f"graphs/{run_tag}_d_ni_3d.png"],
             "dpi": 150,
             "subplots": {
                 "d_ni_3d": {
                     "subplot_region": 111,
-                    "title_text": r"Variation of $D_\textrm{Ni}$ with Pressure and Temperature",
+                    "title_text": r"Variation of $D_\textrm{Ni}$ with"
+                    + " Pressure and Temperature",
                     "title_fontsize": 16,
                     "title_fontweight": "bold",
                     "xlabel_text": "Pressure / GPa",
@@ -769,12 +771,13 @@ def main():
         },
         "plot5": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_cr_ni_fo2.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_cr_ni_fo2.pdf"],
             "subplots": {
                 "d_cr_ni_fo2": {
                     "subplot_region": 111,
                     "legend": True,
-                    "title_text": r"Variation of $D_{Cr}$ and $D_{Ni}$ with Oxygen Fugacity $f(O_2)$",
+                    "title_text": r"Variation of $D_{Cr}$ and $D_{Ni}$ with"
+                    + " Oxygen Fugacity $f(O_2)$",
                     "title_fontsize": 12,
                     "title_fontweight": "bold",
                     "xlabel_text": "$f(O_2)$ relative to IW buffer",
@@ -868,7 +871,7 @@ def main():
         },
         "plot6": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_kd_deviation_ni_3d.pdf"],
+            "filenames": [f"graphs/{run_tag}_kd_deviation_ni_3d.pdf"],
             "subplots": {
                 "d_ni_3d": {
                     "subplot_region": 111,
@@ -915,14 +918,15 @@ def main():
         },
         "plot7": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_v_p_mult.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_v_p_mult.pdf"],
             "subplots": {
                 "d_mult": {
                     "subplot_region": 111,
                     "legend": True,
                     "legend_loc": "best",
                     "legend_text_size": 8,
-                    "title_text": r"Variation of $D_{element}$ with Pressure at fO2 = IW - 2",
+                    "title_text": r"Variation of $D_{element}$ with"
+                    + " Pressure at fO2 = IW - 2",
                     "title_fontsize": 12,
                     "title_fontweight": "bold",
                     "xlabel_text": "Pressure / GPa",
@@ -1006,7 +1010,7 @@ def main():
         },
         "plot8": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_v_fO2_mult.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_v_fO2_mult.pdf"],
             "subplots": {
                 "d_mult": {
                     "subplot_region": 111,
@@ -1016,7 +1020,7 @@ def main():
                     "title_text": r"Variation of $D_{element}$ with Oxygen Fugacity",
                     "title_fontsize": 12,
                     "title_fontweight": "bold",
-                    "xlabel_text": "Oxygen Fugacity ( " + r"$\Delta$" + "IW)",
+                    "xlabel_text": r"Oxygen Fugacity ($\Delta$IW)",
                     "xlabel_fontsize": 10,
                     "xlabel_fontweight": "bold",
                     "ylabel_text": r"$D$",
@@ -1083,14 +1087,15 @@ def main():
         },
         "plot9": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_v_p_rel_mult.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_v_p_rel_mult.pdf"],
             "subplots": {
                 "d_mult": {
                     "subplot_region": 111,
                     "legend": True,
                     "legend_loc": "best",
                     "legend_text_size": 8,
-                    "title_text": r"Relative variation of $D_{element}$ with Pressure at fO2 = IW - 2",
+                    "title_text": r"Relative variation of $D_{element}$"
+                    + " with Pressure at fO2 = IW - 2",
                     "title_fontsize": 12,
                     "title_fontweight": "bold",
                     "xlabel_text": "Pressure / GPa",
@@ -1186,7 +1191,7 @@ def main():
         },
         "plot10": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_v_fO2_rel_mult.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_v_fO2_rel_mult.pdf"],
             "subplots": {
                 "d_mult": {
                     "subplot_region": 111,
@@ -1196,7 +1201,7 @@ def main():
                     "title_text": r"Variation of $D_{element}$ with Oxygen Fugacity",
                     "title_fontsize": 12,
                     "title_fontweight": "bold",
-                    "xlabel_text": "Oxygen Fugacity (" + r"$\Delta$" + "IW)",
+                    "xlabel_text": r"Oxygen Fugacity ($\Delta$IW)",
                     "xlabel_fontsize": 10,
                     "xlabel_fontweight": "bold",
                     "ylabel_text": r"$D$",
@@ -1275,12 +1280,13 @@ def main():
         },
         "plot11": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_si_3d.png"],
+            "filenames": [f"graphs/{run_tag}_d_si_3d.png"],
             "dpi": 150,
             "subplots": {
                 "d_si_3d": {
                     "subplot_region": 111,
-                    "title_text": r"Variation of $D_\textrm{Si}$ with Pressure and Temperature",
+                    "title_text": r"Variation of $D_\textrm{Si}$"
+                    + " with Pressure and Temperature",
                     "title_fontsize": 16,
                     "title_fontweight": "bold",
                     "xlabel_text": "Pressure / GPa",
@@ -1333,7 +1339,7 @@ def main():
         },
         "plot12": {
             "show": False,
-            "filenames": ["graphs/" + run_tag + "_d_cr_ni_si_3d.pdf"],
+            "filenames": [f"graphs/{run_tag}_d_cr_ni_si_3d.pdf"],
             "dpi": 150,
             "fig_width": 7,
             "fig_height": 12,
@@ -1342,7 +1348,8 @@ def main():
             "subplots": {
                 "d_cr_3d": {
                     "subplot_region": 111,
-                    # 'title_text': r'Variation of $D_\textrm{Cr}$ with Pressure and Temperature',
+                    # 'title_text': r'Variation of $D_\textrm{Cr}$"
+                    # + " with Pressure and Temperature',
                     "title_fontsize": 16,
                     "title_fontweight": "bold",
                     # 'xlabel_text': 'Pressure / GPa',
@@ -1404,7 +1411,8 @@ def main():
                 },
                 "d_ni_3d": {
                     "subplot_region": 111,
-                    #'title_text': r'Variation of $D_\textrm{Ni}$ with Pressure and Temperature',
+                    #'title_text': r'Variation of $D_\textrm{Ni}$ with"
+                    # + " Pressure and Temperature',
                     "title_fontsize": 16,
                     "title_fontweight": "bold",
                     #'xlabel_text': 'Pressure / GPa',
@@ -1476,7 +1484,8 @@ def main():
                 },
                 "d_si_3d": {
                     "subplot_region": 111,
-                    # 'title_text': r'Variation of $D_\textrm{Si}$ with Pressure and Temperature',
+                    # 'title_text': r'Variation of $D_\textrm{Si}$ with"
+                    # + " Pressure and Temperature',
                     "title_fontsize": 16,
                     "title_fontweight": "bold",
                     "xlabel_text": "Pressure / GPa",

@@ -17,7 +17,7 @@ def load_hollands_distributions():
     file_name = "WDInputData"
     min_row = 1
     max_row = 201
-    with open("../data/" + file_name + ".csv", encoding="utf-8") as config_csv:
+    with open(f"../data/{file_name}.csv", encoding="utf-8") as config_csv:
         row_count = 0
         for row in csv.reader(config_csv, delimiter=","):
             if min_row <= row_count <= max_row:

@@ -6,11 +6,11 @@ import pwd_utils as pu
 
 
 def get_40pc_abundance_values(element, fp_hx):
-    desired_header = "log" + str(element).lower() + str(fp_hx).lower()
+    desired_header = f"log{element.lower()}{fp_hx.lower()}"
     header_index = None
     toret = list()
     with open(
-        pu.get_path_to_data() + "MWDD_40pc_complete_clean.csv", encoding="utf-8"
+        f"{pu.get_path_to_data()}MWDD_40pc_complete_clean.csv", encoding="utf-8"
     ) as fpcsv:
         header_next = True
         for row in csv.reader(fpcsv, delimiter="|"):
@@ -29,13 +29,13 @@ def get_40pc_abundance_values(element, fp_hx):
 
 
 def get_40pc_el_el_values_hx(element1, element2, fp_hx):
-    desired_header1 = "log" + str(element1).lower() + str(fp_hx).lower()
-    desired_header2 = "log" + str(element2).lower() + str(fp_hx).lower()
+    desired_header1 = f"log{element1.lower()}{fp_hx.lower()}"
+    desired_header2 = f"log{element2.lower()}{fp_hx.lower()}"
     header_index1 = None
     header_index2 = None
     toret = list()
     with open(
-        pu.get_path_to_data() + "MWDD_40pc_complete_clean.csv", encoding="utf-8"
+        f"{pu.get_path_to_data()}MWDD_40pc_complete_clean.csv", encoding="utf-8"
     ) as fpcsv:
         header_next = True
         for row in csv.reader(fpcsv, delimiter="|"):

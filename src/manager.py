@@ -44,7 +44,7 @@ class Manager:
                     self.hierarchy_name
                 ]
             except KeyError as e:
-                print("Error: Did not recognise hierarchy " + pollution_model_names[0])
+                print(f"Error: Did not recognise hierarchy {pollution_model_names[0]}")
                 print(
                     "Available hierarchies: "
                     + ", ".join(mp.hierarchy_definitions_dict.keys())
@@ -91,7 +91,7 @@ class Manager:
         self.executed_models = dict()
 
     def get_output_dir(self, wd_name, create=True):
-        dirname = pu.get_path_to_pylluted_dir() + wd_name + "/"
+        dirname = f"{pu.get_path_to_pylluted_dir()}{wd_name}/"
         if create:
             self.create_dir(dirname)
         return dirname
@@ -102,10 +102,7 @@ class Manager:
         ct_string = "t" if consider_thermohaline else "n"
         dirname = (
             self.get_output_dir(wd_name, create)
-            + timescale_type.short_str()
-            + "/"
-            + ct_string
-            + "/"
+            + f"{timescale_type.short_str()}/{ct_string}/"
         )
         return dirname
 
@@ -133,7 +130,7 @@ class Manager:
         for i, wd in enumerate(self.white_dwarfs):
             if wd.full_name() == wd_name:
                 return i, wd
-        print("Warning! Did not recognise white dwarf: " + wd_name)
+        print(f"Warning! Did not recognise white dwarf: {wd_name}")
 
     def load_global_data(self):
         self.load_wd_data(self.wd_data_filename)
@@ -187,15 +184,15 @@ class Manager:
                     wd_type = ci.Element[wd_type_raw]
                 except KeyError:
                     raise KeyError(
-                        "Invalid atmospheric type: must be H or He, received "
-                        + str(wd_type_raw)
+                        "Invalid atmospheric type: must be H or He;"
+                        f" received {wd_type_raw}"
                     )
 
                 wd_abundance_data_raw = dict()
 
                 for el in ci.metals:  # i.e., not H and He
-                    abundance_column = "log(" + str(el) + "/H(e))"
-                    error_column = "log(" + str(el) + "/H(e))e"
+                    abundance_column = f"log({el}/H(e))"
+                    error_column = f"log({el}/H(e))e"
                     try:
                         raw_error = row[error_column]
                         error = float(raw_error)
@@ -235,7 +232,7 @@ class Manager:
                         else:
                             # Then we don't know what it is
                             raise ValueError(
-                                "Unable to parse abundances for " + wd_name
+                                f"Unable to parse abundances for {wd_name}"
                             )
                     included = True
                     if value is not None:
@@ -381,13 +378,7 @@ class Manager:
             timescale_type, elements_to_model
         )
         if all_wd_timescales is None:
-            print(
-                "No timescales of type "
-                + str(timescale_type)
-                + " for "
-                + wd_name
-                + ", will skip"
-            )
+            print(f"No timescales of type {timescale_type} for {wd_name}, will skip")
             return
 
         ld._live_white_dwarf = white_dwarf
@@ -458,9 +449,8 @@ class Manager:
             self.publish_live_data(N_wd, timescale_type)
             if ld._live_all_wd_timescales is None:
                 print(
-                    "No timescales of type "
-                    + str(timescale_type)
-                    + " for the following system, will skip"
+                    f"No timescales of type {timescale_type} for the following system,"
+                    + " will skip"
                 )
                 print(white_dwarf)
             max_filename_overflow = self.get_max_filename_overflow(
@@ -478,12 +468,9 @@ class Manager:
                         model_name, consider_thermohaline, model.prior_name
                     )
                     print(
-                        "About to run model "
-                        + str(model_name)
-                        + " with therm: "
-                        + str(consider_thermohaline)
-                        + " and with prior "
-                        + str(model.prior_name)
+                        f"About to run model {model_name}"
+                        + f" with therm: {consider_thermohaline}"
+                        + f" and with prior {model.prior_name}"
                     )
                     practical_output_dir = self.get_chains_dir(
                         white_dwarf.abbreviated_name(max_filename_overflow),
@@ -526,13 +513,8 @@ class Manager:
     def compare(self, N_wd, timescale_type, consider_thermohaline):
         wd_name = self.white_dwarfs[N_wd].full_name()
         print(
-            "Comparing models for "
-            + wd_name
-            + " ("
-            + str(timescale_type)
-            + ", Thermohaline = "
-            + str(consider_thermohaline)
-            + ")"
+            f"Comparing models for {wd_name}"
+            + f" ({timescale_type}, Thermohaline = {consider_thermohaline})"
         )
         self.publish_live_data(N_wd, timescale_type)
         number_of_data_points = len(self.white_dwarfs[N_wd].get_elements_present())
@@ -557,7 +539,7 @@ class Manager:
                 if model.comparison[max_ln_Z_name]["ln_Z_model"] > max_ln_Z:
                     max_ln_Z = model.comparison[max_ln_Z_name]["ln_Z_model"]
                     max_ln_Z_name = model_name
-        print("Best model was " + max_ln_Z_name)
+        print(f"Best model was {max_ln_Z_name}")
         for model_name, model in self.models[timescale_type][
             consider_thermohaline
         ].items():
@@ -594,12 +576,11 @@ class Manager:
         toret = list()
         for prior in self.comparison_priors:
             try:
-                new_model_name = best_model_name + "_" + pu.abbreviations[prior]
+                new_model_name = f"{best_model_name}_{pu.abbreviations[prior]}"
             except KeyError as e:
                 message = (
-                    "Warning! Could not run using unrecognised prior "
-                    + prior
-                    + ". Ensure it is added to abbreviations in pwd_utils.py"
+                    f"Warning! Could not run using unrecognised prior {prior}. "
+                    "Ensure it is added to abbreviations in pwd_utils.py"
                 )
                 print(message)
                 raise KeyError(message) from e
@@ -650,10 +631,8 @@ class Manager:
                                 accepted_hierarchy_levels + [max_hierarchy_level + 1]
                             )
                             print(
-                                "Attempting to register "
-                                + base_model_name
-                                + " and "
-                                + comparison_model_name
+                                f"Attempting to register {base_model_name}"
+                                + f" and {comparison_model_name}"
                             )
                             self.models[timescale_type][consider_thermohaline][
                                 base_model_name
@@ -701,7 +680,7 @@ class Manager:
                                 all_combos.append([0] + list(subset))
                         for combo in all_combos:
                             model_name = self.build_model(combo)
-                            print("Attempting to register " + model_name)
+                            print(f"Attempting to register {model_name}")
                             self.models[timescale_type][consider_thermohaline][
                                 model_name
                             ] = pm.PollutionModel(
@@ -807,7 +786,8 @@ class Manager:
         ].items():
             if prior_name is not None and model.prior_name != prior_name:
                 raise ValueError(
-                    "Did not foresee a situation where models are being run with different priors - need to make this more flexible!"
+                    "Did not foresee a situation where models are being run"
+                    + " with different priors - need to make this more flexible!"
                 )
             prior_name = model.prior_name
 
@@ -819,25 +799,17 @@ class Manager:
                 timescale_type,
                 consider_thermohaline,
             )
-            + white_dwarf.full_name()
-            + "_"
-            + timescale_type.short_str()
+            + f"{white_dwarf.full_name()}_{timescale_type.short_str()}"
         )
         if consider_thermohaline:
             stats_file += "_t"
         stats_file += (
-            "_p"
-            + str(self.n_live_points)
-            + "_"
-            + hierarchy_name
-            + "_"
-            + pu.abbreviations[self.enhancement_model]
-            + "_"
-            + pu.abbreviations[prior_name]
-            + "_stats.csv"
+            f"_p{self.n_live_points}_{hierarchy_name}"
+            + f"_{pu.abbreviations[self.enhancement_model]}"
+            + f"_{pu.abbreviations[prior_name]}_stats.csv"
         )
 
-        print("Writing to file: " + stats_file)
+        print(f"Writing to file: {stats_file}")
         with open(stats_file, "w", newline="", encoding="utf-8") as f:
             to_write = csv.writer(f)
             to_write.writerow(["System Name:", white_dwarf.system_name])

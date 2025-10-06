@@ -462,7 +462,8 @@ def extract_2D_vals_to_plot(
         variable = "CaHe"
     if num_variables != 1:
         print(
-            "Error: Exactly 1 of logg, Teff and CaHe must be None. (This indicates the variable to plot against)"
+            "Error: Exactly 1 of logg, Teff and CaHe must be None."
+            + " (This indicates the variable to plot against)"
         )
     assert num_variables == 1
     if HorHe == "H" and variable == "CaHe":
@@ -670,9 +671,7 @@ def extract_timescale_ratios(element1, element2, Hx, logg_vals, Teff_vals):
         logg = logg_vals[i]
         for j in range(len(Teff_vals)):
             Teff = Teff_vals[j]
-            print(
-                "Getting timescales for logg = " + str(logg) + ", Teff = " + str(Teff)
-            )
+            print(f"Getting timescales for logg = {logg}, Teff = {Teff}")
             timescales = timescale_interpolator.get_wd_timescales(Hx, logg, Teff, -15)
             for tt in timescales:
                 if timescales[tt] is not None:
@@ -959,15 +958,8 @@ def plot_timescale_ratios(
             plot_dicts,
             math.ceil(len(plot_dicts) / 2),
             2,
-            "timescale_type_comparison_"
-            + str(element1)
-            + "_"
-            + str(element2)
-            + "_"
-            + str(Hx)
-            + "_"
-            + correction_type
-            + ".pdf",
+            f"timescale_type_comparison_{element1}_{element2}_{Hx}"
+            + f"_{correction_type}.pdf",
             16,
             24,
             0.07,
@@ -980,15 +972,8 @@ def plot_timescale_ratios(
                 overshoot_plot_dicts,
                 1,
                 len(overshoot_plot_dicts),
-                "timescale_type_overshoot_comparison_"
-                + str(element1)
-                + "_"
-                + str(element2)
-                + "_"
-                + str(Hx)
-                + "_"
-                + correction_type
-                + ".pdf",
+                f"timescale_type_overshoot_comparison_{element1}_{element2}_{Hx}"
+                + f"_{correction_type}.pdf",
                 16,
                 24,
                 0.07,
@@ -1184,15 +1169,8 @@ def plot_timescale_comparison_benchmarked(
             plot_dicts,
             math.ceil(len(plot_dicts) / 2),
             2,
-            "timescale_type_comparison_benchmark_"
-            + str(element1)
-            + "_"
-            + str(element2)
-            + "_"
-            + str(Hx)
-            + "_"
-            + correction_type
-            + ".pdf",
+            f"timescale_type_comparison_benchmark_{element1}_{element2}_{Hx}"
+            + f"_{correction_type}.pdf",
             16,
             24,
             0.07,
@@ -1209,9 +1187,7 @@ def extract_therm_factors(therm_factor_interpolator, logg_vals, Teff_vals, logMd
         logg = logg_vals[i]
         for j in range(len(Teff_vals)):
             Teff = Teff_vals[j]
-            print(
-                "Getting therm factor for logg = " + str(logg) + ", Teff = " + str(Teff)
-            )
+            print(f"Getting therm factor for logg = {logg}, Teff = {Teff}")
             therm_factors[i, j] = therm_factor_interpolator((logMdot, Teff, logg))
     return therm_factors
 

@@ -216,7 +216,8 @@ class TimescaleInterpolator:
             },
         }
         print(
-            "Reminder! For the 3D option, should we default to the no overshoot case if we land outside the 3D grid?"
+            "Reminder! For the 3D option, should we default to the no overshoot case"
+            + " if we land outside the 3D grid?"
         )
         self.all_timescale_data = self.load_data()
         self.wd_data = None
@@ -234,12 +235,9 @@ class TimescaleInterpolator:
         file_logg = None
         file_overshoot = None
         print(
-            "Opening input file "
-            + input_file_name
-            + " and output file "
-            + output_file_name
+            f"Opening input file {input_file_name} and output file {output_file_name}"
         )
-        with open(input_file_name, "r") as input_file, open(
+        with open(input_file_name) as input_file, open(
             output_file_name, "w", newline="", encoding="utf-8"
         ) as output_file:
             read = csv.reader(input_file, delimiter="|")
@@ -297,8 +295,8 @@ class TimescaleInterpolator:
         output_dict = dict()  # keys will be log(g) values
         numerical_entries = list()
         string_entries = list()
-        print("Opening input file " + input_file_name)
-        with open(input_file_name, "r") as input_file:
+        print(f"Opening input file {input_file_name}")
+        with open(input_file_name) as input_file:
             read = csv.reader(input_file, delimiter=" ")
             # to_write = csv.writer(output_file)
             for row in read:
@@ -327,7 +325,7 @@ class TimescaleInterpolator:
             # ^ Call this one last time because there's no extra blank line at EOF
             for logg, teff_dict in output_dict.items():
                 output_file_name = (
-                    input_file_name.split("raw")[0] + str(int(100 * logg)) + ".csv"
+                    f"{input_file_name.split('raw')[0]}{int(100 * logg)}.csv"
                 )
                 list_of_Teffs = list()
                 qcvz_list = list()
@@ -340,7 +338,7 @@ class TimescaleInterpolator:
                             if element.value not in element_value_lists:
                                 element_value_lists[element.value] = list()
                             element_value_lists[element.value].append(value)
-                print("Writing to " + output_file_name)
+                print(f"Writing to {output_file_name}")
                 with open(
                     output_file_name, "w", newline="", encoding="utf-8"
                 ) as output_file:
@@ -407,15 +405,14 @@ class TimescaleInterpolator:
                 return None
             vals = np.array(vals_list)
         else:
-            print("Warning! Unrecognised variable " + str(variable))
+            print(f"Warning! Unrecognised variable {variable}")
             return None
         vals.sort()
         if len(vals) < 2:
             # Can't really do interpolation
             print(
-                "Warning! received invalid interpolation values for variable "
-                + str(variable)
-                + ":"
+                "Warning! received invalid interpolation values for"
+                + f" variable {variable}:"
             )
             print(vals)
             return None
@@ -424,9 +421,8 @@ class TimescaleInterpolator:
         else:
             if self.expected_vals[timescale_name][HorHe][variable] != vals:
                 print(
-                    "Warning! received invalid interpolation values for variable "
-                    + str(variable)
-                    + ":"
+                    "Warning! received invalid interpolation values for"
+                    + f" variable {variable}:"
                 )
                 print(vals)
                 return None
@@ -505,7 +501,7 @@ class TimescaleInterpolator:
                     current_Teff = None
                     current_CaHe_vals = None
                     try:
-                        with open("../data/" + input_file) as csvfile:
+                        with open(f"../data/{input_file}") as csvfile:
                             read = csv.reader(csvfile, delimiter=",")
                             if self.get_csv_format_type(timescale_set_name, HorHe) == 0:
                                 i = 0
@@ -599,7 +595,7 @@ class TimescaleInterpolator:
                 # TODO: Add this^ to the white dwarf class, so that we can either use
                 # the name or the full name on demand
                 if wd_name_tag is not None and wd_name_tag != "":
-                    wd_name += "_" + wd_name_tag
+                    wd_name += f"_{wd_name_tag}"
                 wd_type_raw = row["atmosphere"]
                 try:
                     wd_type = ci.Element[wd_type_raw]
@@ -614,7 +610,7 @@ class TimescaleInterpolator:
                 except ValueError:
                     logg = pu.get_default_logg()
                 try:
-                    CaHe = float(row["log(" + str(ci.Element.Ca) + "/H(e))"])
+                    CaHe = float(row[f"log({ci.Element.Ca}/H(e))"])
                 except ValueError:
                     CaHe = None
                 toret[wd_name] = {
@@ -669,10 +665,7 @@ class TimescaleInterpolator:
                 if CaHe is None:
                     print(
                         "Warning! Could not find timescales for "
-                        + str(timescale_name)
-                        + ", "
-                        + str(HorHe)
-                        + " because CaHe was None"
+                        + f"{timescale_name}, {HorHe} because CaHe was None"
                     )
                     toret[timescale_name] = None
                 else:
@@ -760,8 +753,8 @@ class TimescaleInterpolator:
 
     def dump_wd_timescales(self, wd_timescales, outfile="wd_timescales"):
         if outfile is not None:
-            print("Writing to " + outfile + ".csv")
-            with open(outfile + ".csv", "w", newline="", encoding="utf-8") as f:
+            print(f"Writing to {outfile}.csv")
+            with open(f"{outfile}.csv", "w", newline="", encoding="utf-8") as f:
                 to_write = csv.writer(f)
                 to_write.writerow(
                     [
@@ -858,14 +851,8 @@ def main():
     Teff = 6000
     CaHe = -15
     print(
-        "Example timescales for a "
-        + str(HorHe)
-        + " WD with log(g) = "
-        + str(logg)
-        + ", Teff = "
-        + str(Teff)
-        + " and Ca/He = "
-        + str(CaHe)
+        f"Example timescales for a {HorHe} WD with log(g) = {logg}, Teff = {Teff}"
+        + f" and Ca/He = {CaHe}"
     )
     result = timescale_interpolator.get_wd_timescales(HorHe, logg, Teff, CaHe, True)
     print(result)
@@ -874,11 +861,9 @@ def main():
         print(timescale_type)
         for element in ci.usual_elements:
             try:
-                print(
-                    str(element) + ": " + str(np.log10(result[timescale_type][element]))
-                )
+                print(f"{element}: {np.log10(result[timescale_type][element])}")
             except TypeError:
-                print(str(element) + ": None")
+                print(f"{element}: None")
     # for timescale_type in TimescaleType:
     #     print()
     #     print(timescale_type)
@@ -893,7 +878,8 @@ def main():
     #     )
     # interpolated_timescales = timescale_interpolator.process_wd_data()
     # print(interpolated_timescales)
-    # print('Call timescale_interpolator.dump_wd_timescales(interpolated_timescales) to dump these timescales into a file')
+    # print('Call timescale_interpolator.dump_wd_timescales(interpolated_timescales) to
+    # dump these timescales into a file')
 
 
 if __name__ == "__main__":

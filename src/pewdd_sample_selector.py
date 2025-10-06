@@ -181,7 +181,7 @@ def calculate_discrepancy_metric(
         D = estimate_declining_phase_depth(wd, flattened_timescale_pairs)
     else:
         D = D_override
-    # print('D = ' + str(D))
+    # print(f"D = {D}")
     # If there's no error on an element, we'd probably replace it with this when
     # running, so do the same here vvv
     default_error = 0.2
@@ -295,9 +295,9 @@ def estimate_declining_phase_depth(white_dwarf, timescale_types_to_try):
     else:
         estimate = chance * max(0, corr) * max_num_observable_sinking_timescales
     print(white_dwarf.full_name())
-    print("corr = " + str(corr))
-    print("chance = " + str(chance))
-    print("estimate = " + str(estimate))
+    print(f"corr = {corr}")
+    print(f"chance = {chance}")
+    print(f"estimate = {estimate}")
     print()
     return estimate
 
@@ -459,8 +459,8 @@ def output_sample_to_csv(name_of_sample, final_sample, manager):
     for i, wd in enumerate(manager.white_dwarfs):
         if wd in final_sample:
             indices_to_print.append(i + 1)  # Add 1 for header!
-    infile = pu.get_path_to_data() + "PEWDD.csv"
-    outfile = pu.get_path_to_data() + "PEWDD_" + name_of_sample + ".csv"
+    infile = f"{pu.get_path_to_data()}PEWDD.csv"
+    outfile = f"{pu.get_path_to_data()}PEWDD_{name_of_sample}.csv"
     with open(outfile, "w", newline="", encoding="utf-8") as of:
         to_write = csv.writer(of)
         with open(infile, encoding="utf-8") as in_f:
@@ -657,7 +657,7 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
         # population
         # synth_pop_file_name = 'popdump_DADeltaFcfPop_RealisticObservererr0p2_StandardModeller.csv'
     synth_pop_file = (
-        pu.get_path_to_pipeline_base_dir() + "popdumps/" + synth_pop_file_name
+        f"{pu.get_path_to_pipeline_base_dir()}popdumps/{synth_pop_file_name}"
     )
     test_pop = sp.SyntheticPopulation(
         population_size, wd_config_to_use, pollution_config_to_use, synth_pop_file
@@ -681,10 +681,8 @@ def plot_metric_for_synthetic_pop(name_of_pewdd_sample_to_plot_against):
     for i, logg in enumerate(logg_values):
         for j, Teff in enumerate(Teff_values):
             print(
-                "Calculating grid step "
-                + str((i * len(logg_values)) + j + 1)
-                + "/"
-                + str((grid_steps + 1) * (grid_steps + 1))
+                f"Calculating grid step {(i * len(logg_values)) + j + 1}/"
+                f"{(grid_steps + 1) * (grid_steps + 1)}"
             )
             dm_values = list()
             proxy_pat_values = list()

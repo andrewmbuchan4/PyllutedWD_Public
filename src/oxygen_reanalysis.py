@@ -178,19 +178,17 @@ def get_sample_names(id_list):
 
 def get_output_csvs(sample_dict):
     print(
-        "Warning! This script has not yet been updated to use the new output directory structure/file names!"
+        "Warning! This script has not yet been updated to use the"
+        + " new output directory structure/file names!"
     )
     print(
-        "If using on newly created outputs, you should update get_output_csvs to give the correct names (sorry)"
+        "If using on newly created outputs,"
+        + " you should update get_output_csvs to give the correct names (sorry)"
     )
     for name in sample_dict:
         sample_dict[name]["csv"] = (
-            "stats_lp2000_obs"
-            + str(sample_dict[name]["id"])
-            + "_"
-            + name
-            + sample_dict[name].get("csv_suffix", "")
-            + "_Hierarchy_Default_NEL.csv"
+            f"stats_lp2000_obs{sample_dict[name]['id']}_{name}"
+            + f"{sample_dict[name].get('csv_suffix', '')}_Hierarchy_Model_24_NEL.csv"
         )
     return sample_dict
 
@@ -213,7 +211,7 @@ def compile_oxygen_stats(sample_dict):
         csv_name = pu.get_path_to_output_statfiles_dir() + sample_dict[name]["csv"]
         with open(csv_name, encoding="utf-8") as output_csv:
             print()
-            print("Reading " + csv_name)
+            print(f"Reading {csv_name}")
             best_heated_model_name = None
             good_fit = None
             reading_from_correct_section = False
@@ -221,7 +219,7 @@ def compile_oxygen_stats(sample_dict):
                 if len(row) > 0:
                     if row[0] == "Best heated model name:":
                         best_heated_model_name = row[1]
-                        print("Best model with heating was " + best_heated_model_name)
+                        print(f"Best model with heating was {best_heated_model_name}")
             output_csv.seek(0)
             for row in csv.reader(output_csv):
                 if len(row) > 0:
@@ -299,22 +297,14 @@ def compile_oxygen_stats(sample_dict):
         sample_dict[name]["Declining %"] = dec_pc
         sample_dict[name]["Oxygen Error"] = oxygen_error
         sample_dict[name]["ScaledTimePlot"] = (
-            name
-            + sample_dict[name].get("csv_suffix", "")
-            + "_"
-            + best_heated_model_name
-            + "_lp2000_obs"
-            + str(sample_dict[name]["id"])
-            + "_NEL_D__scaled_times_thesis.pdf.txt"
+            f"{name}{sample_dict[name].get('csv_suffix', '')}_"
+            + f"{best_heated_model_name}_lp2000_obs{sample_dict[name]['id']}_"
+            + "NEL_D__scaled_times_thesis.pdf.txt"
         )
         sample_dict[name]["SemiSampledEOPlot"] = (
-            name
-            + sample_dict[name].get("csv_suffix", "")
-            + "_"
-            + best_heated_model_name
-            + "_lp2000_obs"
-            + str(sample_dict[name]["id"])
-            + "_NEL_D__semisampled_oxygen_excess_thesis.pdf.txt"
+            f"{name}{sample_dict[name].get('csv_suffix', '')}_"
+            + f"{best_heated_model_name}_lp2000_obs{sample_dict[name]['id']}_"
+            + "NEL_D__semisampled_oxygen_excess_thesis.pdf.txt"
         )
     return sample_dict
 
@@ -360,9 +350,9 @@ def write_sample_dict(sample_dict):
 def multipanelise_from_dumps(sample_dict, plot_key):
     y_dimension = 24
     x_dimension = 2
-    file_name_root = "oxygen_multipanel_" + plot_key
+    file_name_root = f"oxygen_multipanel_{plot_key}"
     extensions = ["pdf", "png"]
-    filenames = [file_name_root + "." + extension for extension in extensions]
+    filenames = [f"{file_name_root}.{extension}" for extension in extensions]
     fig_height = 30
     fig_width = 15
     gridspec_wspace = 0.1

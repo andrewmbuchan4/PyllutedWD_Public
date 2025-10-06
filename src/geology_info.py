@@ -737,7 +737,8 @@ class GeologyModel:
             if initial_Ds is not None and iteration_count == 0:
                 if set(initial_Ds.keys()) != set(self.pamela.ele_set):
                     print(
-                        "Warning! Initial Ds do not have the same set of elements as PAMELA"
+                        "Warning! Initial Ds do not have the same set of"
+                        + " elements as PAMELA"
                     )
                 for ele in self.pamela.ele_set:
                     try:
@@ -753,7 +754,7 @@ class GeologyModel:
                 cap_o = True
                 o_cap = (prev_Ds[ci.Element.O] ** 2) / Ds[ci.Element.O]
                 # ^ i.e. reverse the direction in log space
-                print("Runaway detected - setting O cap to " + str(o_cap))
+                print(f"Runaway detected - setting O cap to {o_cap}")
                 o_cap_set = True
             if average_next_iteration and prev_Ds is not None:
                 for element in Ds.keys():
@@ -792,9 +793,8 @@ class GeologyModel:
                 average_next_iteration = True
             if iteration_count > grid_iterations and o_increased_last_time:
                 print(
-                    "Warning! Failed to converge normally within "
-                    + str(grid_iterations)
-                    + " iterations, using grid method"
+                    "Warning! Failed to converge normally within"
+                    f"{grid_iterations} iterations, using grid method"
                 )
                 abundances, w_met, Ds = self.grid_method(
                     prev_Ds, w_met, pressure, fO2, abundances, temp, nbot
@@ -812,24 +812,21 @@ class GeologyModel:
         return abundances, w_met, Ds, all_Ds if return_all_Ds else None
 
     def tabulate_output(self, abundances, w_met, Ds, outfile=None):
-        print("Core Number Fraction     |       " + str(w_met))
+        print(f"Core Number Fraction     |       {w_met:.6f}")
         print("")
         print("Element | D")
         for element, D in Ds.items():
-            print(str(element).ljust(7) + " | " + str(D))
+            print(f"{element:<7} | {D}")
         print("")
         print("Element | Mantle Number Fraction  | Core Number Fraction")
         for element, el_abundances in abundances.items():
             print(
-                str(element).ljust(7)
-                + " | "
-                + str(el_abundances[Layer.mantle]).ljust(22)
-                + "  | "
-                + str(el_abundances[Layer.core])
+                f"{element:<7} | {el_abundances[Layer.mantle]:<22}"
+                + f" | {el_abundances[Layer.core]}"
             )
         print("")
         if outfile is not None:
-            with open(outfile + ".csv", "w", newline="", encoding="utf-8") as f:
+            with open(f"{outfile}.csv", "w", newline="", encoding="utf-8") as f:
                 to_write = csv.writer(f)
                 to_write.writerow(["Core Number Fraction", w_met])
                 to_write.writerow([])
@@ -1101,9 +1098,8 @@ class GeologyModel:
             if iteration_count > max_iterations:
                 # To prevent infinite loops
                 print(
-                    "Warning! Radius/Mass calculation exceeded iteration limit ("
-                    + str(max_iterations)
-                    + "), returning None, None"
+                    "Warning! Radius/Mass calculation exceeded iteration limit"
+                    + f" ({max_iterations}), returning None, None"
                 )
                 return None, None
 

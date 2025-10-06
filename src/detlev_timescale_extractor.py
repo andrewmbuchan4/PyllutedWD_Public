@@ -26,7 +26,7 @@ def load_detlev_data():
             toret[HorHe][g] = dict()
             T_vals = list()
             q_vals = list()
-            with open("../data/" + file_dict[HorHe][g]) as csvfile:
+            with open(f"../data/{file_dict[HorHe][g]}") as csvfile:
                 read = csv.reader(csvfile, delimiter=",")
                 i = 0
                 for row in read:
@@ -178,12 +178,7 @@ def load_wd_data():
                 except ValueError:
                     # One of them has logg missing! Assume 8 by default
                     logg = 8.0
-                    print(
-                        "Warning: "
-                        + wd_name
-                        + " has no log(g) value. Assuming "
-                        + str(logg)
-                    )
+                    print(f"Warning: {wd_name} has no log(g) value. Assuming {logg}")
                 toret[wd_name] = {"Type": wd_type, "Teff": Teff, "logg": logg}
             i += 1
     return toret
@@ -202,7 +197,7 @@ def process_wd_data(wd_data, timescale_data):
 
 def dump_wd_timescales(wd_timescales, outfile="wd_timescales"):
     if outfile is not None:
-        with open(outfile + ".csv", "w", newline="", encoding="utf-8") as f:
+        with open(f"{outfile}.csv", "w", newline="", encoding="utf-8") as f:
             to_write = csv.writer(f)
             to_write.writerow(
                 [

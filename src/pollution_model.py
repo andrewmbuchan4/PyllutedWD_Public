@@ -33,7 +33,7 @@ class PollutionModel:
         try:
             model_definition = mp.model_definitions_dict[self.basename]
         except KeyError:
-            raise KeyError("Unrecognised model name: " + self.basename)
+            raise KeyError(f"Unrecognised model name: {self.basename}")
         self.set_model_params(model_definition)
         self.prior = pf.universal_prior
         self.loglike = lf.universal_loglike
@@ -59,7 +59,7 @@ class PollutionModel:
             self.execute = self.execute_pocomc
 
     def __repr__(self):
-        return "Model " + self.basename
+        return f"Model {self.basename}"
 
     def get_n_dims(self):
         return len(self.params)
@@ -72,24 +72,19 @@ class PollutionModel:
             identifier = "t_"
         else:
             identifier = "n_"
-        identifier += "p" + str(self.live_points) + "_"
+        identifier += f"p{self.live_points}_"
         return identifier
 
     def get_identifier2(self):
         try:
             identifier = (
-                "_"
-                + pu.abbreviations[self.enhancement_model_name]
-                + "_"
-                + pu.abbreviations[self.prior_name]
-                + "_"
+                f"_{pu.abbreviations[self.enhancement_model_name]}_"
+                f"{pu.abbreviations[self.prior_name]}_"
             )
         except KeyError:
             raise KeyError(
                 "Could not identify abbreviation for at least one of "
-                + self.prior_name
-                + ", or "
-                + self.enhancement_model_name
+                + f"{self.prior_name}, or {self.enhancement_model_name}"
                 + " (may need to add it to abbreviations in pwd_utils.py)"
             )
         return identifier
@@ -97,7 +92,7 @@ class PollutionModel:
     def get_prefix(self):
         return (
             self.timescale_type.short_str()
-            + "_"
+            + f"_{self.get_identifier1()}"
             + self.get_identifier1()
             + self.basename
             + self.get_identifier2()
@@ -135,7 +130,7 @@ class PollutionModel:
         # - Phase: Build-up, steady state or declining
         # - Ice
         # - Heating
-        print("Executing " + str(self))
+        print(f"Executing {self}")
         print("pn args:")
         print(self.enhancement_model_name)
         print(self.prior_name)
@@ -157,15 +152,14 @@ class PollutionModel:
             # TODO: In this case, we can now make use of the new functions in the
             # WhiteDwarf class to abbreviate the system_name and variant!
             raise IOError(
-                "\nOutput path "
-                + self.get_full_prefix(output_dir)
-                + " is too long!\nLength was "
-                + str(len(self.get_full_prefix(output_dir)))
-                + ", but max length is "
-                + str(max_file_length)
-                + " so that the full names fit in 100 characters\nThe 100 character limit is hardcoded in MultiNest v3.10.\nIf you are using MultiNest 3.11 or later, you should be able to just disable this error (go to execute_pymultinest in "
-                + str(Path(__file__).resolve())
-                + ")\n(This is untested though!)"
+                f"\nOutput path {self.get_full_prefix(output_dir)} is too long!"
+                + f"\nLength was {len(self.get_full_prefix(output_dir))}, but max"
+                + f" length is {max_file_length} so that the full names fit in 100"
+                + " characters"
+                + "\nThe 100 character limit is hardcoded in MultiNest v3.10."
+                + "\nIf you are using MultiNest 3.11 or later, you should be able to"
+                + "just disable this error (go to execute_pymultinest in"
+                + f"{str(Path(__file__).resolve())})\n(This is untested though!)"
             )
 
         # progress_plotter = pn.ProgressPlotter(
@@ -191,9 +185,9 @@ class PollutionModel:
             # use this for errors)
         )
         # progress_plotter.stop()
-        print("evidence: %(logZ).1f +- %(logZerr).1f" % self.result)
-        print("MultiNest Model " + self.get_full_prefix(output_dir) + " Completed")
-        with open("%sparams.json" % self.get_full_prefix(output_dir), "w") as f:
+        print(f"evidence: {self.result['logZ']:.1f} +- {self.result['logZerr']:.1f}")
+        print(f"MultiNest Model {self.get_full_prefix(output_dir)} Completed")
+        with open(f"{self.get_full_prefix(output_dir)}params.json", "w") as f:
             json.dump(self.params, f, indent=2)
         # self.results[str(stellar_composition)] = (
         #     'Result of executing '
@@ -211,7 +205,7 @@ class PollutionModel:
         # - Phase: Build-up, steady state or declining
         # - Ice
         # - Heating
-        print("Executing " + str(self))
+        print(f"Executing {self}")
         print("pocomc args:")
         print(self.enhancement_model_name)
         print(self.prior_name)
@@ -266,5 +260,5 @@ class PollutionModel:
         print(logl)
         print(logp)
         logz, logz_err = sampler.evidence()
-        print("logZ", logz, "+-", logz_err)
+        print(f"logZ: {logz} +- {logz_err}")
         raise

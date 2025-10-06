@@ -54,16 +54,8 @@ def trial_ks_tests():
         plot1 = model_analyser.make_variable_distribution_plot(
             "X",
             {
-                "Gaussian 1 ($\mu_X$ = "
-                + str(mu1)
-                + ", $\sigma_X$ = "
-                + str(sigma1)
-                + ")": data1,
-                "Gaussian 2 ($\mu_X$ = "
-                + str(mu2)
-                + ", $\sigma_X$ = "
-                + str(sigma2)
-                + ")": data2,
+                rf"Gaussian 1 ($\mu_X$ = {mu1}, $\sigma_X$ = {sigma1})": data1,
+                rf"Gaussian 2 ($\mu_X$ = {mu2}, $\sigma_X$ = {sigma2})": data2,
             },
             min_bin_edge,
             max_bin_edge,
@@ -72,22 +64,22 @@ def trial_ks_tests():
                 "Ntext": {
                     "x_pos": 8.5,
                     "y_pos": 0.7,
-                    "text_string": "N = " + str(config["N"]),
+                    "text_string": f"N = {config['N']}",
                 },
                 "ptext": {
                     "x_pos": 8.5,
                     "y_pos": 0.6,
-                    "text_string": "p-value 1 = " + str(p_value_original),
+                    "text_string": f"p-value 1 = {p_value_original}",
                 },
                 "ptext2": {
                     "x_pos": 8.5,
                     "y_pos": 0.55,
-                    "text_string": "p-value 2 = " + str(new_result[1]),
+                    "text_string": f"p-value 2 = {new_result[1]}",
                 },
                 "ptext3": {
                     "x_pos": 8.5,
                     "y_pos": 0.5,
-                    "text_string": "p-value 3 = " + str(equiv_result[1]),
+                    "text_string": f"p-value 3 = {equiv_result[1]}",
                 },
             },
             config_name,

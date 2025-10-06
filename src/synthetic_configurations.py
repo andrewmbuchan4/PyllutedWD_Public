@@ -32,7 +32,7 @@ def load_marc_distributions():
     geology_model = gi.GeologyModel()
     file_names = ["combined", "Mdot_7", "Mdot_8", "Mdot_10"]
     for file_name in file_names:
-        data = np.load("../data/" + file_name + ".npz", allow_pickle=True)
+        data = np.load(f"../data/{file_name}.npz", allow_pickle=True)
         CMF = data["bins_CMF"]  # core mass fraction
         N_CMF = data["N_CMF"]  # weight of this core mass fraction
         bins = np.linspace(0, 0.5, 40)
@@ -49,7 +49,7 @@ def load_marc_distributions():
             (coarse_edges[i], coarse_edges[i + 1])
             for i in range(0, len(coarse_edges) - 1)
         ]
-        predefined_distributions[file_name + "_coarse"] = (
+        predefined_distributions[f"{file_name}_coarse"] = (
             coarse_bins_tuples,
             coarse_counts,
         )
@@ -72,7 +72,7 @@ def load_tidal_distributions():
     # ^ For plotting purposes only (the bug above isn't relevant here)
     for file_name in file_names:
         cnfs = list()
-        with open("../data/" + file_name + ".csv", encoding="utf-8") as cmf_csv:
+        with open(f"../data/{file_name}.csv", encoding="utf-8") as cmf_csv:
             for row in csv.reader(cmf_csv):
                 cnf = geology_model.convert_core_mass_fraction_to_core_number_fraction(
                     float(row[0])
@@ -86,7 +86,7 @@ def load_tidal_distributions():
             (coarse_edges[i], coarse_edges[i + 1])
             for i in range(0, len(coarse_edges) - 1)
         ]
-        predefined_distributions[file_name + "_coarse"] = (
+        predefined_distributions[f"{file_name}_coarse"] = (
             coarse_bins_tuples,
             coarse_counts,
         )
@@ -101,7 +101,7 @@ def load_amy_distributions():
     coarse_bins = np.linspace(0, 1, 40)
     for file_name in amy_filenames:
         cnfs = list()
-        with open("../data/" + file_name + ".dat", encoding="utf-8") as config_csv:
+        with open(f"../data/{file_name}.dat", encoding="utf-8") as config_csv:
             for row in csv.reader(config_csv, delimiter=" "):
                 mass = float(row[0])
                 if mass < mass_cutoff:
@@ -117,7 +117,7 @@ def load_amy_distributions():
             (coarse_edges[i], coarse_edges[i + 1])
             for i in range(0, len(coarse_edges) - 1)
         ]
-        predefined_distributions[file_name + "_coarse"] = (
+        predefined_distributions[f"{file_name}_coarse"] = (
             coarse_bins_tuples,
             coarse_counts,
         )
@@ -135,10 +135,10 @@ def load_mwdd_distributions():
     for stellar_suffix in ["DA", "DB"]:
         teffs = list()
         loggs = list()
-        teff_dist_name = "MWDD_" + stellar_suffix + "_Teffs_40pc"
-        logg_dist_name = "MWDD_" + stellar_suffix + "_Loggs_40pc"
+        teff_dist_name = f"MWDD_{stellar_suffix}_Teffs_40pc"
+        logg_dist_name = f"MWDD_{stellar_suffix}_Loggs_40pc"
         with open(
-            "../data/" + DA_DB_40pc_base_filename + stellar_suffix + "s.csv",
+            f"../data/{DA_DB_40pc_base_filename}{stellar_suffix}s.csv",
             encoding="utf-8",
         ) as config_csv:
             for row in csv.reader(config_csv, delimiter=","):
@@ -190,7 +190,7 @@ def load_gspcwd_distributions():  # Vincent+2024 Table 3
     loggs_db = list()
     teff_dist_name = "GSPCWD_Teffs"
     logg_dist_name = "GSPCWD_Loggs"
-    with open("../data/" + gspcwd_filename, encoding="utf-8") as config_csv:
+    with open(f"../data/{gspcwd_filename}", encoding="utf-8") as config_csv:
         next(config_csv, None)
         for row in csv.reader(config_csv, delimiter=","):
             spt = row[1]
@@ -240,26 +240,26 @@ def load_gspcwd_distributions():  # Vincent+2024 Table 3
         (teff_edges_da[i], teff_edges_da[i + 1])
         for i in range(0, len(teff_edges_da) - 1)
     ]
-    predefined_distributions[teff_dist_name + "_DA"] = (teff_tuples_da, teff_counts_da)
+    predefined_distributions[f"{teff_dist_name}_DA"] = (teff_tuples_da, teff_counts_da)
     logg_counts_da, logg_edges_da = np.histogram(loggs_da, bins=dadb_logg_bins["DA"])
     logg_tuples_da = [
         (logg_edges_da[i], logg_edges_da[i + 1])
         for i in range(0, len(logg_edges_da) - 1)
     ]
-    predefined_distributions[logg_dist_name + "_DA"] = (logg_tuples_da, logg_counts_da)
+    predefined_distributions[f"{logg_dist_name}_DA"] = (logg_tuples_da, logg_counts_da)
 
     teff_counts_db, teff_edges_db = np.histogram(teffs_db, bins=dadb_teff_bins["DB"])
     teff_tuples_db = [
         (teff_edges_db[i], teff_edges_db[i + 1])
         for i in range(0, len(teff_edges_db) - 1)
     ]
-    predefined_distributions[teff_dist_name + "_DB"] = (teff_tuples_db, teff_counts_db)
+    predefined_distributions[f"{teff_dist_name}_DB"] = (teff_tuples_db, teff_counts_db)
     logg_counts_db, logg_edges_db = np.histogram(loggs_db, bins=dadb_logg_bins["DB"])
     logg_tuples_db = [
         (logg_edges_db[i], logg_edges_db[i + 1])
         for i in range(0, len(logg_edges_db) - 1)
     ]
-    predefined_distributions[logg_dist_name + "_DB"] = (logg_tuples_db, logg_counts_db)
+    predefined_distributions[f"{logg_dist_name}_DB"] = (logg_tuples_db, logg_counts_db)
     # print(teff_edges_da[1] - teff_edges_da[0])
     # print(teff_edges_db[1] - teff_edges_db[0])
     # print(logg_edges_da[1] - logg_edges_da[0])
@@ -282,7 +282,7 @@ def load_hollands_distributions():
     hollands_ids = list(range(0, 201))
     hollands_ids.remove(85)
     hollands_ids.extend([249, 250])
-    with open("../data/" + file_name + ".csv", encoding="utf-8") as config_csv:
+    with open(f"../data/{file_name}.csv", encoding="utf-8") as config_csv:
         row_count = 0
         for row in csv.DictReader(config_csv):
             if row_count in hollands_ids:
@@ -777,8 +777,16 @@ wd_configurations = {
                 predefined_distributions["MWDD_DA_Loggs_40pc"][1],
             ],
         ),
-        # mp.WDParameter.temperature: (Distribution.CustomDistribution, ['GSPCWD_Teffs_DA', predefined_distributions['GSPCWD_Teffs_DA'][0], predefined_distributions['GSPCWD_Teffs_DA'][1]]),
-        # mp.WDParameter.logg: (Distribution.CustomDistribution, ['GSPCWD_Loggs_DA', predefined_distributions['GSPCWD_Loggs_DA'][0], predefined_distributions['GSPCWD_Loggs_DA'][1]]),
+        # mp.WDParameter.temperature:
+        # (Distribution.CustomDistribution,
+        # ['GSPCWD_Teffs_DA',
+        # predefined_distributions['GSPCWD_Teffs_DA'][0],
+        # predefined_distributions['GSPCWD_Teffs_DA'][1]]),
+        # mp.WDParameter.logg:
+        # (Distribution.CustomDistribution,
+        # ['GSPCWD_Loggs_DA',
+        # predefined_distributions['GSPCWD_Loggs_DA'][0],
+        # predefined_distributions['GSPCWD_Loggs_DA'][1]]),
         mp.WDParameter.mass: (Distribution.Normal, [0.6, 0.02]),
         # ^ This doesn't actually matter
         # UPDATE/WARNING: It actually does now! The new atmosphere model takes M_cvz as
@@ -1311,10 +1319,9 @@ pollution_configurations = {
     },
     "Wyatt2014": {
         mp.ModelParameter.metallicity: (Distribution.Uniform, [0, 958]),
-        mp.ModelParameter.t_sinceaccretion: (
-            Distribution.Uniform,
-            [0, 5],
-        ),  # Myr - I reduced the rage but this is still such a long timescale that this is only applicable to DBs in its current form, really
+        mp.ModelParameter.t_sinceaccretion: (Distribution.Uniform, [0, 5]),
+        # ^ Myr - I reduced the range but this is still such a long timescale that this
+        # is only applicable to DBs in its current form, really
         mp.ModelParameter.formation_distance: (Distribution.Uniform, [-0.55, -0.25]),
         mp.ModelParameter.feeding_zone_size: (Distribution.Delta, [0.05]),
         mp.ModelParameter.parent_core_frac: (Distribution.Delta, [0.17]),
@@ -1329,7 +1336,9 @@ pollution_configurations = {
                 10,
                 21.50515,
             ],
-        ),  # Bottom end is still arbitrary - could constrain from their mu, sigma parameters perhaps?
+        ),
+        # ^ Bottom end is still arbitrary - could constrain from their mu, sigma
+        # parameters perhaps?
         mp.ModelParameter.accretion_timescale: (Distribution.Delta, [20]),  # yr
         mp.ModelParameter.pressure: (Distribution.Delta, [45]),
         mp.ModelParameter.oxygen_fugacity: (Distribution.Delta, [-1.3]),
@@ -1352,10 +1361,8 @@ pollution_configurations = {
                 np.log10(pc.M_Earth),
             ],
         ),  # Maybe trymmax = 3.2 × 1024 g, μ = 8.0, σ = 1.3, q = 1.57
-        mp.ModelParameter.accretion_timescale: (
-            Distribution.Uniform,
-            [0, 10000000],
-        ),  # yr
+        mp.ModelParameter.accretion_timescale: (Distribution.Uniform, [0, 10000000]),
+        # ^ yr
         mp.ModelParameter.pressure: (Distribution.Delta, [45]),
         mp.ModelParameter.oxygen_fugacity: (Distribution.Delta, [-1.3]),
     },

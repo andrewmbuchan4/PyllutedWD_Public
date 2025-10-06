@@ -548,23 +548,14 @@ def main():
         if ex_name != "Test cases":
             continue
         Ds_dict[ex_name] = dict()
-        print("Running experiments from " + ex_name)
+        print(f"Running experiments from {ex_name}")
         for run_name, run_params in ex_runs.items():
-            print("Running experiment " + run_name)
+            print(f"Running experiment {run_name}")
             P = run_params["P"]
             T = run_params["T"]
             fO2 = run_params["fO2"]
             nbot = run_params.get("nbot", None)
-            print(
-                "P = "
-                + str(P)
-                + ", T = "
-                + str(T)
-                + ", fO2 = "
-                + str(fO2)
-                + ", nbot = "
-                + str(nbot)
-            )
+            print(f"P = {P}, T = {T}, fO2 = {fO2}, nbot = {nbot}")
             if run_name == "Mars":
                 a, w, Ds, all_Ds = geo_model_mars.form_a_planet_iteratively(
                     P, fO2, T, nbot
@@ -586,15 +577,9 @@ def main():
                 except (TypeError, ZeroDivisionError):
                     error = None
                 print(
-                    "For "
-                    + str(element)
-                    + ", actual vs predicted = "
-                    + str(element_result)
-                    + ", "
-                    + str(prediction)
-                    + "  [error: "
-                    + str(error)
-                    + "]"
+                    f"For {element},"
+                    + f" actual vs predicted = {element_result}, {prediction}"
+                    + f"  [error: {error}]"
                 )
                 log_prediction = np.log10(prediction)
                 log_element_result = np.log10(element_result)
@@ -605,15 +590,10 @@ def main():
                 except (TypeError, ZeroDivisionError):
                     log_error = None
                 print(
-                    "For "
-                    + str(element)
-                    + ", log(actual) vs log(predicted) = "
-                    + str(log_element_result)
-                    + ", "
-                    + str(log_prediction)
-                    + "  [error: "
-                    + str(log_error)
-                    + "]"
+                    f"For {element},"
+                    + " log(actual) vs log(predicted) = "
+                    + f" {log_element_result}, {log_prediction}"
+                    + f"  [error: {log_error}]"
                 )
                 if run_name == "Mars":
                     predicted_mantle_abundance = a[element][gi.Layer.mantle]
@@ -633,15 +613,10 @@ def main():
                 except (TypeError, ZeroDivisionError):
                     error_ma = None
                 print(
-                    "For "
-                    + str(element)
-                    + ", predicted_mantle_abundance vs observed_mantle_abundances = "
-                    + str(predicted_mantle_abundance)
-                    + ", "
-                    + str(observed_mantle_abundance)
-                    + "  [error: "
-                    + str(error_ma)
-                    + "]"
+                    f"For {element}, predicted_mantle_abundance vs"
+                    + " observed_mantle_abundances = "
+                    + f"{predicted_mantle_abundance}, {observed_mantle_abundance}"
+                    + f"  [error: {error_ma}]"
                 )
             if ex_name == "Test cases":
                 print(ex_name)

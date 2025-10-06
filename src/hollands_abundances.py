@@ -74,7 +74,7 @@ def get_hollands_abundances_for_dt_plot(element, manager=None):
 def find_json_params_files(wd_index):
     json_files = list()
     for filename in os.listdir(pu.get_path_to_historical_output_dir()):
-        if filename.endswith(".json") and filename.startswith(str(wd_index) + "model"):
+        if filename.endswith(".json") and filename.startswith(f"{wd_index}model"):
             json_files.append(filename)
     json_files.sort()
     return json_files
@@ -91,7 +91,7 @@ def extract_posteriors(wd_name):
     #         the n_params set to the model dimensions
     wd_index = None
     with open(
-        pu.get_path_to_original_src() + "wd_data_1112.csv", encoding="utf-8"
+        f"{pu.get_path_to_original_src()}wd_data_1112.csv", encoding="utf-8"
     ) as wdcsv:
         row_count = 0
         for row in csv.reader(wdcsv):
@@ -101,7 +101,7 @@ def extract_posteriors(wd_name):
             row_count += 1
     model_parameters = list()
     with open(
-        pu.get_path_to_historical_output_dir() + "best_fits_hb20.csv", encoding="utf-8"
+        f"{pu.get_path_to_historical_output_dir()}best_fits_hb20.csv", encoding="utf-8"
     ) as bfcsv:
         for row in csv.reader(bfcsv):
             if row[0] == wd_name:
@@ -135,7 +135,7 @@ def extract_posteriors(wd_name):
         if model_no not in matching_models:
             matching_models.append(model_no)
     assert len(matching_models) == 1  # Not sure what to do if this isn't true
-    model_basename = str(wd_index) + "model" + str(matching_models[0])
+    model_basename = f"{wd_index}model{matching_models[0]}"
     n_dims = len(true_model_parameters)
     print()
     print(wd_name)

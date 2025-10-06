@@ -45,7 +45,7 @@ class Observer:
         elif self.observation_type == ObservationType.TeffIndividualElementCutoff:
             self.observation_function = self.apply_TeffDependentIndividualElementCutoff
         else:
-            raise ValueError("Unrecognised observation type " + str(observation_type))
+            raise ValueError(f"Unrecognised observation type {observation_type}")
 
     def observe_populations(self, population_dict, overwrite=False):
         observed_populations = dict()
@@ -55,13 +55,11 @@ class Observer:
     def observe_population(self, population, overwrite=False):
         for system in population:
             if overwrite or system.observed is None:
-                print("Trying to observe system " + str(system.id))
+                print(f"Trying to observe system {system.id}")
                 self.observe_system(system)
             else:
                 print(
-                    "System "
-                    + str(system.id)
-                    + " already assessed for observability, skipping"
+                    f"System {system.id} already assessed for observability, skipping"
                 )
 
     def observe_system(self, system):

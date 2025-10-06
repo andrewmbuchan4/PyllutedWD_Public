@@ -90,17 +90,17 @@ def produce_pngs(
     digits_needed = int(np.ceil(np.log10(max_frames)))
     frame = 0
     while t_kyr <= t_kyr_max:
-        print("Time: " + str(t_kyr) + " kyr")
-        print("Frame " + str(frame + 1) + "/" + str(int(max_frames)))
+        print(f"Time: {t_kyr} kyr")
+        print(f"Frame {frame + 1}/{int(max_frames)}")
         t = t_kyr * 1000
         N_X = atm.calculate_abundance_by_number(
             t, t_event, wd_type, M_cvz, mu_X, M_X, tau_X
         )
         t_Myr = t_kyr / 1000
         fit_dict = {
-            "t = "
-            + "{:.2f}".format(t_Myr)
-            + " Myr": {el: N_X[i] for i, el in enumerate(elements_to_plot)}
+            f"t = {t_Myr:.2f} Myr": {
+                el: N_X[i] for i, el in enumerate(elements_to_plot)
+            }
         }
         model_name = str(frame).rjust(digits_needed, "0") + "_"
         graph_fac.make_composition_plot_mk3(
@@ -115,7 +115,7 @@ def produce_pngs(
         )
         t_kyr += timestep
         frame += 1
-    print("Produced " + str(frame) + " frames")
+    print(f"Produced {frame} frames")
 
 
 def main():
@@ -146,7 +146,8 @@ def main():
     )
     print("Now run this in the output directory")
     print(
-        'ffmpeg -framerate 25 -i  Example_%04d_composition_rel_He.png  -c:v libx264 -r 30 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" out.mp4'
+        'ffmpeg -framerate 25 -i  Example_%04d_composition_rel_He.png  -c:v libx264'
+        + ' -r 30 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" out.mp4'
     )
 
 

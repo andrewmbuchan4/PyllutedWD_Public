@@ -972,24 +972,10 @@ def latex_error_format(value, lower_error, upper_error, dp=2):
     if value is None or lower_error is None or upper_error is None:
         return "N/A"
     if dp == 0:
-        toret = (
-            str(int(value))
-            + "_{-"
-            + str(int(lower_error))
-            + "}^{+"
-            + str(int(upper_error))
-            + "}"
-        )
+        toret = f"{int(value)}_{{-{int(lower_error)}}}^{{+{int(upper_error)}}}"
     else:
-        toret = (
-            "{:.{dp}f}".format(round(value, dp), dp=dp)
-            + "_{-"
-            + "{:.{dp}f}".format(round(lower_error, dp), dp=dp)
-            + "}^{+"
-            + "{:.{dp}f}".format(round(upper_error, dp), dp=dp)
-            + "}"
-        )
-    return "$" + toret + "$"
+        toret = f"{value:.{dp}f}_{{-{lower_error:.{dp}f}}}^{{+{upper_error:.{dp}f}}}"
+    return rf"${toret}$"
 
 
 def strip_system_suffix(system_name):
@@ -1428,7 +1414,7 @@ def compile_stats_table(system_stats_dict, path=None):
                 list_of_all_rows.append(list_of_vals)
         for row in sort_latex_rows(list_of_all_rows):
             to_write.writerow([" & ".join(row) + " \\\\"])
-    with open(latex_path_to_use + ".mod1", "w", newline="", encoding="utf-8") as f:
+    with open(f"{latex_path_to_use}.mod1", "w", newline="", encoding="utf-8") as f:
         to_write = csv.writer(f)
         to_write.writerow(
             [
@@ -1505,7 +1491,7 @@ def compile_stats_table(system_stats_dict, path=None):
                 list_of_all_rows.append(list_of_vals)
         for row in sort_latex_rows(list_of_all_rows):
             to_write.writerow([" & ".join(row) + " \\\\"])
-    with open(latex_path_to_use + ".mod2", "w", newline="", encoding="utf-8") as f:
+    with open(f"{latex_path_to_use}.mod2", "w", newline="", encoding="utf-8") as f:
         to_write = csv.writer(f)
         to_write.writerow(
             [
@@ -1617,9 +1603,7 @@ def compile_stats_summary(system_stats_dict, path=None):
         to_write.writerow([])
         to_write.writerow(
             [
-                "Differentiated to >"
-                + str(differentiated_sigma_requirement)
-                + " sigma:",
+                f"Differentiated to > {differentiated_sigma_requirement} sigma:",
                 differentiated,
             ]
         )
@@ -1636,7 +1620,8 @@ def read_old_output_files():
     import xlrd
 
     model_params_dict = {
-        "M1 = (Stellar Index, Time since Accretion, Accretion Event Lifetime, Pollution Fraction)": [
+        "M1 = (Stellar Index, Time since Accretion, Accretion Event Lifetime,"
+        + " Pollution Fraction)": [
             "Stellar metallicity indices",
             "Time since Accretion/Myrs",
             "log(Pollution Fraction)",
@@ -1779,9 +1764,7 @@ def read_old_output_files():
     path = pu.get_path_to_historical_output_dir()
     for obs_number in [185]:
         name_of_system = "SDSSJ2230+1905"
-        xlsx_file = (
-            path + name_of_system + "PWDOutputs.xlsx"
-        )  # Need to read from a dict
+        xlsx_file = f"{path}{name_of_system}PWDOutputs.xlsx"  # Need to read from a dict
         num_elements = 4  # Need to read from a dict
         system = xlsx_file.split("PWDOutputs")[0]
 
@@ -1826,7 +1809,7 @@ def read_old_output_files():
         print(good_fit)
         raise
 
-        file_prefix = str(obs_number) + "model17"
+        file_prefix = f"{obs_number}model17"
         # By this point, need to have generated this^ name from the system's obs number
         # and the favoured model (internal naming convention)
         number_of_params = len(best_model_description)

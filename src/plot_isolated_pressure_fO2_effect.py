@@ -1775,7 +1775,7 @@ def run_complete_model(trial_fits, extended_fits):
             continue
         extra_fits = trial_fits.get(arg_name, list())
         extend_fits = extended_fits.get(arg_name, dict())
-        print("Running fise results for " + arg_name)
+        print(f"Running fise results for {arg_name}")
         observation_to_test_on = arg_set[0]
         # non_zero_wd_abundances = list()
         # non_zero_wd_timescales = list()
@@ -1833,7 +1833,7 @@ def run_complete_model(trial_fits, extended_fits):
                 arg_set[12],
                 "NonEarthlike",
             )
-            print("Ran test fit on  " + arg_name + " Diagnostics were: ")
+            print(f"Ran test fit on {arg_name} Diagnostics were: ")
             print("DiscAbundances")
             print(test_result[1]["DiscAbundances"])
             try:
@@ -1892,13 +1892,7 @@ def run_complete_model(trial_fits, extended_fits):
                     "NonEarthlike",
                 )
                 data_dump[arg_name][ef] = result[0]
-                print(
-                    "Ran fit "
-                    + str(ef)
-                    + " on system "
-                    + arg_name
-                    + " Diagnostics were: "
-                )
+                print(f"Ran fit {ef} on system {arg_name} Diagnostics were: ")
                 print("DiscAbundances")
                 print(result[1]["DiscAbundances"])
                 ld._geo_model.tabulate_output(
@@ -1928,13 +1922,7 @@ def run_complete_model(trial_fits, extended_fits):
                     "NonEarthlike",
                 )
                 data_dump[arg_name][ef_name] = result[0]
-                print(
-                    "Ran fit "
-                    + str(ef)
-                    + " on system "
-                    + arg_name
-                    + " Diagnostics were: "
-                )
+                print(f"Ran fit {ef_name} on system {arg_name} Diagnostics were: ")
                 print("DiscAbundances")
                 print(result[1]["DiscAbundances"])
                 try:
@@ -2541,7 +2529,7 @@ def collect_best_fit_ratios(
     crmg_by_system_obs_ub.append(None)
     sife_by_system_obs_ub.append(None)
     for layer in [gi.Layer.bulk, gi.Layer.mantle, gi.Layer.core]:
-        systems.append("Earth (" + str(layer) + ")")
+        systems.append(f"Earth ({layer})")
         crfe_by_system.append(
             np.log10(
                 geo_model.element_info[ci.Element.Cr][layer]
@@ -4609,7 +4597,7 @@ def main():
                     graph_fac.make_composition_plot_raw(
                         system,
                         manager.wd_types[system],
-                        system + "_forvid_p" + str(int(100 * co_key[1])).zfill(4) + "_",
+                        f"{system}_forvid_p{int(100 * co_key[1]):04d}_",
                         abundances_dict[system],
                         errors_dict[system],
                         fit_dict,
@@ -4623,7 +4611,7 @@ def main():
                     graph_fac.make_composition_plot_mk2(
                         system,
                         manager.wd_types[system],
-                        system + "_forvid_p" + str(int(100 * co_key[1])).zfill(4) + "_",
+                        f"{system}_forvid_p{int(100 * co_key[1]):04d}_",
                         abundances_dict[system],
                         errors_dict[system],
                         fit_dict,
@@ -4664,7 +4652,7 @@ def main():
             print(raw_output)
             graph_fac.make_composition_plot_mk2(
                 system,
-                system + "_sisi_",
+                f"{system}_sisi_",
                 abundances_dict[system],
                 errors_dict[system],
                 collected_output,
@@ -4678,7 +4666,7 @@ def main():
             graph_fac.make_composition_plot_raw(
                 system,
                 manager.wd_types[system],
-                system + "_sisi_",
+                f"{system}_sisi_",
                 abundances_dict[system],
                 errors_dict[system],
                 raw_output,

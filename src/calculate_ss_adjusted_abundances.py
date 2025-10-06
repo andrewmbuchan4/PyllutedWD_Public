@@ -359,7 +359,7 @@ def read_wd_csv_into_dict(wd_data_filename):
                         else:
                             # Then we don't know what it is
                             raise ValueError(
-                                "Unable to parse abundances for " + wd_name
+                                f"Unable to parse abundances for {wd_name}"
                             )
             row_count += 1
     return output_dict
@@ -553,11 +553,10 @@ def example():
     print(ss_wd_abundances)
     print()
     print(
-        "Steady state adjusted abundances (log scale, by number, comma-separated with errors):"
+        "Steady state adjusted abundances"
+        + " (log scale, by number, comma-separated with errors):"
     )
-    to_print = ",".join(
-        str(ss_wd_abundances[ue]) + "," + str(error) for ue in ci.usual_elements
-    )
+    to_print = ",".join(f"{ss_wd_abundances[ue]},{error}" for ue in ci.usual_elements)
     print(to_print)
 
 

@@ -334,9 +334,7 @@ def plot_hollands_elel_ratios(graph_factory, correct_for_sinking=False, use_namg
             stellar_cafe.append(stellar_composition[2] / stellar_composition[4])
             stellar_mgfe.append(1 / stellar_composition[4])
     stellar_data = list(zip(stellar_cafe, stellar_mgfe))
-    graph_name = (
-        "hollands_" + str(x_el_1) + str(x_el_2) + str(y_el_1) + str(y_el_2) + "_scatter"
-    )
+    graph_name = (f"hollands_{x_el_1}{x_el_2}{y_el_1}{y_el_2}_scatter")
     if correct_for_sinking:
         graph_name += "_corrected"
     plot_dict = graph_factory.make_hollands_elel_scatter_plot(
@@ -633,20 +631,20 @@ def extract_accretion_lifetime_info(accretion_phase_estimate_dict, threshold=0.6
         print()
         print(wd_name)
         if phase_info["bu"] / phase_info["total"] > threshold:
-            print("P(bu) = " + str(phase_info["bu"] / phase_info["total"]))
+            print(f"P(bu) = {phase_info['bu'] / phase_info['total']}")
             print("t_event should be more than t_sinceaccretion")
             raise  # This seems to be irrelevant!
         elif phase_info["ss"] / phase_info["total"] > threshold:
-            print("P(ss) = " + str(phase_info["ss"] / phase_info["total"]))
-            print("t_event should be more than " + str(phase_info["t_ss"]) + " Myr")
+            print(f"P(ss) = {phase_info['ss'] / phase_info['total']}")
+            print(f"t_event should be more than {phase_info['t_ss']} Myr")
             lower_bounds.append(phase_info["t_ss"])
         elif phase_info["bu_dec"] / phase_info["total"] > threshold:
-            print("P(bu_dec) = " + str(phase_info["bu_dec"] / phase_info["total"]))
-            print("t_event should be less than " + str(phase_info["t_ss"]) + " Myr")
+            print(f"P(bu_dec) = {phase_info['bu_dec'] / phase_info['total']}")
+            print(f"t_event should be less than {phase_info['t_ss']} Myr")
             upper_bounds.append(phase_info["t_ss"])
         elif phase_info["ss_dec"] / phase_info["total"] > threshold:
-            print("P(ss_dec) = " + str(phase_info["bu_dec"] / phase_info["total"]))
-            print("t_event should be more than " + str(phase_info["t_ss"]) + " Myr")
+            print(f"P(ss_dec) = {phase_info['ss_dec'] / phase_info['total']}")
+            print(f"t_event should be more than {phase_info['t_ss']} Myr")
             lower_bounds.append(phase_info["t_ss"])
         else:
             print("Accretion phase unclear")

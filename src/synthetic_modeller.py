@@ -84,14 +84,16 @@ class SyntheticGrid:
                 )
                 if len(matching_systems) < 1:
                     print(
-                        "Warning! Grid point had no corresponding reference system, skipping"
+                        "Warning! Grid point had no corresponding reference system,"
+                        + " skipping"
                     )
                 elif len(matching_systems) == 1:
                     # We want to use the initial input values as the reference values
                     # for the interpolation grid
                     if matching_systems[0].pollution_properties is None:
                         print(
-                            "Warning! Grid point was missing modelled properties, skipping"
+                            "Warning! Grid point was missing modelled properties,"
+                            + "skipping"
                         )
                     else:
                         for vti in self.variables_to_interpolate:
@@ -201,7 +203,7 @@ class Modeller:
         elif self.modeller_type == ModellerType.Null:
             self.model_system = self.null_model
         else:
-            raise ValueError("Unrecognised modelling strategy " + str(modeller_type))
+            raise ValueError(f"Unrecognised modelling strategy {modeller_type}")
         self.metallicity_elements = [
             ci.Element.Al,
             ci.Element.Ti,
@@ -257,7 +259,7 @@ class Modeller:
 
     def model_populations(self, population_dict, overwrite=False):
         for pop_name, population in population_dict.items():
-            print("Modelling population " + pop_name)
+            print(f"Modelling population {pop_name}")
             self.model_population(population, overwrite)
         # self.apply_kstest_across_pops(population_dict)
         # ^ This needs to be updated to handle list entries
@@ -266,12 +268,10 @@ class Modeller:
         for system in population:
             if system.observed and system.observed_abundances is not None:
                 if overwrite or system.modelled_properties is None:
-                    print("Modelling system " + str(system.id))
+                    print(f"Modelling system {system.id}")
                     self.model_system(system)
                 else:
-                    print(
-                        "System " + str(system.id) + " was already modelled, skipping"
-                    )
+                    print(f"System {system.id} was already modelled, skipping")
         population.dump_to_csv()
         # self.apply_kstest_to_single_pop(population)
         # ^ This needs to be updated to handle list entries
@@ -366,7 +366,7 @@ class Modeller:
         MgHx = system.observed_abundances.get(ci.Element.Mg, None)
         FeHx = system.observed_abundances.get(ci.Element.Fe, None)
         if MgHx is None or FeHx is None:
-            print("Warning! Could not calculate fcf for system " + str(system))
+            print(f"Warning! Could not calculate fcf for system {system}")
         else:
             MgFe = MgHx - FeHx
             cnf = ((0 - MgFe) + 1) / 3
@@ -636,9 +636,8 @@ class Modeller:
                 rel_diff = abs((test_ratio - element_ratio) / element_ratio)
                 if rel_diff < tolerance:
                     print(
-                        "Sinking calculation converged ("
-                        + str(iteration_count + 1)
-                        + " iterations)"
+                        "Sinking calculation converged "
+                        + f"({iteration_count + 1} iterations)"
                     )
                     t_disc_toret.append(test_t_disc)
                     t_sinceaccretion_toret.append(test_t_sinceaccretion)
@@ -665,10 +664,9 @@ class Modeller:
                     # To prevent infinite loops
                     if test_t_sinceaccretion < zero_time_threshold:
                         print(
-                            "Warning! Sinking calculation exceeded iteration limit ("
-                            + str(max_iterations)
-                            + "), but test t = "
-                            + str(test_t_sinceaccretion)
+                            "Warning! Sinking calculation exceeded iteration limit"
+                            + f" ({max_iterations}),"
+                            + f" but test t = {test_t_sinceaccretion}"
                             + " so will approximate as 0"
                         )
                         t_disc_toret.append(test_t_disc)
@@ -676,9 +674,8 @@ class Modeller:
                         break
                     else:
                         print(
-                            "Warning! Sinking calculation exceeded iteration limit ("
-                            + str(max_iterations)
-                            + "), returning None, None"
+                            "Warning! Sinking calculation exceeded iteration limit"
+                            + f" ({max_iterations}), returning None, None"
                         )
                         t_disc_toret.append(None)
                         t_sinceaccretion_toret.append(None)
@@ -975,9 +972,8 @@ class Modeller:
                     rel_diff = abs((test_ratio - target_ratio) / target_ratio)
                     if rel_diff < tolerance:
                         print(
-                            "D formation calculation converged ("
-                            + str(iteration_count + 1)
-                            + " iterations)"
+                            "D formation calculation converged"
+                            + f" ({iteration_count + 1} iterations)"
                         )
                         d_formation_toret.append(test_d_formation)
                         break
@@ -995,18 +991,17 @@ class Modeller:
                         # To prevent infinite loops
                         if test_d_formation > max_distance_threshold:
                             print(
-                                "Warning! D formation calculation exceeded iteration limit ("
-                                + str(max_iterations)
-                                + "), but d_formation was close to max, returning "
-                                + str(upper_d_formation_bound)
+                                "Warning! D formation calculation exceeded iteration"
+                                + f" limit ({max_iterations}),"
+                                + " but d_formation was close to max,"
+                                + f" returning {upper_d_formation_bound}"
                             )
                             d_formation_toret.append(upper_d_formation_bound)
                             break
                         else:
                             print(
-                                "Warning! D formation calculation exceeded iteration limit ("
-                                + str(max_iterations)
-                                + "), returning None"
+                                "Warning! D formation calculation exceeded iteration"
+                                + f" limit ({max_iterations}), returning None"
                             )
                             d_formation_toret.append(None)
                             break

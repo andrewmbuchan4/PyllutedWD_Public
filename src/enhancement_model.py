@@ -32,10 +32,8 @@ class EnhancementModel:
             except:
                 model_str = "[Could not cast model to string]"
             raise ValueError(
-                "Unknown EnhancementModel. Input was: "
-                + model_str
-                + ". Known models: "
-                + ", ".join(self.known_models.keys())
+                f"Unknown EnhancementModel. Input was: {model_str}."
+                + f" Known models: {', '.join(self.known_models.keys())}"
             )
 
         self.earthlike_info = {

@@ -108,7 +108,7 @@ def main():
         min_mdot_dict[teff] = min_mdot
     print(min_mdot_dict)
     for k, v in min_mdot_dict.items():
-        print(str(k) + "," + str(v))
+        print(f"{k},{v}")
 
 
 if __name__ == "__main__":

@@ -12,9 +12,9 @@ import dict_plotter as dp
 
 
 def load_points_files(file_prefix, output_dir="output"):
-    phys_live_file = output_dir + "/" + file_prefix + "_phys_live.points"
+    phys_live_file = f"{output_dir}/{file_prefix}_phys_live.points"
     # ^ Active points. N + 2 columns: <params>, log(Z), node number
-    ev_file = output_dir + "/" + file_prefix + "_ev.dat"
+    ev_file = f"{output_dir}/{file_prefix}_ev.dat"
     # ^ Rejected points. N + 3 columns: <params>, log(Z), log(prior mass), node number
     active_points = np.loadtxt(phys_live_file, ndmin=2)
     rejected_points = np.loadtxt(ev_file, ndmin=2)
@@ -54,21 +54,12 @@ def plot_ellipses(
             param_index_2 = 0
         if param_index_1 == len(sorted_param_list):
             return
-        print(
-            "Plotting ellipses for indices "
-            + str(param_index_1)
-            + " and "
-            + str(param_index_2)
-        )
+        print(f"Plotting ellipses for indices {param_index_1} and {param_index_2}")
         plot_dict = {
             "ellipses": {
                 "show": False,
                 "filenames": [
-                    file_prefix
-                    + "_ellipses"
-                    + str(param_index_1)
-                    + str(param_index_2)
-                    + ".pdf"
+                    f"{file_prefix}_ellipses{param_index_1}{param_index_2}.pdf"
                 ],
                 "fig_height": 15,
                 "fig_width": 10,
@@ -78,7 +69,7 @@ def plot_ellipses(
                         "legend": False,
                         "legend_loc": "best",
                         "legend_text_size": 10,
-                        "title_text": r"Active ellipse " + file_prefix,
+                        "title_text": rf"Active ellipse {file_prefix}",
                         "title_fontsize": 10,
                         "xlabel_text": str(sorted_param_list[param_index_1]),
                         "xlabel_fontsize": 8,
@@ -104,7 +95,7 @@ def plot_ellipses(
                         "legend": False,
                         "legend_loc": "best",
                         "legend_text_size": 10,
-                        "title_text": r"Last rejected points " + file_prefix,
+                        "title_text": rf"Last rejected points {file_prefix}",
                         "title_fontsize": 10,
                         "xlabel_text": str(sorted_param_list[param_index_1]),
                         "xlabel_fontsize": 8,
@@ -132,7 +123,7 @@ def plot_ellipses(
                         "legend": False,
                         "legend_loc": "best",
                         "legend_text_size": 10,
-                        "title_text": r"First rejected points " + file_prefix,
+                        "title_text": rf"First rejected points {file_prefix}",
                         "title_fontsize": 10,
                         "xlabel_text": str(sorted_param_list[param_index_1]),
                         "xlabel_fontsize": 8,
@@ -168,7 +159,7 @@ def plot_final_dists(file_prefix, active_points, sorted_param_list):
     plot_dict = {
         "final_dists": {
             "show": False,
-            "filenames": [file_prefix + "_final_dists.pdf"],
+            "filenames": [f"{file_prefix}_final_dists.pdf"],
             "fig_height": 15,
             "fig_width": 10,
             "subplots": dict(),
@@ -181,7 +172,7 @@ def plot_final_dists(file_prefix, active_points, sorted_param_list):
             "legend": False,
             "legend_loc": "best",
             "legend_text_size": 10,
-            "title_text": r"Final distribution of active points for run " + file_prefix,
+            "title_text": rf"Final distribution of active points for run {file_prefix}",
             "title_fontsize": 10,
             "xlabel_text": str(param),
             "xlabel_fontsize": 8,

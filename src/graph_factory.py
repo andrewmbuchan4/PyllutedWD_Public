@@ -193,7 +193,7 @@ class GraphFactory:
                 "type": dp.SeriesType.scatter_2d,
                 "x_data": range(0, len(series)),
                 "y_data": series,
-                "line_type": colours[fit_index % len(colours)] + "-",
+                "line_type": f"{colours[fit_index % len(colours)]}-",
                 "line_linewidth": 1,
                 "legend": True,
             }
@@ -201,21 +201,21 @@ class GraphFactory:
         plot_dict = {
             "testplot": {
                 "show": False,
-                "filenames": ["composition_" + file_prefix + ".pdf"],
+                "filenames": [f"composition_{file_prefix}.pdf"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
                         "legend": True,
                         "legend_loc": "best",
                         "legend_text_size": 8,
-                        "title_text": r"Composition of " + file_prefix + " pollutant",
+                        "title_text": rf"Composition of {file_prefix} pollutant",
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
                         "xlabel_text": "Element",
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
                         "ylabel_text": (
-                            "$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$"
+                            r"$\mathrm{log((X/Mg)/(X/Mg)}_{\mathrm{mean \, stellar}})$"
                         ),
                         "ylabel_fontsize": 10,
                         "ylabel_fontweight": "bold",
@@ -404,7 +404,7 @@ class GraphFactory:
                 "lower_limits": lower_limits_for_plot,
             }
         }
-        series_dict[obs_data_series_name + " (excluded)"] = {
+        series_dict[f"{obs_data_series_name} (excluded)"] = {
             "type": dp.SeriesType.scatter_2d_error,
             # 'x_data': range(0, len(observations)),
             "x_data": x_axis,
@@ -435,9 +435,7 @@ class GraphFactory:
                 else:
                     len_pressure = len(str(fit_key[1]))
                     padding_space = " " * (5 - len_pressure)
-                    fit_key_to_use = (
-                        "Fit at " + str(fit_key[1]) + padding_space + " GPa"
-                    )
+                    fit_key_to_use = f"Fit at {fit_key[1]}{padding_space} GPa"
             else:
                 fit_key_to_use = fit_key
             series_dict[fit_key_to_use] = {
@@ -465,7 +463,7 @@ class GraphFactory:
                     fit_key_to_use = fit_key[:-6]
                 else:
                     fit_key_to_use = fit_key
-                series_dict[fit_key_to_use + " 1 Sigma CI"] = {
+                series_dict[f"{fit_key_to_use} 1 Sigma CI"] = {
                     # TODO: unabbreviate CI? Confusing with CI chondrite
                     "type": dp.SeriesType.shade,
                     # 'x_data': range(0, len(observations)),
@@ -569,12 +567,12 @@ class GraphFactory:
         # except TypeError:
         #     y_min = None
         #     y_max = None
-        title_text = r"Composition of " + obs_data_series_name + " pollutant"
+        title_text = rf"Composition of {obs_data_series_name} pollutant"
         plot_dict = {
             "complotmk2": {
                 "show": False,
                 "filenames": [
-                    system + "_" + file_prefix + "compositionmk2" + e for e in extension
+                    f"{system}_{file_prefix}compositionmk2{e}" for e in extension
                 ],
                 "fig_height": 5,
                 "fig_width": 10,
@@ -678,13 +676,9 @@ class GraphFactory:
 
         if obs_data_series_name == "Example":
             obs_data_series_name = (
-                "Example "
-                + str(white_dwarf.get_atmospheric_type().value)
-                + "-dominated WD (T = "
-                + str(int(white_dwarf.get_teff().value))
-                + "K, log(g) = "
-                + str(white_dwarf.get_logg().value)
-                + ")"
+                f"Example {white_dwarf.get_atmospheric_type().value}-dominated WD "
+                + f"(T = {int(white_dwarf.get_teff().value)}K, "
+                + f"log(g) = {white_dwarf.get_logg().value})"
             )
         else:
             obs_data_series_name += " Abundances"
@@ -701,7 +695,7 @@ class GraphFactory:
                 "x_pos": 0.95,
                 "y_pos": 0.93,
             }
-            series_dict[obs_data_series_name + " Data"] = {
+            series_dict[f"{obs_data_series_name} Data"] = {
                 "type": dp.SeriesType.scatter_2d_error,
                 # 'x_data': range(0, len(observations)),
                 "x_data": x_axis,
@@ -730,7 +724,7 @@ class GraphFactory:
                 "upper_limits": included_upper_bounds_bools,
                 "lower_limits": included_lower_bounds_bools,
             }
-        series_dict[obs_data_series_name + " (excluded)"] = {
+        series_dict[f"{obs_data_series_name} (excluded)"] = {
             "type": dp.SeriesType.scatter_2d_error,
             # 'x_data': range(0, len(observations)),
             "x_data": x_axis,
@@ -747,21 +741,13 @@ class GraphFactory:
         if extra_text_dict is not None:
             if model_name is None:
                 base_file_name = (
-                    white_dwarf.name
-                    + "_composition_rel_"
-                    + str(reference_element_used)
-                    + "_"
+                    f"{white_dwarf.name}_composition_rel_{reference_element_used}_"
                     + extra_text_dict["short"]
                 )
             else:
                 base_file_name = (
-                    white_dwarf.name
-                    + "_"
-                    + model_name
-                    + "_composition_rel_"
-                    + str(reference_element_used)
-                    + "_"
-                    + extra_text_dict["short"]
+                    f"{white_dwarf.name}_{model_name}_composition_rel_"
+                    + f"{reference_element_used}_{extra_text_dict['short']}"
                 )
             series_dict["ExtraText"] = {
                 "fontsize": 22,
@@ -776,17 +762,12 @@ class GraphFactory:
         else:
             if model_name is None:
                 base_file_name = (
-                    white_dwarf.full_name()
-                    + "_composition_rel_"
-                    + str(reference_element_used)
+                    f"{white_dwarf.name}_composition_rel_{reference_element_used}"
                 )
             else:
                 base_file_name = (
-                    white_dwarf.full_name()
-                    + "_"
-                    + model_name
-                    + "composition_rel_"
-                    + str(reference_element_used)
+                    f"{white_dwarf.name}_{model_name}_composition_rel_"
+                    + f"{reference_element_used}"
                 )
 
         colours = self.colour_list
@@ -838,7 +819,7 @@ class GraphFactory:
                     )
 
                 if video:
-                    series_dict[fit_key + " fktext"] = {
+                    series_dict[f"{fit_key} fktext"] = {
                         "fontsize": 22,
                         "horizontalalignment": "right",
                         "legend": False,
@@ -874,7 +855,7 @@ class GraphFactory:
                     #     fit_key_to_use = fit_key[:-6]
                     # else:
                     #     fit_key_to_use = fit_key
-                    series_dict[fit_key + " 1 Sigma CI"] = {
+                    series_dict[f"{fit_key} 1 Sigma CI"] = {
                         # TODO: unabbreviate CI? Confusing with CI chondrite
                         "type": dp.SeriesType.shade,
                         # 'x_data': range(0, len(observations)),
@@ -974,7 +955,7 @@ class GraphFactory:
                 "legend": False,
             }
         extension = [".png"] if video else [".pdf", ".png"]
-        title_text = r"Composition of " + obs_data_series_name + " pollutant"
+        title_text = rf"Composition of {obs_data_series_name} pollutant"
         plot_dict = {
             "complotmk3": {
                 "show": False,
@@ -997,7 +978,7 @@ class GraphFactory:
                         # )
                         # 'xlabel_fontsize': 22,
                         # 'xlabel_fontweight': 'bold',
-                        "ylabel_text": "[X/" + str(reference_element_used) + "]",
+                        "ylabel_text": f"[X/{reference_element_used}]",
                         "ylabel_fontsize": 26,
                         "ylabel_fontweight": "bold",
                         "x_tick_labels": x_axis,
@@ -1219,7 +1200,7 @@ class GraphFactory:
                 "lower_limits": lower_limits_for_plot,
             }
         }
-        series_dict[obs_data_series_name + " (excluded)"] = {
+        series_dict[f"{obs_data_series_name} (excluded)"] = {
             "type": dp.SeriesType.scatter_2d_error,
             # 'x_data': range(0, len(observations)),
             "x_data": x_axis,
@@ -1249,9 +1230,7 @@ class GraphFactory:
                 else:
                     len_pressure = len(str(fit_key[1]))
                     padding_space = " " * (5 - len_pressure)
-                    fit_key_to_use = (
-                        "Fit at " + str(fit_key[1]) + padding_space + " GPa"
-                    )
+                    fit_key_to_use = f"Fit at {fit_key[1]}{padding_space} GPa"
             else:
                 # fit_key_to_use = fit_key + ' median'
                 fit_key_to_use = fit_key
@@ -1280,7 +1259,7 @@ class GraphFactory:
                     fit_key_to_use = fit_key[:-6]
                 else:
                     fit_key_to_use = fit_key
-                series_dict[fit_key_to_use + " 1 Sigma CI"] = {
+                series_dict[f"{fit_key_to_use} 1 Sigma CI"] = {
                     "type": dp.SeriesType.shade,
                     # 'x_data': range(0, len(observations)),
                     "x_data": x_axis,
@@ -1393,7 +1372,7 @@ class GraphFactory:
             "complotraw": {
                 "show": False,
                 "filenames": [
-                    system + "_" + file_prefix + "compositionraw" + e for e in extension
+                    f"{system}_{file_prefix}compositionraw{e}" for e in extension
                 ],
                 "fig_height": 5,
                 "fig_width": 10,
@@ -1421,7 +1400,7 @@ class GraphFactory:
                         # ),
                         # 'xlabel_fontsize': 22,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "[X/" + str(wd_type) + "]",
+                        "ylabel_text": f"[X/{wd_type}]",
                         "ylabel_fontsize": 26,
                         "ylabel_fontweight": "bold",
                         "x_tick_labels": x_axis,
@@ -1458,7 +1437,8 @@ class GraphFactory:
                 min_fit_value = min(fit_data)
             else:
                 min_fit_value = min(min_fit_value, min(fit_data))
-                # Potential improvement: only check values for which there is an observation
+                # Potential improvement: only check values for which there is an
+                # observation
             fit_key_to_use = fit_key
             series_dict[fit_key_to_use] = {
                 "type": dp.SeriesType.scatter_2d,
@@ -1511,7 +1491,7 @@ class GraphFactory:
         plot_dict = {
             "complotraw": {
                 "show": False,
-                "filenames": ["composition_core_endmembers" + e for e in extension],
+                "filenames": [f"composition_core_endmembers{e}" for e in extension],
                 "fig_height": 5,
                 "fig_width": 10,
                 "dpi": 1000,
@@ -1538,7 +1518,7 @@ class GraphFactory:
                         # ),
                         # 'xlabel_fontsize': 22,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "[X/" + str(wd_type) + "]",
+                        "ylabel_text": f"[X/{wd_type}]",
                         "ylabel_fontsize": 26,
                         "ylabel_fontweight": "bold",
                         "x_tick_labels": x_axis,
@@ -1706,11 +1686,11 @@ class GraphFactory:
             "legend": False,
         }
         extension = [".pdf", ".png"]
-        title_text = r"Composition of " + obs_data_series_name + " pollutant"
+        title_text = rf"Composition of {obs_data_series_name} pollutant"
         plot_dict = {
             "complotmk2": {
                 "show": False,
-                "filenames": [file_prefix + "compositionmk2" + e for e in extension],
+                "filenames": [f"{file_prefix}compositionmk2{e}" for e in extension],
                 "fig_height": 5,
                 "fig_width": 10,
                 "dpi": 300,
@@ -1771,7 +1751,7 @@ class GraphFactory:
             "edplot": {
                 "show": False,
                 "filenames": [
-                    "element_dropout_plot_" + str(z_formation) + e for e in extensions
+                    f"element_dropout_plot_{z_formation}{e}" for e in extensions
                 ],
                 "fig_height": 5,
                 "fig_width": 10,
@@ -1840,7 +1820,7 @@ class GraphFactory:
                 / element_abundance_vals[element2][i]
             )
         series_dict = dict()
-        series_dict[str(element1) + "/" + str(element2)] = {
+        series_dict[f"{element1}/{element2}"] = {
             "type": dp.SeriesType.scatter_2d,
             # 'x_data': range(0, len(observations)),
             # 'x_data': d_formation_vals,
@@ -1855,13 +1835,7 @@ class GraphFactory:
             "edplot": {
                 "show": False,
                 "filenames": [
-                    "element_dropout_plot_"
-                    + str(element1)
-                    + "_"
-                    + str(element2)
-                    + "_"
-                    + str(z_formation)
-                    + e
+                    f"element_dropout_plot_{element1}_{element2}_{z_formation}{e}"
                     for e in extensions
                 ],
                 "fig_height": 5,
@@ -1883,7 +1857,7 @@ class GraphFactory:
                         # 'xlabel_fontsize': 22,
                         # 'xlabel_fontweight': 'bold',
                         "xlabel_text": "Temperature /K",
-                        "ylabel_text": str(element1) + "/" + str(element2),
+                        "ylabel_text": f"{element1}/{element2}",
                         "ylabel_fontsize": 26,
                         "xlabel_fontsize": 26,
                         "ylabel_fontweight": "bold",
@@ -1983,14 +1957,14 @@ class GraphFactory:
         plot_dict = {
             "testplot": {
                 "show": False,
-                "filenames": ["composition_rel_" + tag + ".pdf"],
+                "filenames": [f"composition_rel_{tag}.pdf"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
                         "legend": True,
                         "legend_loc": "best",
                         "legend_text_size": 8,
-                        "title_text": r"Earth " + str(layer) + " composition",
+                        "title_text": rf"Earth {layer} composition",
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
                         "xlabel_text": "Element",
@@ -2083,7 +2057,7 @@ class GraphFactory:
             "testplot": {
                 "show": False,
                 "filenames": [
-                    "partition_coefficients_comparison_" + tag + "_" + run_name + ".pdf"
+                    f"partition_coefficients_comparison_{tag}_{run_name}.pdf"
                 ],
                 "subplots": {
                     "subplot1": {
@@ -2242,16 +2216,10 @@ class GraphFactory:
             "testplot": {
                 "show": False,
                 "filenames": [
-                    "partition_coefficients_comparison_"
-                    + tag
-                    + "_"
-                    + "_".join(run_name_list)
-                    + ".pdf",
-                    "partition_coefficients_comparison_"
-                    + tag
-                    + "_"
-                    + "_".join(run_name_list)
-                    + ".png",
+                    f"partition_coefficients_comparison_{tag}"
+                    + f"_{'_'.join(run_name_list)}.pdf",
+                    f"partition_coefficients_comparison_{tag}"
+                    + f"_{'_'.join(run_name_list)}.png",
                 ],
                 "fig_width": 15,
                 "fig_height": 6,
@@ -2386,7 +2354,7 @@ class GraphFactory:
             "ternary_plot": {
                 "show": False,
                 "dpi": 300,
-                "filenames": [filename + ".pdf", filename + ".png"],
+                "filenames": [f"{filename}.pdf", f"{filename}.png"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -2400,22 +2368,19 @@ class GraphFactory:
                             str(variable_list[0])
                             if scaling_factors.get(variable_list[0], 1) == 1
                             else str(scaling_factors.get(variable_list[0], 1))
-                            + "*"
-                            + str(variable_list[0])
+                            + f"*{variable_list[0]}"
                         ),
                         "y_label": (
                             str(variable_list[1])
                             if scaling_factors.get(variable_list[1], 1) == 1
                             else str(scaling_factors.get(variable_list[1], 1))
-                            + "*"
-                            + str(variable_list[1])
+                            + f"*{variable_list[1]}"
                         ),
                         "z_label": (
                             str(variable_list[2])
                             if scaling_factors.get(variable_list[2], 1) == 1
                             else str(scaling_factors.get(variable_list[2], 1))
-                            + "*"
-                            + str(variable_list[2])
+                            + f"*{variable_list[2]}"
                         ),
                     }
                 },
@@ -2486,7 +2451,7 @@ class GraphFactory:
                     el_index += 1
                     continue
                 line_style = "x"
-                series_dict[str(element) + " (Earth)"] = {
+                series_dict[f"{element} (Earth)"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": [54 if variable == "Pressure" else -2],
                     "y_data": value,
@@ -2497,21 +2462,15 @@ class GraphFactory:
                 }
                 el_index += 1
         yaxis_extension = (
-            "" if ratio_against is None else " relative to " + ratio_against
+            "" if ratio_against is None else f" relative to {ratio_against}"
         )
-        filename_extension = "" if ratio_against is None else "_rel_" + ratio_against
+        filename_extension = "" if ratio_against is None else f"_rel_{ratio_against}"
         plot_dict = {
             "planetplot": {
                 "show": False,
                 "filenames": [
-                    "planet_plot_"
-                    + layer_text
-                    + "_"
-                    + tag
-                    + "_"
-                    + variable.replace(" ", "")
-                    + filename_extension
-                    + ".pdf"
+                    f"planet_plot_{layer_text}_{tag}_{variable.replace(' ', '')}"
+                    + f"{filename_extension}.pdf"
                 ],
                 "subplots": {
                     "subplot1": {
@@ -2519,16 +2478,14 @@ class GraphFactory:
                         "legend": True,
                         "legend_loc": "best",
                         "legend_text_size": 4,
-                        "title_text": r"Composition of Earth "
-                        + layer_text
-                        + " with varying "
-                        + variable,
+                        "title_text": rf"Composition of Earth {layer_text}"
+                        + f" with varying {variable}",
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
-                        "xlabel_text": variable + " /" + self.unit_dict[variable],
+                        "xlabel_text": f"{variable} / {self.unit_dict[variable]}",
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "Number abundance" + yaxis_extension,
+                        "ylabel_text": f"Number abundance{yaxis_extension}",
                         "ylabel_fontsize": 10,
                         "ylabel_fontweight": "bold",
                         "x_min": min(variable_vals),
@@ -2547,14 +2504,8 @@ class GraphFactory:
             plot_dict["planetplotcrni"] = {
                 "show": False,
                 "filenames": [
-                    "planet_plot_crni_"
-                    + layer_text
-                    + "_"
-                    + tag
-                    + "_"
-                    + variable.replace(" ", "")
-                    + filename_extension
-                    + ".pdf"
+                    f"planet_plot_crni_{layer_text}_{tag}_{variable.replace(' ', '')}"
+                    + f"{filename_extension}.pdf"
                 ],
                 "subplots": {
                     "subplot1": {
@@ -2562,16 +2513,14 @@ class GraphFactory:
                         "legend": True,
                         "legend_loc": "best",
                         "legend_text_size": 4,
-                        "title_text": r"Composition of Earth "
-                        + layer_text
-                        + " with varying "
-                        + variable,
+                        "title_text": rf"Composition of Earth {layer_text}"
+                        + f" with varying {variable}",
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
-                        "xlabel_text": variable + " /" + self.unit_dict[variable],
+                        "xlabel_text": f"{variable} / {self.unit_dict[variable]}",
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "Number abundance" + yaxis_extension,
+                        "ylabel_text": f"Number abundance{yaxis_extension}",
                         "ylabel_fontsize": 10,
                         "ylabel_fontweight": "bold",
                         "x_min": min(variable_vals),
@@ -2615,7 +2564,7 @@ class GraphFactory:
             where = [s is not None for s in series]
             # No need to check prev_series as well: Nones will appear in the same places
             # in series and prev_series
-            series_dict[str(element) + "_shade"] = {
+            series_dict[f"{element}_shade"] = {
                 "type": dp.SeriesType.shade,
                 "x_data": variable_vals,
                 "y_data": [e if e is not None else 0 for e in prev_series],
@@ -2638,7 +2587,7 @@ class GraphFactory:
         #        el_index += 1
         #        continue
         #    line_style = 'x'
-        #    series_dict[str(element) + ' (Earth)'] = {
+        #    series_dict[f"{element} (Earth)"] = {
         #        'type': dp.SeriesType.scatter_2d,
         #        'x_data': [54 if variable == 'Pressure' else -2],
         #        'y_data': value,
@@ -2649,7 +2598,7 @@ class GraphFactory:
         #    }
         #    el_index += 1
         # ^^^^^^
-        unit_dict = {"Pressure": " /GPa", "fO2": " (" + r"$\Delta$" + "IW" + ")"}
+        unit_dict = {"Pressure": " /GPa", "fO2": rf" ($\Delta$IW)"}
         variable_name_to_use = (
             r"$f_{\textrm{O}_{2}}$" if variable == "fO2" else variable
         )
@@ -2658,13 +2607,10 @@ class GraphFactory:
             "legend": True,
             "legend_loc": "upper left",
             "legend_text_size": 9,
-            "title_text": r"Composition of Earth "
-            + file_prefix
-            + " with varying "
-            + variable,
+            "title_text": f"Composition of Earth {file_prefix} with varying {variable}",
             "title_fontsize": 12,
             "title_fontweight": "bold",
-            "xlabel_text": variable_name_to_use + unit_dict[variable],
+            "xlabel_text": f"{variable_name_to_use} {unit_dict[variable]}",
             "xlabel_fontsize": 16,
             "xlabel_fontweight": "bold",
             "ylabel_text": "Cumulative abundance",
@@ -2702,20 +2648,8 @@ class GraphFactory:
             "planetplot_stacked": {
                 "show": False,
                 "filenames": [
-                    "planet_plot_stacked_"
-                    + run_tag
-                    + "_"
-                    + file_prefix
-                    + "_"
-                    + variable
-                    + ".pdf",
-                    "planet_plot_stacked_"
-                    + run_tag
-                    + "_"
-                    + file_prefix
-                    + "_"
-                    + variable
-                    + ".png",
+                    f"planet_plot_stacked_{run_tag}_{file_prefix}_{variable}.pdf",
+                    f"planet_plot_stacked_{run_tag}_{file_prefix}_{variable}.png"
                 ],
                 "subplots": {"subplot1": subplot_dict},
             }
@@ -2744,7 +2678,7 @@ class GraphFactory:
                 el_name_to_use = (
                     str(element) if element != ci.Element.Placeholder else "Other"
                 )
-                series_name = el_name_to_use + " (" + str(layer) + ")"
+                series_name = f"{el_name_to_use} ({layer})"
                 series_dict[series_name] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": variable_vals,
@@ -2760,7 +2694,7 @@ class GraphFactory:
                 shade_series_name = (
                     el_name_to_use
                     if layer == gi.Layer.mantle
-                    else el_name_to_use + "_shade_" + str(layer)
+                    else f"{el_name_to_use}_shade_{layer}"
                 )
                 series_dict[shade_series_name] = {
                     "type": dp.SeriesType.shade,
@@ -2808,7 +2742,7 @@ class GraphFactory:
         #        el_index += 1
         #        continue
         #    line_style = 'x'
-        #    series_dict[str(element) + ' (Earth)'] = {
+        #    series_dict[f"{element} (Earth)"] = {
         #        'type': dp.SeriesType.scatter_2d,
         #        'x_data': [54 if variable == 'Pressure' else -2],
         #        'y_data': value,
@@ -2840,7 +2774,7 @@ class GraphFactory:
                 "shade_alpha": 0.75,
                 "legend": False,
             }
-        unit_dict = {"Pressure": " /GPa", "fO2": " (" + r"$\Delta$" + "IW" + ")"}
+        unit_dict = {"Pressure": " /GPa", "fO2": r" ($\Delta$IW)"}
         variable_name_to_use = (
             r"$f_{\textrm{O}_{2}}$" if variable == "fO2" else variable
         )
@@ -2893,20 +2827,8 @@ class GraphFactory:
             "planetplot_stacked": {
                 "show": False,
                 "filenames": [
-                    "planet_plot_stacked_"
-                    + run_tag
-                    + "_"
-                    + file_prefix
-                    + "_"
-                    + variable
-                    + ".pdf",
-                    "planet_plot_stacked_"
-                    + run_tag
-                    + "_"
-                    + file_prefix
-                    + "_"
-                    + variable
-                    + ".png",
+                    f"planet_plot_stacked_{run_tag}_{file_prefix}_{variable}.pdf",
+                    f"planet_plot_stacked_{run_tag}_{file_prefix}_{variable}.png"
                 ],
                 "subplots": {"subplot1": subplot_dict},
             }
@@ -2980,7 +2902,7 @@ class GraphFactory:
             "planetplot_multipanel_stacked": {
                 "show": False,
                 "filenames": [
-                    "planet_plot_stacked_" + run_tag + "_" + file_prefix + ".pdf"
+                    f"planet_plot_stacked_{run_tag}_{file_prefix}.pdf"
                 ],
                 "gridspec_y_x": (3, 2),
                 "gridspec_wspace": 0.1,
@@ -3156,24 +3078,24 @@ class GraphFactory:
                 "type": dp.SeriesType.scatter_2d,
                 "x_data": [54 if variable == "Pressure" else -2],
                 "y_data": [value],
-                "line_type": "k" + line_style,
+                "line_type": f"k{line_style}",
                 "line_linewidth": 1,
                 "legend": True,
             }
         plot_dict = {
             "cnfplot": {
                 "show": False,
-                "filenames": ["planet_cnf_" + variable + ".pdf"],
+                "filenames": [f"planet_cnf_{variable}.pdf"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
                         "legend": True,
                         "legend_loc": "best",
                         "legend_text_size": 8,
-                        "title_text": r"Core number fraction with varying " + variable,
+                        "title_text": rf"Core number fraction with varying {variable}",
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
-                        "xlabel_text": variable + " /" + unit_dict[variable],
+                        "xlabel_text": rf"{variable} / {unit_dict[variable]}",
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
                         "ylabel_text": "Number abundance",
@@ -3215,7 +3137,7 @@ class GraphFactory:
         plot_dict = {
             "cnfplot": {
                 "show": False,
-                "filenames": ["convergence_" + run_name + ".pdf"],
+                "filenames": [f"convergence_{run_name}.pdf"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -3224,9 +3146,7 @@ class GraphFactory:
                         "legend_text_size": 8,
                         "title_text": (
                             "Convergence of Partition Coefficients, D, for run "
-                            + "$\mathrm{"
-                            + run_name.replace("_", "\_")
-                            + "}$"
+                            + rf"$\mathrm{{{run_name.replace('_', '\_')}}}$"
                         ),
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
@@ -3292,14 +3212,11 @@ class GraphFactory:
                         "legend": True,
                         "legend_loc": "best",
                         "legend_text_size": 8,
-                        "title_text": "Parameter values as implied by "
-                        + str(input_el1)
-                        + "/"
-                        + str(input_el2)
-                        + " number ratio",
+                        "title_text": "Parameter values as implied by"
+                        + f"{input_el1}/{input_el2} number ratio",
                         "title_fontsize": 11,
                         "title_fontweight": "bold",
-                        "xlabel_text": str(input_el1) + "/" + str(input_el2),
+                        "xlabel_text": f"{input_el1}/{input_el2}",
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
                         "ylabel_text": output_var1,
@@ -3364,23 +3281,13 @@ class GraphFactory:
     ):
         if observed_val is None and not ignore_lack_of_observations:
             print(
-                "No observation for "
-                + str(element)
-                + "/"
-                + str(ref_element)
-                + " in "
-                + system_name
-                + ", skipping"
+                f"No observation for {element}/{ref_element} in {system_name}, skipping"
             )
             return
         other_variable = "Pressure" if variable == "fO2" else "fO2"
         if observed_val is not None:
             series_dict = {
-                "log("
-                + str(element)
-                + "/"
-                + str(ref_element)
-                + ")": {
+                f"log({element}/{ref_element})": {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": x_vals,
                     "y_data": ratio_vals,
@@ -3389,11 +3296,7 @@ class GraphFactory:
                     "line_linewidth": 1,
                     "legend": True,
                 },
-                "Observed log("
-                + str(element)
-                + "/"
-                + str(ref_element)
-                + ")": {
+                f"Observed log({element}/{ref_element})": {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": x_vals,
                     "y_data": [observed_val for x in x_vals],
@@ -3441,11 +3344,7 @@ class GraphFactory:
             }
         else:
             series_dict = {
-                "log("
-                + str(element)
-                + "/"
-                + str(ref_element)
-                + ")": {
+                f"log({element}/{ref_element})": {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": x_vals,
                     "y_data": ratio_vals,
@@ -3525,21 +3424,16 @@ class GraphFactory:
                 }
             }
         title_var = variable if variable != "fcf" else "Fragment Core Fraction"
-        title = "log(" + str(element) + "/" + str(ref_element) + ")"
+        title = f"log({element}/{ref_element})"
         if femg_vals is not None:
             title += " and log(Fe/Mg)"
-        title += " against " + title_var + " for " + system_name
+        title += f" against {title_var} for {system_name}"
         if fixed_val is not None:
             if other_variable == "fO2":
-                title += " (" + other_variable + " = IW " + str(fixed_val) + ")"
+                title += f" ({other_variable} = IW {fixed_val})"
             else:
                 title += (
-                    " ("
-                    + other_variable
-                    + " = "
-                    + str(fixed_val)
-                    + self.unit_dict[other_variable]
-                    + ")"
+                    f" ({other_variable} = {fixed_val}{self.unit_dict[other_variable]})"
                 )
         plot_dict = {
             "elplot": {
@@ -3557,17 +3451,13 @@ class GraphFactory:
                         "title_fontsize": 11,
                         "title_fontweight": "bold",
                         "xlabel_text": (
-                            variable + " /" + self.unit_dict[variable]
+                            f"{variable} / {self.unit_dict[variable]}"
                             if variable != "fcf"
                             else "Fragment Core Fraction"
                         ),
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "log("
-                        + str(element)
-                        + "/"
-                        + str(ref_element)
-                        + ")",
+                        "ylabel_text": f"log({element}/{ref_element})",
                         "ylabel_fontsize": 10,
                         "ylabel_fontweight": "bold",
                         "x_min": min(x_vals),
@@ -3631,13 +3521,8 @@ class GraphFactory:
         )
         if observed_val is None and not ignore_lack_of_observation:
             print(
-                "No observation for "
-                + str(element)
-                + "/"
-                + ref_element_str
-                + " in "
-                + system_name
-                + ", skipping"
+                f"No observation for {element}/{ref_element_str} in {system_name},"
+                + " skipping"
             )
             return
         series_dict = {
@@ -3647,7 +3532,7 @@ class GraphFactory:
                 "y_data": f_range,
                 "z_data": ratio_vals,
                 "fill": True,
-                "cbar_label": "log(" + str(element) + "/" + ref_element_str + ")",
+                "cbar_label": f"log({element}/{ref_element_str})",
                 "legend": False,
                 "cbar_labelrotation": 90,
                 "cbar_labelfontsize": 28,
@@ -3668,15 +3553,9 @@ class GraphFactory:
             series_dict["3delplot"]["colour_above_max"] = "k"
         i = 0
         for guideline in guidelines:
-            name = (
-                "log("
-                + str(guideline["num_el"])
-                + "/"
-                + str(guideline["denom_el"])
-                + ")"
-            )
+            name = f"log({guideline['num_el']}/{guideline['denom_el']})"
             if i > 0:
-                name += " " + str(i + 1)
+                name += f"_{i+1}"
             series_dict[name] = {
                 "type": dp.SeriesType.scatter_2d,
                 "x_data": guideline["x_data"],
@@ -3708,7 +3587,7 @@ class GraphFactory:
                 # y_offset = -0.002*delta_x
                 x_offset = 0.8
                 y_offset = -0.06 if j != 0 else 0.02
-                series_dict["guideline" + str(i) + "text" + str(j)] = {
+                series_dict[f"guideline{i}text{j}"] = {
                     "type": dp.SeriesType.text,
                     "x_pos": guideline["x_data"][j] + x_offset,
                     "y_pos": guideline["y_data"][j] + y_offset,
@@ -3726,16 +3605,7 @@ class GraphFactory:
             "elplot": {
                 "show": False,
                 "filenames": [
-                    "elel"
-                    + "_3d_"
-                    + system_name
-                    + "_"
-                    + str(element)
-                    + "_"
-                    + ref_element_str
-                    + "_"
-                    + tag
-                    + ".png"
+                    f"elel_3d_{system_name}_{element}_{ref_element_str}_{tag}.png"
                 ],
                 "dpi": 300,
                 "subplots": {
@@ -3754,14 +3624,14 @@ class GraphFactory:
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
                         "xlabel_text": (
-                            x_var + "/" + x_var_unit
+                            f"{x_var}/{x_var_unit}"
                             if x_var != "fcf"
                             else "Fragment Core Fraction"
                         ),
                         "xlabel_fontsize": 28,
                         "xlabel_fontweight": "bold",
                         "ylabel_text": (
-                            y_var + "/" + y_var_unit
+                            f"{y_var}/{y_var_unit}"
                             if y_var != "fcf"
                             else "Fragment Core Fraction"
                         ),
@@ -3869,7 +3739,7 @@ class GraphFactory:
                     }
                     colour_index += 1
             if x_axis_ratios[i] is not None and y_axis_ratios[i] is not None:
-                series_dict[sys + "_text"] = {
+                series_dict[f"{sys}_text"] = {
                     "type": dp.SeriesType.text,
                     "x_pos": x_axis_ratios[i],
                     "y_pos": y_axis_ratios[i] + 0.035,
@@ -3900,9 +3770,9 @@ class GraphFactory:
                         "legend_loc": "best",
                         "legend_text_size": 8,
                         "title_text": (
-                            f"{y_el_numerator}/{y_el_denominator} "
-                            + f"and {x_el_numerator}/{x_el_denominator} "
-                            + "number ratios for selected systems"
+                            f"{y_el_numerator}/{y_el_denominator}"
+                            + f" and {x_el_numerator}/{x_el_denominator}"
+                            + " number ratios for selected systems"
                         ),
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
@@ -4126,7 +3996,7 @@ class GraphFactory:
                     default_x = x_axis_ratios[i]
                     default_y = y_axis_ratios[i]
                     text_offset = text_offsets.get(sys, (0, 0))
-                    series_dict[sys + "_text"] = {
+                    series_dict[f"{sys}_text"] = {
                         "type": dp.SeriesType.text,
                         "x_pos": default_x + text_offset[0],
                         "y_pos": default_y + text_offset[1] + 0.05,
@@ -4227,7 +4097,7 @@ class GraphFactory:
                                 "legend": True,
                             }
                             legends_used.append(category)
-                        series_dict[sys + "_arrow"] = {
+                        series_dict[f"{sys}_arrow"] = {
                             "type": dp.SeriesType.arrow,
                             "x_start": x_val_to_use,
                             "y_start": y_val_to_use,
@@ -4250,7 +4120,7 @@ class GraphFactory:
                             sys_text = sys_text[:-1]
                         elif sys_text.endswith("SiO"):
                             sys_text = sys_text[:-3]
-                        series_dict[sys + "_text"] = {
+                        series_dict[f"{sys}_text"] = {
                             "type": dp.SeriesType.text,
                             "x_pos": x_val_to_use + text_offsets.get(sys, (0, 0))[0],
                             "y_pos": y_val_to_use
@@ -4284,7 +4154,7 @@ class GraphFactory:
                         #     # 'line_linewidth': 1,
                         #     # 'line_type': 'kx--'
                         # }
-                        series_dict["Synth" + sys + "Ellipse1sig"] = {
+                        series_dict[f"Synth{sys}Ellipse1sig"] = {
                             "type": dp.SeriesType.ellipse,
                             "x_data": synth_wd_x_dict[sys],
                             "y_data": synth_wd_y_dict[sys],
@@ -4335,7 +4205,7 @@ class GraphFactory:
         # this complexity?
         for fcf, elel_vals_dict in example_fcf_lines.items():
             if prev_3_fcf is not None and prev_3_elel_vals_dict is not None:
-                series_dict["EXAMPLECONTOURS" + str(fcf)] = {
+                series_dict[f"EXAMPLECONTOURS{fcf}"] = {
                     "type": dp.SeriesType.tricontour_scatter,
                     "x_data": prev_3_elel_vals_dict[x_axis_descriptor]
                     + prev_prev_elel_vals_dict[x_axis_descriptor]
@@ -4371,7 +4241,7 @@ class GraphFactory:
                 or (fcf > 0.8999 and fcf < 0.90001)
                 or (fcf > 0.01999 and fcf < 0.020001)
             ):
-                series_dict["fcf test" + str(fcf)] = {
+                series_dict[f"fcf test{fcf}"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": elel_vals_dict[x_axis_descriptor],
                     "y_data": elel_vals_dict[y_axis_descriptor],
@@ -4379,10 +4249,10 @@ class GraphFactory:
                     "line_style": ":",
                     "legend": False,
                 }
-                text_string = str(int(fcf * 100)) + "$\%$" + " core"
-                text_offset_lookup_string = str(int(fcf * 100)) + " core"
+                text_string = f"{int(fcf * 100)}% core"
+                text_offset_lookup_string = f"{int(fcf * 100)} core"
                 text_offset = text_offsets.get(text_offset_lookup_string, (0, 0))
-                series_dict[str(int(fcf * 100)) + "percent core"] = {
+                series_dict[f"{int(fcf * 100)}percent core"] = {
                     "type": dp.SeriesType.text,
                     "x_pos": elel_vals_dict[x_axis_descriptor][0] + text_offset[0],
                     "y_pos": elel_vals_dict[y_axis_descriptor][0]
@@ -4397,7 +4267,7 @@ class GraphFactory:
             text_offset = text_offsets.get("SinkingEffects", (0, 0))
             for i, arrow in enumerate(sinking_arrows):
                 if arrow[2] != 0 and arrow[3] != 0:
-                    series_dict["SinkingEffects" + str(i)] = {
+                    series_dict[f"SinkingEffects{i}"] = {
                         "type": dp.SeriesType.arrow,
                         "x_start": arrow[0],
                         "y_start": arrow[1],
@@ -4422,7 +4292,7 @@ class GraphFactory:
             text_offset = text_offsets.get("HeatingEffects", (0, 0))
             for i, arrow in enumerate(heating_arrows):
                 if arrow[2] != 0 and arrow[3] != 0:
-                    series_dict["HeatingEffects" + str(i)] = {
+                    series_dict[f"HeatingEffects{i}"] = {
                         "type": dp.SeriesType.arrow,
                         "x_start": arrow[0],
                         "y_start": arrow[1],
@@ -4444,20 +4314,16 @@ class GraphFactory:
                 "text_colour": "k",
             }
         file_name_start = (
-            str(y_el_numerator)
-            + str(y_el_denominator)
-            + "_"
-            + str(x_el_numerator)
-            + str(x_el_denominator)
-            + "_ratios_bowtie"
+            f"{y_el_numerator}{y_el_denominator}"
+            + f"_{x_el_numerator}{x_el_denominator}_ratios_bowtie"
         )
         plot_dict = {
             "bestfitratiosplot": {
                 "show": False,
                 "dpi": 1200,
                 "filenames": [
-                    file_name_start + "_paper.pdf",
-                    file_name_start + "_paper.png",
+                    f"{file_name_start}_paper.pdf",
+                    f"{file_name_start}_paper.png",
                 ],
                 "subplots": {
                     "subplot1": {
@@ -4565,7 +4431,7 @@ class GraphFactory:
         for pd in list_of_plot_dicts:
             for plot_name, plot in pd.items():
                 for subplot_name, subplot in plot["subplots"].items():
-                    new_subplot_name = "subplot_" + str(y_coord) + "_" + str(x_coord)
+                    new_subplot_name = f"subplot_{y_coord}_{x_coord}"
                     plot_dict["multipanelplot"]["subplots"][new_subplot_name] = subplot
                     if y_coord != 0:
                         plot_dict["multipanelplot"]["subplots"][new_subplot_name][
@@ -4586,12 +4452,12 @@ class GraphFactory:
                         if sharex_axes:
                             plot_dict["multipanelplot"]["subplots"][new_subplot_name][
                                 "sharex_subplot"
-                            ] = ("subplot_" + str(y_coord + 1) + "_" + str(x_coord))
+                            ] = f"subplot_{y_coord + 1}_{x_coord}"
                     if x_coord > 0:
                         if sharey_axes:
                             plot_dict["multipanelplot"]["subplots"][new_subplot_name][
                                 "sharey_subplot"
-                            ] = ("subplot_" + str(y_coord) + "_" + str(x_coord - 1))
+                            ] = f"subplot_{y_coord}_{x_coord - 1}"
                     x_coord += 1
                     if x_coord >= x_dimension:
                         x_coord = 0
@@ -4623,7 +4489,7 @@ class GraphFactory:
             series_name_to_use = (
                 series_name
                 if property_string == "Radius"
-                else "Radius (" + series_name + ")"
+                else f"Radius ({series_name})"
             )
             radius_series_dict[series_name_to_use] = {
                 "type": dp.SeriesType.scatter_2d,
@@ -4704,7 +4570,7 @@ class GraphFactory:
             series_name_to_use = (
                 series_name
                 if property_string == "Mass"
-                else "Mass (" + series_name + ")"
+                else f"Mass ({series_name})"
             )
             mass_series_dict[series_name_to_use] = {
                 "type": dp.SeriesType.scatter_2d,
@@ -4813,7 +4679,7 @@ class GraphFactory:
             "xlabel_fontsize": 28,
             "xlabel_fontweight": "bold",
             # 'ylabel_text': 'Mass / M' + r'$_{\textrm{Earth}}$',
-            "ylabel_text": "Mass / M" + "$_{\oplus}$",
+            "ylabel_text": r"Mass / M$_{\oplus}$",
             "ylabel_fontsize": 28,
             "ylabel_fontweight": "bold",
             "x_min": 0,
@@ -4828,7 +4694,7 @@ class GraphFactory:
         }
         if property_string in ["Mass", "Radius"]:
             radius_subplot["title_text"] = (
-                property_string + " against differentiation pressure"
+                f"{property_string} against differentiation pressure"
             )
         object_names = {
             "Mars": 13,
@@ -4844,7 +4710,7 @@ class GraphFactory:
         if not cmb_pressure:
             if property_string == "Mass":
                 for obj_name, pressure in object_names.items():
-                    mass_series_dict[obj_name + "_text"] = {
+                    mass_series_dict[f"{obj_name}_text"] = {
                         "type": dp.SeriesType.text,
                         "x_pos": pressure - object_x_pos.get(obj_name, 1.5),
                         "y_pos": object_y_pos.get(obj_name, 1),
@@ -4854,7 +4720,7 @@ class GraphFactory:
                     }
             else:
                 for obj_name, pressure in object_names.items():
-                    radius_series_dict[obj_name + "_text"] = {
+                    radius_series_dict[f"{obj_name}_text"] = {
                         "type": dp.SeriesType.text,
                         "x_pos": pressure - object_x_pos.get(obj_name, 1.5),
                         "y_pos": object_y_pos.get(obj_name, 6000),
@@ -4866,7 +4732,7 @@ class GraphFactory:
             "pvsplot": {
                 "show": False,
                 "filenames": (
-                    [property_string + "_v_pressure.png"]
+                    [f"{property_string}_v_pressure.png"]
                     if property_string in ["Mass", "Radius"]
                     else ["MassRadius_v_pressure.png", "MassRadius_v_pressure.pdf"]
                 ),
@@ -5009,7 +4875,7 @@ class GraphFactory:
             "legend_text_size": 28,
             "title_fontsize": 16,
             "title_fontweight": "bold",
-            "xlabel_text": "Time /" + r"$\tau$",
+            "xlabel_text": r"Time / $\tau$",
             "xlabel_fontsize": 28,
             "xlabel_fontweight": "bold",
             # 'ylabel_text': 'Mass / M' + r'$_{\textrm{Earth}}$',
@@ -5057,7 +4923,7 @@ class GraphFactory:
         plot_dict = {
             "phaseplot": {
                 "show": False,
-                "filenames": ["accretion_phase_demo" + e for e in extensions],
+                "filenames": [f"accretion_phase_demo{e}" for e in extensions],
                 "dpi": 500,
                 "fig_height": 6,
                 "fig_width": 9,
@@ -5103,7 +4969,7 @@ class GraphFactory:
         # Yeah this is a hack
         ylabel_dict = {
             "Pressure": "Retrieved Pressure /GPa",
-            "Oxygen Fugacity": "Retrieved Oxygen Fugacity " + r"$\Delta$" + "IW",
+            "Oxygen Fugacity": r"Retrieved Oxygen Fugacity $\Delta$IW",
             "Formation Distance": "log(Retrieved Formation Distance /AU)",
             "Fragment Core Fraction": "Retrieved Fragment Core Fraction",
             "Parent Core Fraction": "Retrieved Parent Core Fraction",
@@ -5211,7 +5077,7 @@ class GraphFactory:
         for fcf, p in zip(fcf_values, variable_values):
             if np.isnan(p):
                 shade_width = 0.05  # should ideally calculate this dynamically
-                series_dict["Nodiff" + str(i)] = {
+                series_dict[f"Nodiff{i}"] = {
                     "type": dp.SeriesType.shade,
                     "x_data": [fcf - shade_width, fcf + shade_width],
                     "y_data": [y_limits_dict[variable][0], y_limits_dict[variable][0]],
@@ -5258,12 +5124,7 @@ class GraphFactory:
             "retrieved_variable_plot": {
                 "show": False,
                 "filenames": [
-                    "retrieved_"
-                    + variable.replace(" ", "_")
-                    + "_v_fcf_"
-                    + system_name
-                    + "_"
-                    + tag
+                    f"retrieved_{variable.replace(' ', '_')}_v_fcf_{system_name}_{tag}"
                     + ".pdf"
                 ],
                 "subplots": {
@@ -5274,13 +5135,10 @@ class GraphFactory:
                             "lower right" if variable == "Pressure" else "best"
                         ),
                         "legend_text_size": 22,
-                        "title_text": r"Retrieved "
-                        + variable
-                        + " against Fragment Core Fraction for "
-                        + system_name
-                        + " ("
-                        + tag
-                        + ")",
+                        "title_text": (
+                            rf"Retrieved {variable} against Fragment Core Fraction"
+                            + rf" for {system_name} ({tag})"
+                        ),
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
                         "xlabel_text": "Fragment Core Fraction",
@@ -5357,7 +5215,7 @@ class GraphFactory:
         time_unit = "Gyr" if scale_factor == 0.000000001 else "yr"
         for element, timescales in timescales_to_plot.items():
             if relative_element is None:
-                series_dict[str(element) + "_" + timescale_type.short_str()] = {
+                series_dict[f"{element}_{timescale_type.short_str()}"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": x_vals,
                     "y_data": [t * scale_factor for t in timescales],
@@ -5369,11 +5227,7 @@ class GraphFactory:
                 if element != relative_element:
                     data_to_plot = timescales / timescales_to_plot[relative_element]
                     series_dict[
-                        str(element)
-                        + "/"
-                        + str(relative_element)
-                        + "_"
-                        + timescale_type.short_str()
+                        f"{element}/{relative_element}_{timescale_type.short_str()}"
                     ] = {
                         "type": dp.SeriesType.scatter_2d,
                         "x_data": x_vals,
@@ -5401,49 +5255,38 @@ class GraphFactory:
         #        'legend': True,
         #        'line_color': self.colour_list[i+1]
         #    }
-        title_text = "Sinking times for a " + str(HorHe) + " WD at "
+        title_text = f"Sinking times for a {HorHe} WD at "
         vars_added = 0
         var_limit = 2 if HorHe == "He" else 1
         if logg is not None:
             vars_added += 1
-            title_text += "log(g / cm s$^{-2}$) = " + str(logg)
+            title_text += rf"log(g / cm s$^{{-2}}$) = {logg}"
             if vars_added < var_limit:
                 title_text += ", "
         if Teff is not None:
             vars_added += 1
-            title_text += "T = " + str(Teff) + "K"
+            title_text += f"T = {Teff}K"
             if vars_added < var_limit:
                 title_text += ", "
         if CaHe is not None and HorHe == "He":
             vars_added += var_limit
-            title_text += "log(Ca/He) = " + str(CaHe)
+            title_text += f"log(Ca/He) = {CaHe}"
             if vars_added < 2:
                 title_text += ", "
         extension = [".pdf", ".png"]
         if relative_element is None:
             base_file_name = (
-                "timescales_v_"
-                + variable
-                + "_"
-                + str(HorHe)
-                + "_"
-                + timescale_type.short_str()
+                f"timescales_v_{variable}_{HorHe}_{timescale_type.short_str()}"
             )
         else:
             base_file_name = (
-                "timescales_v_"
-                + variable
-                + "_"
-                + str(HorHe)
-                + "_rel"
-                + str(relative_element)
-                + "_"
+                f"timescales_v_{variable}_{HorHe}_rel{relative_element}_"
                 + timescale_type.short_str()
             )
         plot_dict = {
             "2d_timescales_plot": {
                 "show": False,
-                "filenames": [base_file_name + e for e in extension],
+                "filenames": [f"{base_file_name}{e}" for e in extension],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -5457,7 +5300,7 @@ class GraphFactory:
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
                         "ylabel_text": (
-                            "Sinking time /" + time_unit
+                            f"Sinking time / {time_unit}"
                             if relative_element is None
                             else "Relative sinking timescale"
                         ),
@@ -5538,7 +5381,7 @@ class GraphFactory:
                     to_plot_dict[timescale_type2][element1]
                     / to_plot_dict[timescale_type2][element2]
                 )
-                series_dict[str(element1) + "/" + str(element2)] = {
+                series_dict[f"{element1}/{element2}"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": ax_values,
                     "y_data": tt1 / tt2,
@@ -5547,31 +5390,27 @@ class GraphFactory:
                     "line_style": el_linestyle_dict[element1],
                 }
             el_index += 1
-        title_text = "Sinking times for a " + str(atm_type) + " WD at "
+        title_text = f"Sinking times for a {atm_type} WD at "
         vars_added = 0
         var_limit = 2 if atm_type == ci.Element.He else 1
         if logg is not None:
             vars_added += 1
-            title_text += "log(g / cm s$^{-2}$) = " + str(logg)
+            title_text += rf"log(g / cm s$^{{-2}}$) = {logg}"
             if vars_added < var_limit:
                 title_text += ", "
         if Teff is not None:
             vars_added += 1
-            title_text += "T = " + str(Teff) + "K"
+            title_text += f"T = {Teff}K"
             if vars_added < var_limit:
                 title_text += ", "
         if CaHe is not None and atm_type == ci.Element.He:
             vars_added += var_limit
-            title_text += "log(Ca/He) = " + str(CaHe)
+            title_text += rf"log(Ca/He) = {CaHe}"
             if vars_added < 2:
                 title_text += ", "
         extension = [".pdf", ".png"]
         base_file_name = (
-            "timescales_v_"
-            + variable
-            + "_"
-            + str(atm_type)
-            + "_"
+            f"timescales_v_{variable}_{atm_type}_"
             + timescale_type1.short_str()
             + "_"
             + timescale_type2.short_str()
@@ -5579,7 +5418,7 @@ class GraphFactory:
         plot_dict = {
             "2d_timescales_plot": {
                 "show": False,
-                "filenames": [base_file_name + e for e in extension],
+                "filenames": [f"{base_file_name}{e}" for e in extension],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -5640,7 +5479,7 @@ class GraphFactory:
         if to_plot_old is not None:
             i = 0
             for element, timescales in to_plot_old.items():
-                series_dict[str(element) + " Hollands 2017"] = {
+                series_dict[f"{element} Hollands 2017"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": x_vals_old,
                     "y_data": [t * scale_factor for t in timescales],
@@ -5660,7 +5499,7 @@ class GraphFactory:
                 )
                 j += 1
             ratio_series_dict[
-                str(elements_to_ratio[0]) + "/" + str(elements_to_ratio[1])
+                f"{elements_to_ratio[0]}/{elements_to_ratio[1]}"
             ] = {
                 "type": dp.SeriesType.scatter_2d,
                 "x_data": x_vals,
@@ -5688,10 +5527,7 @@ class GraphFactory:
                     )
                     j += 1
                 ratio_series_dict[
-                    str(elements_to_ratio[0])
-                    + "/"
-                    + str(elements_to_ratio[1])
-                    + " Hollands 2017"
+                    f"{elements_to_ratio[0]}/{elements_to_ratio[1]} Hollands 2017"
                 ] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": x_vals_old,
@@ -5702,37 +5538,38 @@ class GraphFactory:
                 }
             except KeyError:
                 print(
-                    "Warning could not find one or both of elements_to_ratio in to_plot_old"
+                    "Warning could not find one or both of elements_to_ratio in"
+                    + " to_plot_old"
                 )
                 print("Keys in elements_to_ratio:")
                 print(elements_to_ratio)
                 print("Keys in to_plot_old:")
                 print(to_plot_old.keys())
                 print("Skipping...")
-        title_text = "Sinking times for a " + HorHe + " WD at "
+        title_text = f"Sinking times for a {HorHe} WD at "
         vars_added = 0
         var_limit = 2 if HorHe == "He" else 1
         if logg is not None:
             vars_added += 1
-            title_text += "log(g / cm s$^{-2}$) = " + str(logg)
+            title_text += f"log(g / cm s$^{-2}$) = {logg}"
             if vars_added < var_limit:
                 title_text += ", "
         if Teff is not None:
             vars_added += 1
-            title_text += "T = " + str(Teff) + "K"
+            title_text += f"T = {Teff}K"
             if vars_added < var_limit:
                 title_text += ", "
         if CaHe is not None and HorHe == "He":
             vars_added += var_limit
-            title_text += "log(Ca/He) = " + str(CaHe)
+            title_text += f"log(Ca/He) = {CaHe}"
             if vars_added < 2:
                 title_text += ", "
         plot_dict = {
             "2d_timescales_plot": {
                 "show": False,
                 "filenames": [
-                    "timescales_v_" + variable + "_" + HorHe + "_model_comparison.pdf",
-                    "timescales_v_" + variable + "_" + HorHe + "_model_comparison.png",
+                    f"timescales_v_{variable}_{HorHe}_model_comparison.pdf",
+                    f"timescales_v_{variable}_{HorHe}_model_comparison.png",
                 ],
                 "subplots": cn.OrderedDict(
                     {
@@ -5747,7 +5584,7 @@ class GraphFactory:
                             "xlabel_text": x_labels[variable],
                             "xlabel_fontsize": 10,
                             "xlabel_fontweight": "bold",
-                            "ylabel_text": "Sinking time /" + time_unit,
+                            "ylabel_text": f"Sinking time / {time_unit}",
                             "ylabel_fontsize": 10,
                             "ylabel_fontweight": "bold",
                             "font": "STIXGeneral",
@@ -5770,9 +5607,9 @@ class GraphFactory:
                             # 'xlabel_text': x_labels[variable],
                             "xlabel_fontsize": 10,
                             "xlabel_fontweight": "bold",
-                            "ylabel_text": str(elements_to_ratio[0])
-                            + "/"
-                            + str(elements_to_ratio[1]),
+                            "ylabel_text": (
+                                f"{elements_to_ratio[0]}/{elements_to_ratio[1]}"
+                            ),
                             "ylabel_fontsize": 10,
                             "ylabel_fontweight": "bold",
                             "font": "STIXGeneral",
@@ -5791,8 +5628,8 @@ class GraphFactory:
         self, element, el_vals, teff_vals, el_upper_bound_vals, teff_upper_bound_vals
     ):
         series_dict = dict()
-        He_key = str(element) + "/He"
-        H_key = str(element) + "/H"
+        He_key = f"{element}/He"
+        H_key = f"{element}/H"
         series_dict[He_key] = {
             "type": dp.SeriesType.scatter_2d,
             "x_data": teff_vals["He"],
@@ -5811,7 +5648,7 @@ class GraphFactory:
             "line_style": "None",
             "line_marker": "o",
         }
-        series_dict[He_key + " upper bounds"] = {
+        series_dict[f"{He_key} upper bounds"] = {
             "type": dp.SeriesType.scatter_2d,
             "x_data": teff_upper_bound_vals["He"],
             "y_data": el_upper_bound_vals["He"],
@@ -5820,7 +5657,7 @@ class GraphFactory:
             "line_style": "None",
             "line_marker": "x",
         }
-        series_dict[H_key + " upper bounds"] = {
+        series_dict[f"{H_key} upper bounds"] = {
             "type": dp.SeriesType.scatter_2d,
             "x_data": teff_upper_bound_vals["H"],
             "y_data": el_upper_bound_vals["H"],
@@ -5832,7 +5669,7 @@ class GraphFactory:
         plot_dict = {
             "el_v_Teff": {
                 "show": False,
-                "filenames": [str(element) + "_v_Teff.pdf"],
+                "filenames": [f"{element}_v_Teff.pdf"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -5844,7 +5681,7 @@ class GraphFactory:
                         "xlabel_text": "Teff",
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": str(element) + "/Hx",
+                        "ylabel_text": f"{element}/Hx",
                         "ylabel_fontsize": 10,
                         "ylabel_fontweight": "bold",
                         "font": "STIXGeneral",
@@ -5888,8 +5725,8 @@ class GraphFactory:
                         "legend_loc": "best",
                         "legend_text_size": 8,
                         "title_text": (
-                            "Critical Fragment Core Fraction against Pressure at fO2 = "
-                            + str(fO2)
+                            "Critical Fragment Core Fraction against Pressure"
+                            f" at fO2 = {fO2}"
                         ),
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
@@ -5921,7 +5758,7 @@ class GraphFactory:
             i = 0
             for p, dlogX_dP_list in variable_dlogX_dP_el_dict.items():
                 if element in [ci.Element.Si, ci.Element.Cr, ci.Element.Ni]:
-                    series_dict[str(element) + ", " + str(p) + " GPa"] = {
+                    series_dict[f"{element}, {p} GPa"] = {
                         "type": dp.SeriesType.scatter_2d,
                         "x_data": fcf_vals,
                         "y_data": dlogX_dP_list,
@@ -6224,7 +6061,7 @@ class GraphFactory:
             "time_since_plot": {
                 "show": False,
                 "filenames": [
-                    full_name + "_" + file_prefix + "timesince_v_accretiontime.pdf"
+                    f"{full_name}_{file_prefix}timesince_v_accretiontime.pdf"
                 ],
                 "subplots": {
                     "subplot1": {
@@ -6328,8 +6165,8 @@ class GraphFactory:
             "p_fO2_plot": {
                 "show": False,
                 "filenames": [
-                    full_name + "_" + file_prefix + "pressure_v_fO2.pdf",
-                    full_name + "_" + file_prefix + "pressure_v_fO2.png",
+                    f"{full_name}_{file_prefix}pressure_v_fO2.pdf",
+                    f"{full_name}_{file_prefix}pressure_v_fO2.png",
                 ],
                 "dpi": 300,
                 "subplots": {
@@ -6346,7 +6183,7 @@ class GraphFactory:
                         "legend_text_size": 9,
                         "xlabel_text": "Pressure /GPa",
                         "xlabel_fontsize": 24,
-                        "ylabel_text": "Oxygen Fugacity " + r"$\Delta$" + "IW",
+                        "ylabel_text": r"Oxygen Fugacity $\Delta$IW",
                         "ylabel_fontsize": 24,
                         "x_tick_fontsize": 16,
                         "y_tick_fontsize": 16,
@@ -6388,7 +6225,7 @@ class GraphFactory:
         series_dict = dict()
         single_hist = len(all_heights) < 2
         max_height = 0
-        use_hack = xlabel == "Temperature /K"
+        use_hack = xlabel == "Temperature / K"
         i = 0
         colours_to_use = (
             self.rainbow if (use_hack and not single_hist) else self.colour_list
@@ -6510,8 +6347,8 @@ class GraphFactory:
             "hist_plot": {
                 "show": False,
                 "filenames": [
-                    file_prefix + file_suffix + ".pdf",
-                    file_prefix + file_suffix + ".png",
+                    f"{file_prefix}{file_suffix}.pdf",
+                    f"{file_prefix}{file_suffix}.png",
                 ],
                 "dpi": 300,
                 "subplots": {
@@ -6647,7 +6484,7 @@ class GraphFactory:
             "legend": True,
             "fontsize": 33,
         }
-        series_dict[str(fcf) + "_text"] = {
+        series_dict[f"{fcf}_text"] = {
             "type": dp.SeriesType.text,
             "legend": False,
             "x_pos": 0,
@@ -6659,7 +6496,7 @@ class GraphFactory:
         plot_dict = {
             "hist_plot": {
                 "show": False,
-                "filenames": ["pie_mix_" + str(fcf) + ".pdf"],
+                "filenames": [f"pie_mix_{fcf}.pdf"],
                 "subplots": {
                     "pie1": {
                         "subplot_region": 111,
@@ -6708,7 +6545,7 @@ class GraphFactory:
             slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(
                 expanded_input_values[mask], expanded_modelled_values[mask]
             )
-            r_value_string = "r = {:0.3f}".format(r_value)
+            r_value_string = f"r = {r_value:0.3f}"
         except ValueError:
             r_value_string = "r = N/A"
         # r_value is now the Pearson correlation coefficient
@@ -6772,10 +6609,10 @@ class GraphFactory:
                         # 'title_text': 'Observability Test Plot',
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
-                        "xlabel_text": "Input " + variable_string,
+                        "xlabel_text": f"Input {variable_string}",
                         "xlabel_fontsize": 24,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "Output " + variable_string,
+                        "ylabel_text": f"Output {variable_string}",
                         "ylabel_fontsize": 17,
                         "ylabel_fontweight": "bold",
                         "font": "STIXGeneral",
@@ -6859,8 +6696,7 @@ class GraphFactory:
                 neither_observed_el1_values.append(el1_values[i])
                 neither_observed_el2_values.append(el2_values[i])
         series_dict = {
-            str(el1)
-            + " Detected": {
+            f"{el1} Detected": {
                 "type": dp.SeriesType.scatter_2d,
                 "x_data": only_el1_observed_el1_values,
                 "y_data": only_el1_observed_el2_values,
@@ -6870,8 +6706,7 @@ class GraphFactory:
                 "line_markersize": 6,
                 "line_style": "None",
             },
-            str(el2)
-            + " Detected": {
+            f"{el2} Detected": {
                 "type": dp.SeriesType.scatter_2d,
                 "x_data": only_el2_observed_el1_values,
                 "y_data": only_el2_observed_el2_values,
@@ -6903,7 +6738,7 @@ class GraphFactory:
             },
         }
         if el1_threshold is not None:
-            series_dict[str(el1) + " Threshold"] = {
+            series_dict[f"{el1} Threshold"] = {
                 "type": dp.SeriesType.vline,
                 "x_start": el1_threshold,
                 "y_min": y_min,
@@ -6913,7 +6748,7 @@ class GraphFactory:
                 "line_linewidth": 2,
             }
         if el2_threshold is not None:
-            series_dict[str(el2) + " Threshold"] = {
+            series_dict[f"{el2} Threshold"] = {
                 "type": dp.SeriesType.hline,
                 "y_start": el2_threshold,
                 "x_min": x_min,
@@ -6935,10 +6770,10 @@ class GraphFactory:
                         # 'title_text': 'Observability Test Plot',
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
-                        "xlabel_text": "log(" + str(el1) + "/" + str(hx) + ")",
+                        "xlabel_text": f"log({el1}/{hx})",
                         "xlabel_fontsize": 14,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "log(" + str(el2) + "/" + str(hx) + ")",
+                        "ylabel_text": f"log({el2}/{hx})",
                         "ylabel_fontsize": 14,
                         "ylabel_fontweight": "bold",
                         "font": "STIXGeneral",
@@ -7011,7 +6846,7 @@ class GraphFactory:
         plot_dict = {
             "hollands_scatter_plot": {
                 "show": False,
-                "filenames": [graph_name + ".pdf", graph_name + ".png"],
+                "filenames": [f"{graph_name}.pdf", f"{graph_name}.png"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -7021,10 +6856,10 @@ class GraphFactory:
                         # 'title_text': 'Observability Test Plot',
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
-                        "xlabel_text": str(x_el_1) + "/" + str(x_el_2),
+                        "xlabel_text": f"{x_el_1}/{x_el_2}",
                         "xlabel_fontsize": 14,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": str(y_el_1) + "/" + str(y_el_2),
+                        "ylabel_text": f"{y_el_1}/{y_el_2}",
                         "ylabel_fontsize": 14,
                         "ylabel_fontweight": "bold",
                         "font": "STIXGeneral",
@@ -7062,7 +6897,7 @@ class GraphFactory:
 
         if not mv_mode:
             for N, dprob_values in dprob_values_dict.items():
-                series_dict["N = " + str(N)] = {
+                series_dict[f"N = {N}"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": error_values,
                     "y_data": dprob_values,
@@ -7076,7 +6911,7 @@ class GraphFactory:
         else:
             for test_type, N_dict in dprob_values_dict.items():
                 for N, dprob_values in N_dict.items():
-                    series_dict[test_type.get_display_string() + ", N = " + str(N)] = {
+                    series_dict[f"{test_type.get_display_string()}, N = {N}"] = {
                         "type": dp.SeriesType.scatter_2d,
                         "x_data": error_values,
                         "y_data": dprob_values,
@@ -7092,12 +6927,12 @@ class GraphFactory:
             variable_str = ""
         else:
             basename = "pipeline_dprob_comparison_"
-            variable_str = "_" + parameter.name
-        file_base_str = basename + pop1_name + "_" + pop2_name + variable_str
+            variable_str = f"_{parameter.name}"
+        file_base_str = f"{basename}{pop1_name}_{pop2_name}{variable_str}"
         plot_dict = {
             "dprob_plot": {
                 "show": False,
-                "filenames": [file_base_str + ".pdf", file_base_str + ".png"],
+                "filenames": [f"{file_base_str}.pdf", f"{file_base_str}.png"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -7153,7 +6988,7 @@ class GraphFactory:
         series_dict = dict()
         if not mv_mode:
             for error, dprob_values in dprob_values_dict.items():
-                series_dict["Error = " + str(error) + " dex"] = {
+                series_dict[f"Error = {error} dex"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": N_values,
                     "y_data": dprob_values,
@@ -7168,10 +7003,7 @@ class GraphFactory:
             for test_type, error_dict in dprob_values_dict.items():
                 for error, dprob_values in error_dict.items():
                     series_dict[
-                        test_type.get_display_string()
-                        + ", Error = "
-                        + str(error)
-                        + " dex"
+                        f"{test_type.get_display_string()}, Error = {error} dex"
                     ] = {
                         "type": dp.SeriesType.scatter_2d,
                         "x_data": N_values,
@@ -7188,12 +7020,12 @@ class GraphFactory:
             variable_str = ""
         else:
             basename = "pipeline_dprob_N_comparison_"
-            variable_str = "_" + parameter.name
-        file_base_str = basename + pop1_name + "_" + pop2_name + variable_str
+            variable_str = f"_{parameter.name}"
+        file_base_str = f"{basename}{pop1_name}_{pop2_name}{variable_str}"
         plot_dict = {
             "dprob_plot": {
                 "show": False,
-                "filenames": [file_base_str + ".pdf", file_base_str + ".png"],
+                "filenames": [f"{file_base_str}.pdf", f"{file_base_str}.png"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -7272,15 +7104,8 @@ class GraphFactory:
             "dprob_plot": {
                 "show": False,
                 "filenames": [
-                    "pipeline_dprob_N_2popcomparison_"
-                    + pop1_name
-                    + "_"
-                    + pop2_name
-                    + "_"
-                    + parameter.name
-                    + "_"
-                    + str(error).replace(".", "p")
-                    + ".pdf"
+                    f"pipeline_dprob_N_2popcomparison_{pop1_name}_{pop2_name}"
+                    + f"_{parameter.name}_{str(error).replace('.', 'p')}.pdf",
                 ],
                 "subplots": {
                     "subplot1": {
@@ -7441,7 +7266,7 @@ class GraphFactory:
                     for ks_value_list in ks_values
                 ]
 
-                series_dict["N = " + str(N)] = {
+                series_dict[f"N = {N}"] = {
                     "type": dp.SeriesType.scatter_2d_error,
                     "x_data": error_values,
                     "y_data": medians,
@@ -7468,7 +7293,7 @@ class GraphFactory:
                         np.nanpercentile(p_values, 84) - np.nanpercentile(p_values, 50)
                         for p_values in p_values_list
                     ]
-                    series_dict[test_type.get_display_string() + ", N = " + str(N)] = {
+                    series_dict[f"{test_type.get_display_string()}, N = {N}"] = {
                         "type": dp.SeriesType.scatter_2d_error,
                         "x_data": error_values,
                         "y_data": medians,
@@ -7487,14 +7312,14 @@ class GraphFactory:
             basename = "pipeline_mv_p_comparison_"
             variable_str = ""
         else:
-            basename = "pipeline_" + ks_type + "_comparison_"
-            variable_str = "_" + parameter.name
-        filename = basename + pop1_name + "_" + pop2_name + variable_str
+            basename = f"pipeline_{ks_type}_comparison_"
+            variable_str = f"_{parameter.name}"
+        filename = f"{basename}{pop1_name}_{pop2_name}{variable_str}"
 
         plot_dict = {
             "ks_plot": {
                 "show": False,
-                "filenames": [filename + ".pdf", filename + ".png"],
+                "filenames": [f"{filename}.pdf", f"{filename}.png"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -7593,7 +7418,7 @@ class GraphFactory:
                 for ks_value_list in ks_values
             ]
 
-            series_dict["Error = " + str(error) + " dex"] = {
+            series_dict[f"Error = {error} dex"] = {
                 "type": dp.SeriesType.scatter_2d_error,
                 "x_data": N_values,
                 "y_data": medians,
@@ -7609,7 +7434,7 @@ class GraphFactory:
                 "capsize": 2,
                 "capthick": 1,
             }
-            series_dict["Error = " + str(error) + " dex shade"] = {
+            series_dict[f"Error = {error} dex shade"] = {
                 "type": dp.SeriesType.shade,
                 "x_data": N_values,
                 "y_data": [m - le for m, le in zip(medians, lower_errors)],
@@ -7629,15 +7454,8 @@ class GraphFactory:
             "ks_plot": {
                 "show": False,
                 "filenames": [
-                    "pipeline_"
-                    + file_prefix
-                    + "_comparison_N_"
-                    + pop1_name
-                    + "_"
-                    + pop2_name
-                    + "_"
-                    + parameter.name
-                    + ".pdf"
+                    f"pipeline_{file_prefix}_comparison_N_{pop1_name}_{pop2_name}"
+                    + f"_{parameter.name}.pdf"
                 ],
                 "subplots": {
                     "subplot1": {
@@ -7755,9 +7573,7 @@ class GraphFactory:
                 "fontsize": 8,
                 "legend": False,
             }
-        pop1_series_dict[
-            series_names_to_use[pop1_name] + " (" + str(error) + " dex error)"
-        ] = {
+        pop1_series_dict[f"{series_names_to_use[pop1_name]} ({error} dex error)"] = {
             "type": dp.SeriesType.scatter_2d_error,
             "x_data": N_values_dict[pop1_name][error],
             "y_data": medians_pop1,
@@ -7796,9 +7612,7 @@ class GraphFactory:
             )
             for ks_value_list in ks_values_pop2
         ]
-        pop2_series_dict[
-            series_names_to_use[pop2_name] + " (" + str(error) + " dex error)"
-        ] = {
+        pop2_series_dict[f"{series_names_to_use[pop2_name]} ({error} dex error)"] = {
             "type": dp.SeriesType.scatter_2d_error,
             "x_data": N_values_dict[pop2_name][error],
             "y_data": medians_pop2,
@@ -7824,17 +7638,8 @@ class GraphFactory:
             "ks_plot": {
                 "show": False,
                 "filenames": [
-                    "pipeline_"
-                    + file_prefix
-                    + "_N_2popcomparison_"
-                    + pop1_name
-                    + "_"
-                    + pop2_name
-                    + "_"
-                    + parameter.name
-                    + "_"
-                    + str(error).replace(".", "p")
-                    + ".pdf"
+                    f"pipeline_{file_prefix}_N_2popcomparison_{pop1_name}_{pop2_name}"
+                    + f"_{parameter.name}_{str(error).replace('.', 'p')}.pdf",
                 ],
                 "subplots": {
                     "subplot1": {
@@ -7846,7 +7651,7 @@ class GraphFactory:
                         # 'title_fontsize': 14,
                         # 'title_fontweight': 'bold',
                         "xlabel_text": (
-                            series_names_to_use[pop1_name] + " Sample Size"
+                            f"{series_names_to_use[pop1_name]} Sample Size"
                             if separate_axes
                             else "Sample Size"
                         ),
@@ -7882,7 +7687,7 @@ class GraphFactory:
                 # 'title_text': str(parameter),
                 # 'title_fontsize': 14,
                 # 'title_fontweight': 'bold',
-                "xlabel_text": series_names_to_use[pop2_name] + " Sample Size",
+                "xlabel_text": f"{series_names_to_use[pop2_name]} Sample Size",
                 "xlabel_fontsize": 18,
                 "x_tick_fontsize": 14,
                 "xlabel_fontweight": "bold",
@@ -7936,9 +7741,7 @@ class GraphFactory:
                 N_values = [N_p_tuple[0] for N_p_tuple in N_p_tuples]
                 p_values = [N_p_tuple[1] for N_p_tuple in N_p_tuples]
                 i += 1
-                name_for_plot = (
-                    "Detected pollution rate = " + str(int(100 * series_name)) + "\%"
-                )
+                name_for_plot = f"Detected pollution rate = {int(100 * series_name)}%"
                 series_dict[name_for_plot] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": N_values,
@@ -8001,9 +7804,7 @@ class GraphFactory:
                 postjump_fill = np.interp(N_fill, postjump_N_values, postjump_p_values)
                 prejump_fill = np.interp(N_fill, prejump_N_values, prejump_p_values)
                 i += 1
-                name_for_plot = (
-                    "Detected pollution rate = " + str(int(100 * series_name)) + "\%"
-                )
+                name_for_plot = f"Detected pollution rate = {int(100 * series_name)}%"
                 series_dict[name_for_plot] = {
                     "type": dp.SeriesType.shade,
                     "x_data": N_fill,
@@ -8060,8 +7861,8 @@ class GraphFactory:
         series_dict = dict()
         linestyles = ["-", "--", ":"]
         j = 0
-        x_key = str(x_element) + "/Hx"
-        y_key = str(y_element) + "/Hx"
+        x_key = f"{x_element}/Hx"
+        y_key = f"{y_element}/Hx"
         known_fcfs = list()
         known_Ps = list()
         for fcf_P_tuple in data_dict:
@@ -8074,9 +7875,7 @@ class GraphFactory:
         known_fcfs.sort()
         known_Ps.sort()
         for fcf_P_tuple, data in data_dict.items():
-            run_name = (
-                "fcf = " + str(fcf_P_tuple[0]) + ", P = " + str(fcf_P_tuple[1]) + " GPa"
-            )
+            run_name = f"fcf = {fcf_P_tuple[0]}, P = {fcf_P_tuple[1]} GPa"
             fcf_index = known_fcfs.index(fcf_P_tuple[0])
             P_index = known_Ps.index(fcf_P_tuple[1])
             series_dict[run_name] = {
@@ -8181,8 +7980,8 @@ class GraphFactory:
                     upper_neighbour - lower_neighbour
                 )
             # Now interpolate!
-            lith_key = str(lithophile_element) + "/Hx"
-            sid_key = str(siderophile_element) + "/Hx"
+            lith_key = f"{lithophile_element}/Hx"
+            sid_key = f"{siderophile_element}/Hx"
             if interpolate_between_fcfs:
                 lower_LithSid = (
                     data_dict[(lower_av, known_Ps[0])][lith_key][0]
@@ -8204,7 +8003,7 @@ class GraphFactory:
             interpolated_LithSid = lower_LithSid + distance_to_interpolate * (
                 upper_LithSid - lower_LithSid
             )
-            series_dict["fcf text " + str(current_position)] = {
+            series_dict[f"fcf text {current_position}"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": point_x + (0.2 * perpendicular_vector[0]),
                 "y_pos": point_y + (0.2 * perpendicular_vector[1]),
@@ -8213,7 +8012,7 @@ class GraphFactory:
             }
             current_position += spacing
         series_dict[
-            "log(" + str(lithophile_element) + "/" + str(siderophile_element) + ")"
+            f"log({lithophile_element}/{siderophile_element})"
         ] = {
             "type": dp.SeriesType.scatter_2d,
             "x_data": [start_x, end_x],
@@ -8226,9 +8025,7 @@ class GraphFactory:
         plot_dict = {
             "observability_plot": {
                 "show": False,
-                "filenames": [
-                    "observability_" + str(x_element) + "_v_" + str(y_element) + ".pdf"
-                ],
+                "filenames": [f"observability_{x_element}_v_{y_element}.pdf"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -8238,10 +8035,10 @@ class GraphFactory:
                         # 'title_text': 'Observability Test Plot',
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
-                        "xlabel_text": "log(" + x_key + ")",
+                        "xlabel_text": f"log({x_key})",
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "log(" + y_key + ")",
+                        "ylabel_text": f"log({y_key})",
                         "ylabel_fontsize": 10,
                         "ylabel_fontweight": "bold",
                         "font": "STIXGeneral",
@@ -8358,7 +8155,7 @@ class GraphFactory:
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
                         "xlabel_text": (
-                            "Delta Time/$t_{Mg}$" if scaled else "Delta Time"
+                            r"Delta Time/$t_{Mg}$" if scaled else "Delta Time"
                         ),
                         "xlabel_fontsize": 10,
                         "xlabel_fontweight": "bold",
@@ -8417,7 +8214,7 @@ class GraphFactory:
                 total_assigned_so_far = 0
                 for element, value in oxygen_assignations.items():
                     fractional_value = value / oxygen_abundance
-                    series_name = composition_name + str(ox_strat) + str(element)
+                    series_name = f"{composition_name}{ox_strat}{element}"
                     add_to_legend = False
                     if element not in elements_labelled:
                         series_name = str(element)
@@ -8437,9 +8234,7 @@ class GraphFactory:
                         "legend": add_to_legend,
                     }
                     if fractional_value > text_threshold:
-                        series_dict[
-                            composition_name + str(ox_strat) + str(element) + " text"
-                        ] = {
+                        series_dict[f"{composition_name}{ox_strat}{element} text"] = {
                             "type": dp.SeriesType.text,
                             "x_pos": bar_no + 0.5,
                             "y_pos": total_assigned_so_far + fractional_value / 2,
@@ -8449,7 +8244,7 @@ class GraphFactory:
                         }
                     total_assigned_so_far += fractional_value
                 if total_assigned_so_far < 1:
-                    series_name = composition_name + str(ox_strat) + str(ci.Element.O)
+                    series_name = f"{composition_name}{ox_strat}{ci.Element.O}"
                     add_to_legend = False
                     if ci.Element.O not in elements_labelled:
                         series_name = str(ci.Element.O)
@@ -8467,10 +8262,7 @@ class GraphFactory:
                     }
                     if (1 - total_assigned_so_far) > text_threshold:
                         series_dict[
-                            composition_name
-                            + str(ox_strat)
-                            + str(ci.Element.O)
-                            + " text"
+                            f"{composition_name}{ox_strat}{ci.Element.O} text"
                         ] = {
                             "type": dp.SeriesType.text,
                             "x_pos": bar_no + 0.5,
@@ -8488,7 +8280,7 @@ class GraphFactory:
                 #     }
                 if len(all_oxidation_strategies) > 1:
                     x_tick_labels.append(
-                        composition_name + "\n(" + str(ox_strat).capitalize() + ")"
+                        f"{composition_name}\n({str(ox_strat).capitalize()})"
                     )
                 else:
                     x_tick_labels.append(composition_name)
@@ -8512,7 +8304,7 @@ class GraphFactory:
         plot_dict = {
             "excess_o_plot": {
                 "show": False,
-                "filenames": [file_name + "eo.pdf", file_name + "eo.png"],
+                "filenames": [f"{file_name}eo.pdf", f"{file_name}eo.png"],
                 "fig_height": 5,
                 "fig_width": 3 * (bar_no - 1),
                 "subplots": {
@@ -8615,12 +8407,12 @@ class GraphFactory:
                 "cbar_labelpad": 25,
             }
         }
-        filename = "chisquared_v_tt_" + wd_name + "_" + comparison_name
+        filename = f"chisquared_v_tt_{wd_name}_{comparison_name}"
         extensions = [".pdf", ".png"]
         plot_dict = {
             "gpe_dt_plot": {
                 "show": False,
-                "filenames": [filename + e for e in extensions],
+                "filenames": [f"{filename}{e}" for e in extensions],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -8666,9 +8458,7 @@ class GraphFactory:
                 "y_data": logg_vals,
                 "z_data": therm_factors,
                 "fill": True,
-                "cbar_label": r"$\Delta$ log(Mass), $\dot M$ = $10^{"
-                + str(logMdot)
-                + "}$ g/s",
+                "cbar_label": rf"$\Delta$ log(Mass), $\dot M$ = $10^{{{logMdot}}}$ g/s",
                 # 'levels': [0.8, 1, 1.2],
                 # 'cbar_ticks': np.linspace(ratio_data.min(), ratio_data.max(), 6),
                 "cbar_labelfontsize": 12,
@@ -8722,7 +8512,7 @@ class GraphFactory:
                 "line_style": None,
                 "line_markersize": 10,
             }
-            series_dict[system_name + "_text"] = {
+            series_dict[f"{system_name}_text"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": coord_tuple[0] + 50,
                 "y_pos": coord_tuple[1] - 0.01,
@@ -8736,7 +8526,7 @@ class GraphFactory:
         plot_dict = {
             "therm_plot": {
                 "show": False,
-                "filenames": ["therm_factors_" + str(logMdot) + e for e in extensions],
+                "filenames": [f"therm_factors_{logMdot}{e}" for e in extensions],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -8852,7 +8642,7 @@ class GraphFactory:
                 "line_style": None,
                 "line_markersize": 10,
             }
-            series_dict[system_name + "_text"] = {
+            series_dict[f"{system_name}_text"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": coord_tuple[0] + 50,
                 "y_pos": coord_tuple[1] - 0.01,
@@ -8876,18 +8666,8 @@ class GraphFactory:
             "dm_plot": {
                 "show": False,
                 "filenames": [
-                    "discrepancy_metric"
-                    + "_"
-                    + weight_desc
-                    + "_"
-                    + timescale_str_1
-                    + "_"
-                    + timescale_str_2
-                    + "_"
-                    + str(Hx)
-                    + "_"
-                    + str(len(Teff_vals))
-                    + e
+                    f"discrepancy_metric_{weight_desc}_{timescale_str_1}_v"
+                    + f"_{timescale_str_2}_{Hx}_{len(Teff_vals)}{e}"
                     for e in extensions
                 ],
                 "subplots": {
@@ -9008,7 +8788,7 @@ class GraphFactory:
                 "line_style": None,
                 "line_markersize": 10,
             }
-            series_dict[system_name + "_text"] = {
+            series_dict[f"{system_name}_text"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": coord_tuple[0] + 50,
                 "y_pos": coord_tuple[1] - 0.01,
@@ -9032,20 +8812,8 @@ class GraphFactory:
             "dm_plot": {
                 "show": False,
                 "filenames": [
-                    "discrepancy_metric_pat"
-                    + "_"
-                    + weight_desc
-                    + "_"
-                    + timescale_str_1
-                    + "_"
-                    + timescale_str_2
-                    + "_"
-                    + str(Hx)
-                    + "_"
-                    + str(metric_threshold)
-                    + "_"
-                    + str(len(Teff_vals))
-                    + e
+                    f"discrepancy_metric_pat_{weight_desc}_{timescale_str_1}_v"
+                    f"_{timescale_str_2}_{Hx}_{len(Teff_vals)}{e}"
                     for e in extensions
                 ],
                 "subplots": {
@@ -9167,7 +8935,8 @@ class GraphFactory:
                 "line_style": None,
                 "line_markersize": 10,
             }
-            series_dict[system_name + "_text"] = {
+            series_dict[f"{system_name}
+                        _text"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": coord_tuple[0] + 50,
                 "y_pos": coord_tuple[1] - 0.01,
@@ -9191,18 +8960,8 @@ class GraphFactory:
             "dm_plot": {
                 "show": False,
                 "filenames": [
-                    "discrepancy_metric_proxy_pat"
-                    + "_"
-                    + weight_desc
-                    + "_"
-                    + timescale_str_1
-                    + "_"
-                    + timescale_str_2
-                    + "_"
-                    + str(Hx)
-                    + "_"
-                    + str(len(Teff_vals))
-                    + e
+                    f"discrepancy_metric_proxy_pat_{weight_desc}_{timescale_str_1}_"
+                    + f"_{timescale_str_2}_{Hx}_{len(Teff_vals)}{e}"
                     for e in extensions
                 ],
                 "subplots": {
@@ -9288,7 +9047,7 @@ class GraphFactory:
             "dm_plot": {
                 "show": False,
                 "filenames": [
-                    "local_density_" + str(Hx) + "_" + str(len(Teff_vals)) + e
+                    f"local_density_{Hx}_{len(Teff_vals)}{e}"
                     for e in extensions
                 ],
                 "subplots": {
@@ -9377,7 +9136,7 @@ class GraphFactory:
                 "y_data": logg_vals[min_logg_index : max_logg_index + 1],
                 "z_data": ratio_data_in_range,
                 "fill": True,
-                "cbar_label": r"$\Delta $" + str(element1) + "/" + str(element2),
+                "cbar_label": rf"$\Delta $ {element1}/{element2}",
                 # 'levels': [0.8, 1, 1.2],
                 # 'cbar_ticks': np.linspace(
                 #     ratio_data_in_range.min(),
@@ -9411,14 +9170,19 @@ class GraphFactory:
                 "type": dp.SeriesType.text,
                 "x_pos": min(Teff_vals) + 200,
                 "y_pos": max(logg_vals) - 0.03,
-                "text_string": str(timescale_type1)
-                + " vs "
-                + str(timescale_type2)
-                + ", "
-                + str(Hx)
-                + " dominated "
-                + correction_type
-                + " correction",
+                # "text_string": str(timescale_type1)
+                # + " vs "
+                # + str(timescale_type2)
+                # + ", "
+                # + str(Hx)
+                # + " dominated "
+                # + correction_type
+                # + " correction",
+                "text_string": (
+                    f"{timescale_type1} vs {timescale_type2}, "
+                    + f"{Hx} dominated {correction_type} correction"
+                ),
+                "legend": False,
                 "horizontalalignment": "left",
                 "verticalalignment": "top",
                 "fontsize": 14,
@@ -9450,7 +9214,7 @@ class GraphFactory:
                 "line_style": None,
                 "line_markersize": 10,
             }
-            series_dict[system_name + "_text"] = {
+            series_dict[f"{system_name}_text"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": coord_tuple[0] + 50,
                 "y_pos": coord_tuple[1] - 0.01,
@@ -9467,16 +9231,8 @@ class GraphFactory:
             if tt is not None
         )
         file_base_name = (
-            "timescale_type_comparison_"
-            + str(element1)
-            + "_"
-            + str(element2)
-            + "_"
-            + timescale_names
-            + "_"
-            + str(Hx)
-            + "_"
-            + correction_type
+            f"timescale_type_comparison_{element1}_{element2}_"
+            + f"{timescale_names}_{Hx}_{correction_type}"
         )
         plot_dict = {
             "timescale_type_plot": {
@@ -9564,7 +9320,7 @@ class GraphFactory:
         # Make sure the min and max are equally spaced so that 0 is white
         cmap_max = cmap_scaling_factor * max_dist_from_0
 
-        print(r"$\Delta $" + str(element1) + "/" + str(element2))
+        print(rf"$\Delta $ {element1}/{element2}")
         print(Teff_vals[min_teff_index : max_teff_index + 1])
         print(logg_vals[min_logg_index : max_logg_index + 1])
         print(data_in_range)
@@ -9576,7 +9332,7 @@ class GraphFactory:
                 "y_data": logg_vals[min_logg_index : max_logg_index + 1],
                 "z_data": data_in_range,
                 "fill": True,
-                "cbar_label": r"$\Delta $" + str(element1) + "/" + str(element2),
+                "cbar_label": rf"$\Delta $ {element1}/{element2}",
                 # 'levels': [0.8, 1, 1.2],
                 # 'cbar_ticks': np.linspace(
                 #     ratio_data_in_range.min(),
@@ -9610,16 +9366,11 @@ class GraphFactory:
                 "type": dp.SeriesType.text,
                 "x_pos": min(Teff_vals) + 200,
                 "y_pos": max(logg_vals) - 0.03,
-                "text_string": str(timescale_type1)
-                + " vs "
-                + str(timescale_type2)
-                + ", benchmarked against "
-                + str(timescale_benchmark)
-                + ", "
-                + str(Hx)
-                + " dominated "
-                + correction_type
-                + " correction",
+                "text_string": (
+                    f"{timescale_type1} vs {timescale_type2}, "
+                    + f"benchmarked against {timescale_benchmark}, "
+                    + f"{Hx} dominated {correction_type} correction"
+                ),
                 "horizontalalignment": "left",
                 "verticalalignment": "top",
                 "fontsize": 14,
@@ -9651,7 +9402,7 @@ class GraphFactory:
                 "line_style": None,
                 "line_markersize": 10,
             }
-            series_dict[system_name + "_text"] = {
+            series_dict[f"{system_name}_text"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": coord_tuple[0] + 50,
                 "y_pos": coord_tuple[1] - 0.01,
@@ -9666,21 +9417,9 @@ class GraphFactory:
             "timescale_type_plot": {
                 "show": False,
                 "filenames": [
-                    "timescale_type_benchmark_"
-                    + str(element1)
-                    + "_"
-                    + str(element2)
-                    + "_"
-                    + timescale_type1.short_str()
-                    + "_"
-                    + timescale_type2.short_str()
-                    + "_"
-                    + timescale_benchmark.short_str()
-                    + "_"
-                    + str(Hx)
-                    + "_"
-                    + correction_type
-                    + e
+                    f"timescale_type_benchmark_{element1}_{element2}_"
+                    + f"{timescale_type1.short_str()}_{timescale_type2.short_str()}_"
+                    + f"{timescale_benchmark.short_str()}_{Hx}_{correction_type}{e}"
                     for e in extensions
                 ],
                 "subplots": {
@@ -9753,17 +9492,12 @@ class GraphFactory:
             }
         }
         filename = (
-            "dprob_heatmap_"
-            + base_pop1_name
-            + "_"
-            + base_pop2_name
-            + "_"
-            + str(model_parameter)
+            f"dprob_heatmap_{base_pop1_name}_{base_pop2_name}_{model_parameter}"
         )
         plot_dict = {
             "dprob_heatmap": {
                 "show": False,
-                "filenames": [filename + ".pdf"],
+                "filenames": [f"{filename}.pdf"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
@@ -9802,7 +9536,7 @@ class GraphFactory:
             label_kwargs=dict(fontsize=12),
             smooth=True,
         )
-        plt.savefig(self.output_dir + file_name_prefix + "corner.pdf")
+        plt.savefig(f"{self.output_dir}{file_name_prefix}corner.pdf")
 
     def make_samplesize_polrate_heatmap(self, sample_sizes, pol_rate, pvalue_grid):
         series_dict = {
@@ -9862,14 +9596,14 @@ class GraphFactory:
         plot_dict = {
             "dprob_heatmap": {
                 "show": False,
-                "filenames": [filename + ".pdf", filename + ".png"],
+                "filenames": [f"{filename}.pdf", f"{filename}.png"],
                 "subplots": {
                     "subplot1": {
                         "subplot_region": 111,
                         "legend": False,
                         "legend_loc": "best",
                         "legend_text_size": 8,
-                        "ylabel_text": r"$\Delta$" + " Pollution Rate (\%)",
+                        "ylabel_text": r"$\Delta$ Pollution Rate (\%)",
                         "ylabel_fontsize": 20,
                         "y_tick_fontsize": 14,
                         "ylabel_fontweight": "bold",
@@ -10062,7 +9796,7 @@ class GraphFactory:
                         "xlabel_fontsize": 16,
                         "x_tick_fontsize": 14,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "Probability of Build-Up Phase (\%)",
+                        "ylabel_text": "Probability of Build-Up Phase (%)",
                         "ylabel_fontsize": 16,
                         "y_tick_fontsize": 14,
                         "ylabel_fontweight": "bold",
@@ -10111,8 +9845,7 @@ class GraphFactory:
                         "x_tick_fontsize": 14,
                         "xlabel_fontweight": "bold",
                         "ylabel_text": "Fraction of "
-                        + r"$30\;\textrm{km}$"
-                        + " fragments from Plutos",
+                        + r"$30\;\textrm{km}$ fragments from Plutos",
                         "ylabel_fontsize": 16,
                         "y_tick_fontsize": 14,
                         "ylabel_fontweight": "bold",
@@ -10235,7 +9968,7 @@ class GraphFactory:
         series_dict = dict()
         for spectral_type, thresholds in threshold_dict[element].items():
             for threshold_name, definition in thresholds.items():
-                series_name = spectral_type + " " + threshold_name + " Threshold"
+                series_name = f"{spectral_type} {threshold_name} Threshold"
                 if threshold_name == "Default":
                     if spectral_type == "DA":
                         series_name = "H-dominated threshold"
@@ -10285,7 +10018,7 @@ class GraphFactory:
                     "line_style": "None",
                 }
             if wd_upper_bounds[spectral_type] is not None:
-                series_dict[series_name + " (upper bounds)"] = {
+                series_dict[f"{series_name} (upper bounds)"] = {
                     "type": dp.SeriesType.scatter_2d,
                     "x_data": [
                         teff_abundance_tuple[0]
@@ -10303,8 +10036,7 @@ class GraphFactory:
                 }
         HorHe = "Hx"
         plot_dict = {
-            "dt_plot_"
-            + str(element): {
+            f"dt_plot_{element}": {
                 "show": False,
                 "filenames": [
                     "detection_threshold_plot.pdf",
@@ -10325,7 +10057,7 @@ class GraphFactory:
                         "xlabel_fontsize": 16,
                         "x_tick_fontsize": 14,
                         "xlabel_fontweight": "bold",
-                        "ylabel_text": "log(" + str(element) + "/" + HorHe + ")",
+                        "ylabel_text": f"log({element}/{HorHe})",
                         "ylabel_fontsize": 16,
                         "y_tick_fontsize": 14,
                         "ylabel_fontweight": "bold",

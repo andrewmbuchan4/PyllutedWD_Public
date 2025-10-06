@@ -18,7 +18,7 @@ def get_wd_names():
 
 
 def get_best_fits(path):
-    wdsdcsv = open(path + "best_fits_hb20.csv")
+    wdsdcsv = open(f"{path}best_fits_hb20.csv")
     toret = dict()
     i = 0
     for row in csv.reader(wdsdcsv):
@@ -58,13 +58,9 @@ def find_ewp_files(path, xlsx_files, wd_names, best_fits):
         external_model_number = int(best_fit.split(" =")[0].split("M")[1])
         internal_model_number = model_map_dict[external_model_number]
         ewp_files[wd_name] = (
-            path
-            + str(obs_number)
-            + "model"
-            + str(internal_model_number)
-            + "post_equal_weights.dat"
+            f"{path}{obs_number}model{internal_model_number}post_equal_weights.dat"
         )
-    print("Analysing " + str(len(ewp_files)) + " systems")
+    print(f"Analysing {len(ewp_files)} systems")
     assert len(ewp_files) == 202  # There are 202 WDs in our sample
     return ewp_files
 
@@ -88,7 +84,7 @@ def get_binned_temperature_stats(xlsx_files, wd_names, path=None):
         sheet = workbook.sheet_by_index(0)
         first_bin_value = sheet.cell_value(12, 3)  # D13
         if first_bin_value == "":
-            print("No temp vals detected for " + wd_name)
+            print(f"No temp vals detected for {wd_name}")
             continue  # No temp vals for this WD
         bin_centres_raw = sheet.col_values(3)
         temp_vals_raw = sheet.col_values(4)
@@ -147,19 +143,15 @@ def make_all_lifetime_hist_plot(all_values, combine=True):
         print(median)
         print(errorplus)
         print(errorminus)
-        rounded_median_str = "%.2f" % median
-        rounded_errorplus_str = "%.2f" % errorplus
-        rounded_errorminus_str = "%.2f" % errorminus
+        rounded_median_str = f"{median:.2f}"
+        rounded_errorplus_str = f"{errorplus:.2f}"
+        rounded_errorminus_str = f"{errorminus:.2f}"
         text_dict = {
             "median_text": {
                 "x_pos": 7.9,
-                "text_string": "log(Accretion Event Lifetime /Yrs) = $"
-                + rounded_median_str
-                + " ^{+"
-                + rounded_errorplus_str
-                + "}_{-"
-                + rounded_errorminus_str
-                + "}$",
+                "text_string": r"log(Accretion Event Lifetime /Yrs) = $"
+                + rf"{rounded_median_str}^{{+{rounded_errorplus_str}}}"
+                + rf"_{-{rounded_errorminus_str}}$",
                 "horizontalalignment": "right",
             }
         }

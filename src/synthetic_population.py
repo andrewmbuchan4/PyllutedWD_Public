@@ -56,11 +56,11 @@ class SyntheticSystem:
         if self.id is None:
             toret = "\nWD [No ID]:"
         else:
-            toret = "\nWD " + str(self.id) + ":"
+            toret = f"\nWD {self.id}:"
         try:
             toret += "\n" + ", ".join(
                 [
-                    str(parameter) + ": " + str(value)
+                    f"{parameter}: {value}"
                     for parameter, value in self.wd_properties.items()
                 ]
             )
@@ -69,7 +69,7 @@ class SyntheticSystem:
         try:
             toret += "\nPollution properties:\n" + ", ".join(
                 [
-                    str(parameter) + ": " + str(value)
+                    f"{parameter}: {value}"
                     for parameter, value in self.pollution_properties.items()
                 ]
             )
@@ -78,17 +78,17 @@ class SyntheticSystem:
         try:
             toret += "\nPollution:\n" + ", ".join(
                 [
-                    str(el) + ": " + str(abundance)
+                    f"{el}: {abundance}"
                     for el, abundance in self.pollution_abundances.items()
                 ]
             )
         except AttributeError:
             toret += "\nPollution:\n[No Pollution values]"
-        toret += "\nObserved:\n" + str(self.observed)
+        toret += f"\nObserved:\n{self.observed}"
         try:
             toret += "\nObserved Abundances:\n" + ", ".join(
                 [
-                    str(el) + ": " + str(abundance)
+                    f"{el}: {abundance}"
                     for el, abundance in self.observed_abundances.items()
                 ]
             )
@@ -97,7 +97,7 @@ class SyntheticSystem:
         try:
             toret += "\nBandpass Magnitudes:\n" + ", ".join(
                 [
-                    str(bandpass) + ": " + str(magnitude)
+                    f"{bandpass}: {magnitude}"
                     for bandpass, magnitude in self.bandpass_magnitudes.items()
                 ]
             )
@@ -106,7 +106,7 @@ class SyntheticSystem:
         try:
             toret += "\nModelled:\n" + ", ".join(
                 [
-                    str(parameter) + ": " + str(value)
+                    f"{parameter}: {value}"
                     for parameter, value in self.modelled_properties.items()
                 ]
             )
@@ -395,7 +395,7 @@ class SyntheticPopulation:
         ):
             # I don't think we should actually raise this error here? Raise it when it
             # actually becomes a problem! TODO
-            raise ValueError("Unrecognised WD configuration " + str(wd_config_to_use))
+            raise ValueError(f"Unrecognised WD configuration {wd_config_to_use}")
         if (
             self.pollution_config_to_use is not None
             and self.pollution_config_to_use not in self.pollution_configurations
@@ -403,15 +403,15 @@ class SyntheticPopulation:
             # I don't think we should actually raise this error here? Raise it when it
             # actually becomes a problem! TODO
             raise ValueError(
-                "Unrecognised pollution configuration " + str(pollution_config_to_use)
+                f"Unrecognised pollution configuration {pollution_config_to_use}"
             )
         if pre_made_population is None:
             if self.output_filename is not None and os.path.isfile(
                 self.output_filename
             ):
                 print(
-                    self.output_filename
-                    + " already exists, loading population from file"
+                    f"{self.output_filename} already exists,"
+                    + " loading population from file"
                 )
                 # Then assume we are making a population that has already been made
                 # (and outputted) - so just load it up
@@ -421,46 +421,44 @@ class SyntheticPopulation:
                     print("No output filename supplied. Creating new population")
                 else:
                     print(
-                        self.output_filename
-                        + " does not already exist, creating new population"
+                        f"{self.output_filename} does not already exist,"
+                        + " creating new population"
                     )
                 self.create_population(population_size)
         else:
             if isinstance(pre_made_population, str):
                 print(
-                    "Pre-made population set to "
-                    + pre_made_population
-                    + ", will attempt to load from that file"
+                    f"Pre-made population set to {pre_made_population},"
+                    + " will attempt to load from that file"
                 )
                 # Then try to load it from a file called pre_made_population
                 self.load_from_csv(pre_made_population, population_size)
             else:
                 print(
-                    "Pre-made population of "
-                    + str(len(pre_made_population))
-                    + " systems was supplied. Will re-use it."
+                    f"Pre-made population of {len(pre_made_population)} systems was"
+                    + " supplied. Will re-use it."
                 )
                 # Then assume this IS the pre made population, and they already have ids
                 self.population = pre_made_population
         self.unsampled_indices = list(range(len(self)))
 
     def __repr__(self):
-        toret = "Synthetic Population of " + str(len(self.population)) + " systems:"
+        toret = f"Synthetic Population of {len(self.population)} systems:"
         system_count = 0
         for system in self.population:
-            toret += "\nSystem " + str(system_count)
+            toret += f"\nSystem {system_count}"
             toret += str(system)
             system_count += 1
         return toret
 
     def convert_property_to_readable_str(self, system_property):
         if isinstance(system_property, ci.Element):
-            return "log(" + str(system_property) + "/Hx)"
+            return f"log({system_property}/Hx)"
         elif isinstance(system_property, mp.WDParameter):
             if system_property == mp.WDParameter.logg:
                 return "WD Log(g)"
             else:
-                return "WD " + str(system_property)
+                return f"WD {system_property}"
         else:
             return str(system_property)
 
@@ -503,7 +501,7 @@ class SyntheticPopulation:
         elif len(header_string) == 1:
             return sb.Bandpass[header_string]
         else:
-            raise ValueError("Unrecognised header string: " + header_string)
+            raise ValueError(f"Unrecognised header string: {header_string}")
 
     def cast_string_to_float_or_int(self, input_string):
         if input_string == "" or input_string.isspace():
@@ -563,22 +561,22 @@ class SyntheticPopulation:
             for item in mp.wd_descriptive_parameters
         ]
         header += [
-            "Input " + self.convert_property_to_readable_str(item)
+            f"Input {self.convert_property_to_readable_str(item)}"
             for item in pollution_properties
         ]
         header += [
-            "True " + self.convert_property_to_readable_str(item)
+            f"True {self.convert_property_to_readable_str(item)}"
             for item in pollution_abundance_keys
         ]
         if not only_raw:
             header += ["Observed?"]
         header += [
-            "Observed " + self.convert_property_to_readable_str(item)
+            f"Observed {self.convert_property_to_readable_str(item)}"
             for item in observed_abundance_keys
         ]
         header += [self.convert_property_to_readable_str(item) for item in bandpasses]
         header += [
-            "Output " + self.convert_property_to_readable_str(item)
+            f"Output {self.convert_property_to_readable_str(item)}"
             for item in modelled_properties
         ]
         if output_file is None:
@@ -593,16 +591,15 @@ class SyntheticPopulation:
                 # Then don't dump: this is a preexisiting population, which we
                 # presumably loaded up a subset from, and we're about to delete a bunch
                 # of data!
-                print("File " + output_file + " already exists, aborting dump")
+                print(f"File {output_file} already exists, aborting dump")
                 return
             else:
                 print(
-                    "Warning: "
-                    + output_file
-                    + " already exists, but is smaller than generated population, proceeding with dump"
+                    f"Warning: {output_file} already exists,"
+                    + " but is smaller than generated population, proceeding with dump"
                 )
         else:
-            print("Dumping to file " + output_file)
+            print(f"Dumping to file {output_file}")
         if "/" in output_file:
             storage_dir = output_file[: output_file.rfind("/")]
             os.makedirs(storage_dir, exist_ok=True)
@@ -664,7 +661,9 @@ class SyntheticPopulation:
                                         self.cast_string_to_float_or_int(value)
                                     )
                             else:
-                                raise ValueError("Unrecognised header:" + header_row[i])
+                                raise ValueError(
+                                    f"Unrecognised header: {header_row[i]}"
+                                )
                         elif isinstance(required_property, ci.Element):
                             if header_row[i].startswith("True"):
                                 pollution_abundances[required_property] = (
@@ -676,7 +675,9 @@ class SyntheticPopulation:
                                         self.cast_string_to_float_or_int(value)
                                     )
                             else:
-                                raise ValueError("Unrecognised header:" + header_row[i])
+                                raise ValueError(
+                                    f"Unrecognised header: {header_row[i]}"
+                                )
                         elif isinstance(required_property, sb.Bandpass):
                             if value != "None":
                                 bandpass_magnitudes[required_property] = (
@@ -692,7 +693,7 @@ class SyntheticPopulation:
                             else:
                                 pass
                         else:
-                            raise ValueError("Unrecognised header:" + header_row[i])
+                            raise ValueError(f"Unrecognised header: {header_row[i]}")
                     if bandpass_magnitudes == dict():
                         bandpass_magnitudes = None
                     if observed_abundances == dict():
@@ -718,11 +719,8 @@ class SyntheticPopulation:
 
         if requested_pop_size > len(self.population):
             print(
-                "Warning! Requested population size "
-                + str(requested_pop_size)
-                + " was greater than systems available to load ("
-                + str(len(self.population))
-                + ")"
+                f"Warning! Requested population size {requested_pop_size} was greater"
+                f" than systems available to load ({len(self.population)})"
             )
             if np.isfinite(requested_pop_size):
                 print("Will create the remaining systems")
@@ -807,15 +805,12 @@ class SyntheticPopulation:
                 long_timescale_count += 1
             total_count += 1
         print(
-            str(long_timescale_count)
-            + "/"
-            + str(total_count)
-            + " systems exceeded t_Mg = "
-            + str(reference_timescale)
+            f"{long_timescale_count}/{total_count} systems exceeded"
+            + f"t_Mg = {reference_timescale}"
         )
 
     def create_population(self, population_size, reset_population=True):
-        print("Generating synthetic population of " + str(population_size) + " systems")
+        print(f"Generating synthetic population of {population_size} systems")
         if reset_population:
             self.population = list()
         pop_count = len(self.population)
@@ -842,12 +837,7 @@ class SyntheticPopulation:
                 and pop_count != last_reported_pop_count
                 and pop_count > 0
             ):
-                print(
-                    "Made "
-                    + str(pop_count)
-                    + " systems so far, excluded "
-                    + str(excluded_count)
-                )
+                print(f"Made {pop_count} systems so far, excluded {excluded_count}")
                 last_reported_pop_count = pop_count
 
     def create_system(self):
@@ -1074,7 +1064,7 @@ class SyntheticPopulation:
             )
         else:
             raise ValueError(
-                "Unrecognised distribution type: " + repr(distribution_type)
+                f"Unrecognised distribution type: {repr(distribution_type)}"
             )
 
     def cache_inverse_cdf(self, function_name, function, min_val, max_val):
@@ -1084,7 +1074,7 @@ class SyntheticPopulation:
         for i, pts in enumerate(points_to_sample):
             area, error = scint.quad(function, min_val, pts)
             if area > 0 and error / area > 0.1:
-                print("Warning! Integration error was: " + str(error))
+                print(f"Warning! Integration error was: {error}")
                 raise
             areas[i] = area
             # if i > 10:
@@ -1294,11 +1284,8 @@ class SyntheticPopulation:
             return None
         if len(toret) > 1:
             print(
-                "Warning! Found "
-                + str(len(toret))
-                + " systems with id "
-                + str(id_no)
-                + ", returning the first one"
+                f"Warning! Found {len(toret)} systems with id {id_no},"
+                + " returning the first one"
             )
         return toret[0]
 
@@ -1359,12 +1346,12 @@ class SyntheticPopulation:
                     true_negatives += 1
         print()
         print("Testing for Core-Richness")
-        print("True Positives: " + str(true_positives))
-        print("False Positives: " + str(false_positives))
-        print("Total Positives: " + str(false_positives + true_positives))
-        print("True Negatives: " + str(true_negatives))
-        print("False Negatives: " + str(false_negatives))
-        print("Total Negatives: " + str(true_negatives + false_negatives))
+        print(f"True Positives: {true_positives}")
+        print(f"False Positives: {false_positives}")
+        print(f"Total Positives: {false_positives + true_positives}")
+        print(f"True Negatives: {true_negatives}")
+        print(f"False Negatives: {false_negatives}")
+        print(f"Total Negatives: {true_negatives + false_negatives}")
         try:
             print(
                 "Core-Rich Trustworthiness: "
@@ -1388,8 +1375,8 @@ class SyntheticPopulation:
             )
         except ZeroDivisionError:
             print("Could not calculate Core-Rich/Mantle-Rich Trustworthiness")
-        print("Core-rich dropouts: " + str(core_drop_outs))
-        print("Mantle-rich dropouts: " + str(mantle_drop_outs))
+        print(f"Core-rich dropouts: {core_drop_outs}")
+        print(f"Mantle-rich dropouts: {mantle_drop_outs}")
 
     def get_observed_subset(self):
         subset = list()
@@ -1427,7 +1414,8 @@ class SyntheticPopulation:
                     subset.append(system)
         if hack_to_exclude_systems_in_dec:
             print(
-                "Warning! Current sample selection excludes systems > 3 Myr into declining phase!"
+                "Warning! Current sample selection excludes systems > 3 Myr into"
+                + " declining phase!"
             )
         return SyntheticPopulation(
             None,
@@ -1532,11 +1520,8 @@ class SyntheticPopulation:
             indices = range(len(self))
         if len(indices) < subset_size:
             print(
-                "Could not extract subset, requested size ("
-                + str(subset_size)
-                + ") > available systems ("
-                + str(len(indices))
-                + ")"
+                "Could not extract subset, "
+                + f"requested size ({subset_size}) > available systems ({len(indices)})"
             )
             return None
         random_sample = random.sample(indices, k=subset_size)
@@ -1742,8 +1727,8 @@ def visualise_distributions():
     for dist_type, samples in distribution_samples.items():
         print()
         print(str(dist_type))
-        print("Min: " + str(min(samples)))
-        print("Max: " + str(max(samples)))
+        print(f"Min: {min(samples)}")
+        print(f"Max: {max(samples)}")
         bins = [
             0,
             0.05,

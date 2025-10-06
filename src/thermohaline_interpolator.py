@@ -50,7 +50,7 @@ class ThermohalineInterpolator:
         self.interpolate = interpolate.LinearNDInterpolator(points, all_therm_factors)
 
     def compile_MESA_outputs(self, base_path):
-        dirname = base_path + "thermohaline_surfaceX/"
+        dirname = f"{base_path}thermohaline_surfaceX/"
         subdirnames = list(os.walk(dirname))[0][1]
         all_logmdots = np.array([])
         all_logXCa_therms = np.array([])
@@ -65,7 +65,7 @@ class ThermohalineInterpolator:
             subdir = dirname + subdirname
             Teff_file_names = list(os.walk(subdir))[0][2]
             for Teff_file_name in Teff_file_names:
-                Teff_file = subdir + "/" + Teff_file_name
+                Teff_file = f"{subdir}/{Teff_file_name}"
                 Teff = float(Teff_file.split("K.data")[0].split("/")[-1])
                 d = np.genfromtxt(Teff_file)
                 logmdot = np.log10(d[:, 0])
@@ -88,10 +88,11 @@ class ThermohalineInterpolator:
                     print(subdirname)
                     print(Teff_file_name)
                     print(
-                        "This logic is hopefully irrelevant now - there used to be some invalid values in the raw tables"
+                        "This logic is hopefully irrelevant now"
+                        + " - there used to be some invalid values in the raw tables"
                     )
-        output_file_name = dirname + "all_mesa_outputs.csv"
-        print("Writing to " + output_file_name)
+        output_file_name = f"{dirname}all_mesa_outputs.csv"
+        print(f"Writing to {output_file_name}")
         with open(output_file_name, "w", newline="", encoding="utf-8") as output_file:
             to_write = csv.writer(output_file)
             to_write.writerow(
@@ -172,8 +173,8 @@ class ThermohalineInterpolator:
                     (trial_lower_logmdot, Teff, logg)
                 )
                 if np.isnan(interpolated_upper_result):
-                    # Then we were out of bounds, and the trial value becomes the new upper
-                    # limit:
+                    # Then we were out of bounds, and the trial value becomes the new
+                    # upper limit:
                     current_upper_maximum_logmdot_limit = trial_upper_logmdot
                 else:
                     valid_max_limit = True

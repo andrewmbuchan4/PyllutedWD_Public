@@ -44,7 +44,7 @@ def get_mwdd_abundances(element, Hx, include_teff=False, include_upper_bounds=Fa
     toret = list()
     toret_ub = list()
     with open(
-        pu.get_path_to_data() + "MWDD-export-allpollution.csv", encoding="utf-8"
+        f"{pu.get_path_to_data()}MWDD-export-allpollution.csv", encoding="utf-8"
     ) as mwddcsv:
         row_count = 0
         for row in csv.reader(mwddcsv):
@@ -90,14 +90,7 @@ def main():
     el1 = ci.Element.Mg
     el2 = ci.Element.H
     values = get_mwdd_abundances(el1, el2)
-    print(
-        str(len(values))
-        + " values for "
-        + str(el1)
-        + "/"
-        + str(el2)
-        + " found in MWDD:"
-    )
+    print(f"{len(values)} values for {el1}/{el2} found in MWDD:")
     print(values)
 
 
