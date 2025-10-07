@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
+import csv
+import numpy as np
+
 import chemistry_info as ci
 import geology_info as gi
 import graph_factory as gf
 import model_parameters as mp
 import timescale_interpolator as ti
 
-import csv
-import numpy as np
 
 wd_dict = {
     "SDSSJ1228+1040Corr": {  # UV, ID 365

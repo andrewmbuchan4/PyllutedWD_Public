@@ -7,12 +7,10 @@ import numpy as np
 import abundance_model as am
 import atmosphere_model as atm
 import chemistry_info as ci
-import disc_model as dm
 import enhancement_model as em
 import geology_info as gi
 import live_data as ld
 import physical_constants as pc
-import white_dwarf_model as wdm
 
 
 # t_sinceaccretion in Myr, t_disc in yr

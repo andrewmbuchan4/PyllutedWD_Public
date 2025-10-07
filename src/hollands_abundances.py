@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
-
 import csv
 import json
-import os
 import numpy as np
+import os
 import pymultinest as pn
 
 import chemistry_info as ci

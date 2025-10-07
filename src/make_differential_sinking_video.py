@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
 import numpy as np
 
 import atmosphere_model as atm

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
 import numpy as np
 
 import chemistry_info as ci
@@ -12,6 +11,7 @@ import pwd_utils as pu
 import solar_abundances as sa
 import timescale_interpolator as ti
 import white_dwarf as wd
+
 
 video_configurations = {
     "volatile_depletion": {

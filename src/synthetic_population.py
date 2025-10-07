@@ -9,7 +9,6 @@ import random
 import scipy.integrate as scint
 import scipy.interpolate as si
 
-
 import chemistry_info as ci
 import complete_model as cm
 import hollands_abundances as ha

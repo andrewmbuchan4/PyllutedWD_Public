@@ -3,6 +3,7 @@
 import csv
 import os
 import sys
+
 import pwd_utils as pu
 
 sys.path.append(pu.get_path_to_utils())

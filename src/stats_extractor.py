@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
+from argparse import Namespace
 import csv
-import numpy as np
 import os
 
+import numpy as np
 import pymultinest as pn
 
 import manager as mn
 import model_parameters as mp
+import pwd_utils as pu
 
-from argparse import Namespace
 
 whitelist = [
     "SDSSJ0002+3209",

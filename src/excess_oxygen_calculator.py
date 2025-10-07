@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from enum import Enum
 import copy
+from enum import Enum
 import numpy as np
 
 import chemistry_info as ci

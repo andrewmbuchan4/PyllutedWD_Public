@@ -3,9 +3,10 @@
 import argparse as ap
 import configparser
 import pickle
+from pathlib import Path
+
 import timescale_interpolator as ti
 
-from pathlib import Path
 
 abbreviations = {
     # Necessary to keep file names below 100 characters!

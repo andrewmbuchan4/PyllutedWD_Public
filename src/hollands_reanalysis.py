@@ -7,7 +7,7 @@
 # but I'm putting this script in src because I want to leave original_codebase
 # untouched as far as possible
 
-from scipy import stats as stat
+# from scipy import stats as stat
 import csv
 import numpy as np
 

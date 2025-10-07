@@ -8,7 +8,6 @@ import numpy as np
 
 import chemistry_info as ci
 import model_parameters as mp
-import pwd_utils as pu
 import solar_abundances as sa
 
 

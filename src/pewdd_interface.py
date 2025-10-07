@@ -1,14 +1,7 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
-
-import csv
-import numpy as np
-import scipy
-
 import chemistry_info as ci
 import manager as mn
-import timescale_interpolator as ti
 
 
 def get_common_thermohaline_el_values(list_of_elements):

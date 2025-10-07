@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
-from enum import Enum
-
 import csv
-import geology_info as gi
-import model_parameters as mp
 import numpy as np
 
 

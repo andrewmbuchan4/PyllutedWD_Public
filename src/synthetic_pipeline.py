@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
-from enum import Enum
 import numpy as np
 import os
 import scipy.stats as st

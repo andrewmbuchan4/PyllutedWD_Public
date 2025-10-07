@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
 from itertools import combinations
 
 import csv

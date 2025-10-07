@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from argparse import Namespace
+
 import csv
 import numpy as np
 
@@ -8,7 +10,6 @@ import complete_model as cm
 import graph_factory as gf
 import manager as mn
 
-from argparse import Namespace
 
 pressure_args = {
     ci.Element.Cr: {

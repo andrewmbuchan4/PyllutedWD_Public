@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import sys
 from ternary_diagram import TernaryDiagram
 

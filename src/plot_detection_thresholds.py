@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
-
 import chemistry_info as ci
 import detection_thresholds as dt
-import hollands_abundances as ha
 import mwdd_abundances as mwdd
 import graph_factory as gf
-import pwd_utils as pu
 
 
 def build_wd_data(element, DA=True):

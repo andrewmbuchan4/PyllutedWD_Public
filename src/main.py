@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse as ap
 import manager as mn
 import pwd_utils as pu
 

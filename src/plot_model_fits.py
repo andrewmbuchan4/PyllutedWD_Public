@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from argparse import Namespace
-
 import chemistry_info as ci
 import complete_model as cm
 import graph_factory as gf

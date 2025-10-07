@@ -13,7 +13,6 @@ import model_analyser as ma
 import model_parameters as mp
 import pollution_model as pm
 import pwd_utils as pu
-import stellar_composition as sc
 import timescale_interpolator as ti
 import white_dwarf as wd
 

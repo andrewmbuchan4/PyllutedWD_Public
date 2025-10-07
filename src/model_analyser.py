@@ -2,7 +2,7 @@
 
 import collections as cn
 import csv
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import pymultinest as pn
 from scipy.special import erfcinv
@@ -10,11 +10,9 @@ from scipy.special import lambertw as W
 from scipy import stats as stat
 import os
 
-import abundance_model as am
 import chemistry_info as ci
 import complete_model as cm
 import disc_model as dm
-import enhancement_model as em
 import excess_oxygen_calculator as eoc
 import geology_info as gi
 import graph_factory as gf

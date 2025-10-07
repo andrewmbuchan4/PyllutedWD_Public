@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from scipy import interpolate
-
 import csv
 import numpy as np
 import os
+from scipy import interpolate
+
 import pwd_utils as pu
 
 

@@ -2,7 +2,6 @@
 
 # This is more of a fragment abundance calculator now, rather than an enhancement model!
 
-from enum import Enum
 import numpy as np
 
 import chemistry_info as ci

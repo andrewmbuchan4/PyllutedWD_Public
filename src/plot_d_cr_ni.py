@@ -5,7 +5,6 @@ import sys
 
 import chemistry_info as ci
 import geology_info as gi
-import graph_factory as gf
 import pwd_utils as pu
 
 sys.path.append(pu.get_path_to_utils())

@@ -3,11 +3,9 @@
 # A newer, neater version of white_dwarf_model.py which uses mass
 
 import numpy as np
-import sys
 
 import chemistry_info as ci
 import physical_constants as pc
-import pwd_utils as pu
 import thermohaline_interpolator as thi
 
 therm_factor_interpolator = thi.ThermohalineInterpolator()

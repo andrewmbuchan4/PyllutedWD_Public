@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import csv
-import numpy as np
-
 # This file is a bit of a hack. It exists because we need to pass external information
 # into the prior function, but the prior function can only contain one argument (cube)
 # otherwise pymultinest complains.

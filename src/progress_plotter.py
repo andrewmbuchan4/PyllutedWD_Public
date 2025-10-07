@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import shutil, os
 import sys
 
 import model_parameters as mp

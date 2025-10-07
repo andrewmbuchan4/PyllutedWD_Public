@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
+import math
 from numba import jit
 import numpy as np
-import math
 
 import chemistry_info as ci
 import disc_model as dm

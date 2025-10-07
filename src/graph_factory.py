@@ -11,7 +11,6 @@ import sys
 import chemistry_info as ci
 import geology_info as gi
 import live_data as ld
-import model_parameters as mp
 import pwd_utils as pu
 import solar_abundances as sa
 
@@ -8935,8 +8934,7 @@ class GraphFactory:
                 "line_style": None,
                 "line_markersize": 10,
             }
-            series_dict[f"{system_name}
-                        _text"] = {
+            series_dict[f"{system_name}text"] = {
                 "type": dp.SeriesType.text,
                 "x_pos": coord_tuple[0] + 50,
                 "y_pos": coord_tuple[1] - 0.01,

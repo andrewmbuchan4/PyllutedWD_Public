@@ -3,13 +3,15 @@
 from pathlib import Path
 
 import json
-import sys
+import numpy as np
+import pymultinest as pn
+import pocomc as pmc
+# import sys
 
 import loglike_functions as lf
 import model_parameters as mp
 import prior_functions as pf
 import pwd_utils as pu
-import pymultinest as pn
 
 # sys.path.append(pu.get_path_to_pocomc_dir())
 # import pocomc as pmc

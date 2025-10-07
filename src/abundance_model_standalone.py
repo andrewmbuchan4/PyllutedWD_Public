@@ -2,8 +2,8 @@ import csv
 import numpy as np
 
 import abundance_model as am
-import disc_model as dm
 import chemistry_info as ci
+import disc_model as dm
 import graph_factory as gf
 import live_data as ld
 import solar_abundances as sa
