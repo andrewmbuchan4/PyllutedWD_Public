@@ -32,7 +32,7 @@ def get_hollands_names(manager=None):
     hollands_ids = get_hollands_ids()
     for wd in manager.white_dwarfs:
         if i in hollands_ids:
-            hollands_names.append(wd.name)
+            hollands_names.append(wd.system_name)
         i += 1
     return hollands_names
 
@@ -186,13 +186,15 @@ def get_hollands_abundances_and_timescales_dict(manager=None):
     hollands_ids = get_hollands_ids()
     for wd in manager.white_dwarfs:
         if i in hollands_ids:
-            t_sinceaccretion, accretion_timescale = get_median_t_t_event_myr(wd.name)
-            hollands_abundance_dict[wd.name] = {
+            t_sinceaccretion, accretion_timescale = get_median_t_t_event_myr(
+                wd.system_name
+            )
+            hollands_abundance_dict[wd.system_name] = {
                 "Median time since accretion /Myr": t_sinceaccretion,
                 "Median accretion timescale /Myr": accretion_timescale,
             }
             for el, abundance in wd.get_abundance_values_dict().items():
-                hollands_abundance_dict[wd.name][el] = abundance
+                hollands_abundance_dict[wd.system_name][el] = abundance
         i += 1
     return hollands_abundance_dict
 
@@ -205,7 +207,9 @@ def get_hollands_pol_fracs(manager=None):
     hollands_ids = get_hollands_ids()
     for wd in manager.white_dwarfs:
         if i in hollands_ids:
-            hollands_pol_frac_dict[wd.name] = wd.estimate_minimum_pollution_fraction()
+            hollands_pol_frac_dict[
+                wd.system_name
+            ] = wd.estimate_minimum_pollution_fraction()
         i += 1
     return hollands_pol_frac_dict
 

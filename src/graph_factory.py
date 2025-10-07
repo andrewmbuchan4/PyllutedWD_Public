@@ -740,12 +740,12 @@ class GraphFactory:
         if extra_text_dict is not None:
             if model_name is None:
                 base_file_name = (
-                    f"{white_dwarf.name}_composition_rel_{reference_element_used}_"
+                    f"{white_dwarf.system_name}_composition_rel_{reference_element_used}_"
                     + extra_text_dict["short"]
                 )
             else:
                 base_file_name = (
-                    f"{white_dwarf.name}_{model_name}_composition_rel_"
+                    f"{white_dwarf.system_name}_{model_name}_composition_rel_"
                     + f"{reference_element_used}_{extra_text_dict['short']}"
                 )
             series_dict["ExtraText"] = {
@@ -761,11 +761,11 @@ class GraphFactory:
         else:
             if model_name is None:
                 base_file_name = (
-                    f"{white_dwarf.name}_composition_rel_{reference_element_used}"
+                    f"{white_dwarf.system_name}_composition_rel_{reference_element_used}"
                 )
             else:
                 base_file_name = (
-                    f"{white_dwarf.name}_{model_name}_composition_rel_"
+                    f"{white_dwarf.system_name}_{model_name}_composition_rel_"
                     + f"{reference_element_used}"
                 )
 
