@@ -5,7 +5,6 @@ from pathlib import Path
 import json
 import numpy as np
 import pymultinest as pn
-import pocomc as pmc
 # import sys
 
 import loglike_functions as lf
@@ -199,6 +198,7 @@ class PollutionModel:
         # )
 
     def execute_pocomc(self, output_dir):
+        import pocomc as pmc
         # What other parameters should (could) this have?
         # - Core/mantle/crust compositions
         # - Core/crust fractions of fragment/parent
