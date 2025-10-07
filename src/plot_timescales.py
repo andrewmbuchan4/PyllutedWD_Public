@@ -366,28 +366,7 @@ def get_Teff_values(grid_steps=100, grid_range=(None, None), timescale_types=lis
 
 
 def get_CaHe_values():
-    return [
-        -6.5,
-        -7,
-        -7.5,
-        -8,
-        -8.5,
-        -9,
-        -9.5,
-        -10,
-        -10.5,
-        -11,
-        -11.5,
-        -12,
-        -12.5,
-        -13,
-        -13.5,
-        -14,
-        -14.5,
-        -15,
-        -15.5,
-        -16,
-    ]
+    return np.arange(-6.5, -16.5, -0.5)
 
 
 def get_variable_vals(variable):
@@ -1202,23 +1181,7 @@ def plot_therm_factors():
     logg_vals = np.linspace(7.5, 8.5, 101)
     Teff_vals = np.linspace(6000, 30000, 101)
     logg_vals = [7.5, 7.6, 7.7, 7.8, 7.9, 8, 8.1, 8.2, 8.3, 8.4, 8.5]
-    Teff_vals = [
-        6000,
-        7000,
-        8000,
-        9000,
-        10000,
-        11000,
-        12000,
-        13000,
-        14000,
-        15000,
-        16000,
-        17000,
-        18000,
-        19000,
-        20000,
-    ]
+    Teff_vals = np.arange(6000, 20000 + 1, 1000).tolist()
     logMdots = [6, 7, 8, 9, 10, 11]
     reference_systems = {
         wd.full_name(): (wd.get_teff().value, wd.get_logg().value)

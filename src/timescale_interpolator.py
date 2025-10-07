@@ -795,26 +795,8 @@ def create_grid():
     timescale_type = TimescaleType.KoesterNoOvershoot
     elements = [ci.Element.Ca, ci.Element.Fe, ci.Element.Mg]
     Hx_values = [ci.Element.H, ci.Element.He]
-    logg_values = [7.5, 7.6, 7.7, 7.8, 7.9, 8.0, 8.1, 8.2, 8.3, 8.4, 8.5]
-    teff_values = [
-        4000,
-        5000,
-        6000,
-        7000,
-        8000,
-        9000,
-        10000,
-        11000,
-        12000,
-        13000,
-        14000,
-        15000,
-        16000,
-        17000,
-        18000,
-        19000,
-        20000,
-    ]
+    logg_values = np.arange(7.5, 8.6, 0.1).tolist()
+    teff_values = np.arange(4000, 20500, 1000).tolist()
     CaHe = -15
     timescales = dict()
     for Hx in Hx_values:

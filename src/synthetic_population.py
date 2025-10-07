@@ -1728,53 +1728,10 @@ def visualise_distributions():
         print(str(dist_type))
         print(f"Min: {min(samples)}")
         print(f"Max: {max(samples)}")
-        bins = [
-            0,
-            0.05,
-            0.1,
-            0.15,
-            0.2,
-            0.25,
-            0.3,
-            0.35,
-            0.4,
-            0.45,
-            0.5,
-            0.55,
-            0.6,
-            0.65,
-            0.7,
-            0.75,
-            0.8,
-            0.85,
-            0.9,
-            0.95,
-            1,
-        ]
+        bins = np.arange(0, 1.05, 0.05)
         heights, bins2 = np.histogram(samples, bins, density=True)
 
-        bin_centres = [
-            0.025,
-            0.075,
-            0.125,
-            0.175,
-            0.225,
-            0.275,
-            0.325,
-            0.375,
-            0.425,
-            0.475,
-            0.525,
-            0.575,
-            0.625,
-            0.675,
-            0.725,
-            0.775,
-            0.825,
-            0.875,
-            0.925,
-            0.975,
-        ]
+        bin_centres = np.arange(0.025, .5, 1.0).tolist()
         graph_fac.make_histogram(
             bin_centres,
             [heights],

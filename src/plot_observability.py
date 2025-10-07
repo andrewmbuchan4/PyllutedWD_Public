@@ -80,67 +80,13 @@ def generate_pollution_fraction_values():
 def generate_pressure_values():
     # return [0, 30, 60]
     # return [0, 20, 40, 60]
-    return [
-        0,
-        2,
-        4,
-        6,
-        8,
-        10,
-        12,
-        14,
-        16,
-        18,
-        20,
-        22,
-        24,
-        26,
-        28,
-        30,
-        32,
-        34,
-        36,
-        38,
-        40,
-        42,
-        44,
-        46,
-        48,
-        50,
-        52,
-        54,
-        56,
-        58,
-        60,
-    ]
+    return np.arange(0, 61, 2).tolist()
 
 
 def generate_fcf_values():
     # return [0, 0.5, 1]
     # return [0, 0.25, 0.5, 0.75, 0.99]
-    return [
-        0,
-        0.05,
-        0.1,
-        0.15,
-        0.2,
-        0.25,
-        0.3,
-        0.35,
-        0.4,
-        0.45,
-        0.5,
-        0.55,
-        0.6,
-        0.65,
-        0.7,
-        0.75,
-        0.8,
-        0.85,
-        0.9,
-        0.95,
-        0.99,
-    ]
+    return np.arange(0, 0.99, 0.05).tolist() + [0.99]
 
 
 def get_element_key(element):
