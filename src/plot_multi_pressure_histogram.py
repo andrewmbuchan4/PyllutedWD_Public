@@ -13,7 +13,7 @@ def main():
         "HPM0": {
             "hpm_fcf0_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "High pressure, 0\% core",
+                "text_string": "High pressure, 0% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             },
@@ -22,7 +22,7 @@ def main():
         "HPM2": {
             "hpm_fcf2_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "High pressure, 2\% core",
+                "text_string": "High pressure, 2% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             },
@@ -31,7 +31,7 @@ def main():
         "LPM0": {
             "lpm_fcf0_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "Low pressure, 0\% core",
+                "text_string": "Low pressure, 0% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             }
@@ -39,7 +39,7 @@ def main():
         "LPM2": {
             "lpm_fcf2_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "Low pressure, 2\% core",
+                "text_string": "Low pressure, 2% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             }
@@ -47,7 +47,7 @@ def main():
         "HPC75": {
             "hpc_fcf75_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "High pressure, 75\% core",
+                "text_string": "High pressure, 75% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             }
@@ -55,7 +55,7 @@ def main():
         "HPC99": {
             "hpc_fcf99_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "High pressure, 99\% core",
+                "text_string": "High pressure, 99% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             }
@@ -63,7 +63,7 @@ def main():
         "LPC75": {
             "lpc_fcf75_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "Low pressure, 75\% core",
+                "text_string": "Low pressure, 75% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             }
@@ -71,7 +71,7 @@ def main():
         "LPC99": {
             "lpc_fcf99_text": {
                 "x_pos": 30,  # Change to 0 for plotting separate dists...,
-                "text_string": "Low pressure, 99\% core",
+                "text_string": "Low pressure, 99% core",
                 "horizontalalignment": "center",
                 "fontsize": 24,
             }

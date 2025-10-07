@@ -2300,7 +2300,7 @@ class ModelAnalyser:
         text_dict = {
             "sigma_display_text": {
                 "x_pos": 50 if p_excess_def > p_deficit_def else -100,
-                "text_string": f"${np.round(sig_excess_def, 1)}\sigma$",
+                "text_string": rf"${np.round(sig_excess_def, 1)}\sigma$",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 16,
@@ -2310,7 +2310,7 @@ class ModelAnalyser:
         text_dict_thesis = {
             "sigma_display_text": {
                 "x_pos": 0.8 if p_excess_def > p_deficit_def else 0.2,
-                "text_string": f"${np.round(sig_excess_def, 1)}\sigma$",
+                "text_string": rf"${np.round(sig_excess_def, 1)}\sigma$",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 16,
@@ -2354,7 +2354,7 @@ class ModelAnalyser:
                 f"{white_dwarf.full_name()}_{model.get_prefix()}",
                 half_bin_size * 2 * plot_scaling_factor,
                 1.2,
-                "Excess Oxygen (\%)",
+                "Excess Oxygen (%)",
                 "semisampled_oxygen_excess",
                 text_dict,
                 line_dict,
@@ -2376,7 +2376,7 @@ class ModelAnalyser:
                 f"{white_dwarf.full_name()}_{model.get_prefix()}",
                 half_bin_size * 2 * plot_scaling_factor,
                 1.2,
-                "Excess Oxygen (\%)",
+                "Excess Oxygen (%)",
                 "semisampled_oxygen_excess_thesis",
                 text_dict_thesis,
                 line_dict,
@@ -3021,7 +3021,7 @@ class ModelAnalyser:
                 "text_string": str(
                     np.round(100 * len(t_obs_data[i_buildup]) / len(t_obs_data), 1)
                 )
-                + "\%",
+                + "%",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 20,
@@ -3033,7 +3033,7 @@ class ModelAnalyser:
                 "text_string": str(
                     np.round(100 * len(t_obs_data[i_ss]) / len(t_obs_data), 1)
                 )
-                + "\%",
+                + "%",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 20,
@@ -3044,7 +3044,7 @@ class ModelAnalyser:
                 "text_string": str(
                     np.round(100 * len(t_obs_data[i_declining]) / len(t_obs_data), 1)
                 )
-                + "\%",
+                + "%",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 20,
@@ -3091,7 +3091,7 @@ class ModelAnalyser:
                 "text_string": str(
                     np.round(100 * len(t_obs_data[i_buildup]) / len(t_obs_data), 1)
                 )
-                + "\%",
+                + "%",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 20,
@@ -3103,7 +3103,7 @@ class ModelAnalyser:
                 "text_string": str(
                     np.round(100 * len(t_obs_data[i_ss]) / len(t_obs_data), 1)
                 )
-                + "\%",
+                + "%",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 20,
@@ -3115,7 +3115,7 @@ class ModelAnalyser:
                 "text_string": str(
                     np.round(100 * len(t_obs_data[i_declining]) / len(t_obs_data), 1)
                 )
-                + "\%",
+                + "%",
                 "horizontalalignment": "center",
                 "verticalalignment": "center",
                 "fontsize": 20,
@@ -3140,10 +3140,10 @@ class ModelAnalyser:
             ],
             "x_tick_labels_override": [
                 "0",
-                f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
+                rf"{t_ss_scaling_factor}$\tau_{{{critical_element}}}$",
                 r"$t_{event}$",
                 r"$t_{event}$ + "
-                + f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
+                + rf"{t_ss_scaling_factor}$\tau_{{{critical_element}}}$",
             ],
         }
 
@@ -3157,10 +3157,10 @@ class ModelAnalyser:
             ],
             "x_tick_labels_override": [
                 "0",
-                f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
+                rf"{t_ss_scaling_factor}$tau_{{{critical_element}}}$",
                 r"$t_{event}$",
                 r"$t_{event}$ + "
-                + f"{t_ss_scaling_factor}$\\tau_{{{critical_element}}}$",
+                + rf"{t_ss_scaling_factor}$\tau_{{{critical_element}}}$",
             ],
             "x_min": 0,
             "x_max": 15,

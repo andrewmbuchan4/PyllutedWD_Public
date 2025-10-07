@@ -487,7 +487,7 @@ class GraphFactory:
             "zorder": 1,
             "legend": True,
         }
-        series_dict["Stellar 98\% Composition Range"] = {
+        series_dict["Stellar 98% Composition Range"] = {
             "type": dp.SeriesType.shade,
             # 'x_data': range(0, len(observations)),
             "x_data": x_axis,
@@ -900,7 +900,7 @@ class GraphFactory:
                     sa.upper_X_ratiod_to_solar[reference_element_used].get(el, np.nan)
                 )
             if not video:
-                series_dict["Stellar 98\% Composition Range"] = {
+                series_dict["Stellar 98% Composition Range"] = {
                     "type": dp.SeriesType.shade,
                     # 'x_data': range(0, len(observations)),
                     "x_data": x_axis,
@@ -1624,7 +1624,7 @@ class GraphFactory:
             "zorder": 1,
             "legend": True,
         }
-        series_dict["Stellar 98\% Composition Range"] = {
+        series_dict["Stellar 98% Composition Range"] = {
             "type": dp.SeriesType.shade,
             # 'x_data': range(0, len(observations)),
             "x_data": x_axis,
@@ -2597,7 +2597,7 @@ class GraphFactory:
         #    }
         #    el_index += 1
         # ^^^^^^
-        unit_dict = {"Pressure": " /GPa", "fO2": rf" ($\Delta$IW)"}
+        unit_dict = {"Pressure": " /GPa", "fO2": r" ($\Delta$IW)"}
         variable_name_to_use = (
             r"$f_{\textrm{O}_{2}}$" if variable == "fO2" else variable
         )
@@ -3145,7 +3145,7 @@ class GraphFactory:
                         "legend_text_size": 8,
                         "title_text": (
                             "Convergence of Partition Coefficients, D, for run "
-                            + rf"$\mathrm{{{run_name.replace('_', '\_')}}}$"
+                            + rf"$\mathrm{{{run_name.replace('_', r'\_')}}}$"
                         ),
                         "title_fontsize": 12,
                         "title_fontweight": "bold",
@@ -4899,7 +4899,7 @@ class GraphFactory:
             "legend_text_size": 28,
             "title_fontsize": 16,
             "title_fontweight": "bold",
-            "xlabel_text": "t / \tau_{XY}",
+            "xlabel_text": r"$t / \tau_{XY}$",
             "xlabel_fontsize": 28,
             "xlabel_fontweight": "bold",
             # 'ylabel_text': 'Mass / M' + r'$_{\textrm{Earth}}$',
@@ -7640,7 +7640,7 @@ class GraphFactory:
         #         N_values = [N_p_tuple[0] for N_p_tuple in N_p_tuples]
         #         p_values = [N_p_tuple[1] for N_p_tuple in N_p_tuples]
         #         i += 1
-        #         name_for_plot = 'Prejump for ' + str(int(100*series_name)) + '\%'
+        #         name_for_plot = 'Prejump for ' + str(int(100*series_name)) + '%'
         #         series_dict[name_for_plot] = {
         #             'type': dp.SeriesType.scatter_2d,
         #             'x_data': N_values,
@@ -7658,7 +7658,7 @@ class GraphFactory:
         #         N_values = [N_p_tuple[0] for N_p_tuple in N_p_tuples]
         #         p_values = [N_p_tuple[1] for N_p_tuple in N_p_tuples]
         #         i += 1
-        #         name_for_plot = 'Postjump for ' + str(int(100*series_name)) + '\%'
+        #         name_for_plot = 'Postjump for ' + str(int(100*series_name)) + '%'
         #         series_dict[name_for_plot] = {
         #             'type': dp.SeriesType.scatter_2d,
         #             'x_data': N_values,
