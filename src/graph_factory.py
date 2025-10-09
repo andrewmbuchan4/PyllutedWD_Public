@@ -3144,8 +3144,7 @@ class GraphFactory:
                         "legend_loc": "best",
                         "legend_text_size": 8,
                         "title_text": (
-                            "Convergence of Partition Coefficients, D, for run "
-                            + rf"$\mathrm{{{run_name.replace('_', r'\_')}}}$"
+                            f"Convergence of Partition Coefficients, D, for run {run_name}"
                         ),
                         "title_fontsize": 12,
                         "title_fontweight": "bold",

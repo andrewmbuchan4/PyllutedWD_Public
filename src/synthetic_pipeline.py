@@ -2366,9 +2366,10 @@ class Pipeline:
                     pop_name
                 ]
                 if not paper_version:
+                    total_systems = sum(weights_dict["Input"][plot_name][pop_name])
                     io_text_dict[f"{pop_name} Initial excluded"] = {
                         "text_string": f"{pop_name} Initial: "
-                        + f"{sum(weights_dict["Input"][plot_name][pop_name])} total, "
+                        + f"{total_systems} total, "
                         + str(
                             variable_below_threshold_dict["Input"][plot_name][pop_name]
                         )
