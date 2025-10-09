@@ -1,33 +1,33 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from enum import Enum
 
+
 class Element(Enum):
     Placeholder = 0  # Can be used as a 'Hx' indicator if necessary!
-    H  = 1
+    H = 1
     He = 2
     Li = 3
     Be = 4
-    B  = 5
-    C  = 6
-    N  = 7
-    O  = 8
-    F  = 9
+    B = 5
+    C = 6
+    N = 7
+    O = 8
+    F = 9
     Ne = 10
     Na = 11
     Mg = 12
     Al = 13
     Si = 14
-    P  = 15
-    S  = 16
+    P = 15
+    S = 16
     Cl = 17
     Ar = 18
-    K  = 19
+    K = 19
     Ca = 20
     Sc = 21
     Ti = 22
-    V  = 23
+    V = 23
     Cr = 24
     Mn = 25
     Fe = 26
@@ -43,7 +43,7 @@ class Element(Enum):
     Kr = 36
     Rb = 37
     Sr = 38
-    Y  = 39
+    Y = 39
     Zr = 40
     Nb = 41
     Mo = 42
@@ -57,7 +57,7 @@ class Element(Enum):
     Sn = 50
     Sb = 51
     Te = 52
-    I  = 53
+    I = 53
     Xe = 54
     Cs = 55
     Ba = 56
@@ -78,7 +78,7 @@ class Element(Enum):
     Lu = 71
     Hf = 72
     Ta = 73
-    W  = 74
+    W = 74
     Re = 75
     Os = 76
     Ir = 77
@@ -96,7 +96,7 @@ class Element(Enum):
     Ac = 89
     Th = 90
     Pa = 91
-    U  = 92
+    U = 92
     Np = 93
     Pu = 94
     Am = 95
@@ -129,8 +129,10 @@ class Element(Enum):
 
     def __hash__(self):
         # For performance purposes:
-        # Normally python will try to hash an Enum by hashing its name (which guaranteess uniqueness)
-        # In this case I know that the values are also unique, and should satisfy properties of a hash
+        # Normally python will try to hash an Enum by hashing its name (which guarantees
+        # uniqueness).
+        # In this case I know that the values are also unique, and should satisfy
+        # properties of a hash.
         # So I do this, which is much quicker:
         return self.value
 
@@ -138,24 +140,24 @@ class Element(Enum):
         return 1
 
     def __lt__(self, other):
-        return (self.value < other.value)
+        return self.value < other.value
 
     def __le__(self, other):
-        return(self.value <= other.value)
+        return self.value <= other.value
 
     def __gt__(self, other):
-        return(self.value > other.value)
+        return self.value > other.value
 
     def __ge__(self, other):
-        return(self.value >= other.value)
+        return self.value >= other.value
 
     def __eq__(self, other):
         if not isinstance(other, Element):
             return False
-        return (self.value == other.value)
+        return self.value == other.value
 
     def __ne__(self, other):
-        return not(self.__eq__(other))
+        return not (self.__eq__(other))
 
 
 all_elements = [
@@ -276,7 +278,7 @@ all_elements = [
     Element.Mc,
     Element.Lv,
     Element.Ts,
-    Element.Og
+    Element.Og,
 ]
 
 element_masses = {
@@ -397,13 +399,15 @@ element_masses = {
     Element.Mc: 290,
     Element.Lv: 293,
     Element.Ts: 294,
-    Element.Og: 294
+    Element.Og: 294,
 }
+
 
 def get_element_mass(element):
     return element_masses[element]
 
-usual_elements = [ # The ones we assume can safely be handled anywhere in the code
+
+usual_elements = [  # The ones we assume can safely be handled anywhere in the code
     Element.Al,
     Element.Ti,
     Element.Ca,
@@ -415,7 +419,7 @@ usual_elements = [ # The ones we assume can safely be handled anywhere in the co
     Element.Na,
     Element.O,
     Element.C,
-    Element.N
+    Element.N,
 ]
 
 non_metals = [Element.H, Element.He]
@@ -423,7 +427,10 @@ non_metals = [Element.H, Element.He]
 metals = [el for el in all_elements if el not in non_metals]
 
 writeable_elements = usual_elements
-#writeable_elements = [ # The ones we're going to attempt to write to a csv in the synthetic pipeline (and by extension, compute in the forward model!). Doesn't require full functionality elsewhere
+# writeable_elements = [
+#    # The ones we're going to attempt to write to a csv in the synthetic pipeline (and
+#    # by extension, compute in the forward model!). Doesn't require full functionality
+#    # elsewhere.
 #    Element.Al,
 #    Element.Ti,
 #    Element.Ca,
@@ -437,9 +444,6 @@ writeable_elements = usual_elements
 #    Element.C,
 #    Element.N,
 #    Element.S
-#]
+# ]
 
-atmospheric_types = [
-    Element.H,
-    Element.He
-]
+atmospheric_types = [Element.H, Element.He]

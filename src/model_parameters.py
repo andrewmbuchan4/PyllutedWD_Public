@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from enum import Enum
 import numpy as np
 
-minimum_likelihood = -1.0e90 # This kind of stuff should end up in configuration.ini
+minimum_likelihood = -1.0e90  # This kind of stuff should end up in configuration.ini
+
 
 class ModelParameter(Enum):
     metallicity = 0
@@ -21,38 +21,39 @@ class ModelParameter(Enum):
     oxygen_fugacity = 11
 
     def __str__(self):
-        word_list = [word.capitalize() for word in self.name.split('_')]
+        word_list = [word.capitalize() for word in self.name.split("_")]
         subbed_word_list = list()
         for word in word_list:
-            if word == 'Frac':
-                subbed_word_list.append('Fraction')
-            elif word == 'T':
-                subbed_word_list.append('Time')
-            elif word == 'Sinceaccretion':
-                subbed_word_list.append('Since')
-                subbed_word_list.append('Accretion')
+            if word == "Frac":
+                subbed_word_list.append("Fraction")
+            elif word == "T":
+                subbed_word_list.append("Time")
+            elif word == "Sinceaccretion":
+                subbed_word_list.append("Since")
+                subbed_word_list.append("Accretion")
             else:
                 subbed_word_list.append(word)
-                if word in ['Core', 'Crust']:
-                    subbed_word_list.append('Number')
-        return ' '.join(subbed_word_list)
+                if word in ["Core", "Crust"]:
+                    subbed_word_list.append("Number")
+        return " ".join(subbed_word_list)
 
     def units(self):
         unit_dict = {
-            'pressure': ('', 'GPa'),
-            'oxygen_fugacity': ('', 'ΔIW'),
-            't_sinceaccretion': ('', 'Myr'),
-            'formation_distance': ('log(', 'AU)'),
-            'feeding_zone_size': ('', 'AU)'),
-            'accretion_timescale': ('log(', 'yr)'),
+            "pressure": ("", "GPa"),
+            "oxygen_fugacity": ("", "ΔIW"),
+            "t_sinceaccretion": ("", "Myr"),
+            "formation_distance": ("log(", "AU)"),
+            "feeding_zone_size": ("", "AU)"),
+            "accretion_timescale": ("log(", "yr)"),
         }
-        return unit_dict.get(self.name, ('', ''))
+        return unit_dict.get(self.name, ("", ""))
 
     def full_unit_string(self):
         pre_unit, post_unit = self.units()
-        if post_unit != '':
-            post_unit = ' /' + post_unit
-        return pre_unit + str(self) + post_unit
+        if post_unit != "":
+            post_unit = f" /{post_unit}"
+        return f"{pre_unit}{self}{post_unit}"
+
 
 class WDParameter(Enum):
     spectral_type = 0
@@ -66,29 +67,29 @@ class WDParameter(Enum):
     consider_thermohaline = 8
 
     def __str__(self):
-        return ' '.join([word.capitalize() for word in self.name.split('_')])
+        return " ".join([word.capitalize() for word in self.name.split("_")])
+
 
 wd_parameter_units = {
-    #WDParameter.spectral_type: None,
-    WDParameter.temperature: 'K',
-    #WDParameter.logg: None,
-    WDParameter.mass: 'M_{Solar}',
-    WDParameter.distance: 'pc'
-    #WDParameter.atmospheric_type: None
+    # WDParameter.spectral_type: None,
+    WDParameter.temperature: "K",
+    # WDParameter.logg: None,
+    WDParameter.mass: "M_{Solar}",
+    WDParameter.distance: "pc",
+    # WDParameter.atmospheric_type: None
 }
 
-wd_synthesis_parameters = [  # this pre-dates atmospheric_type! Really, I should make it able to accept either the spectral or atmospheric type
+wd_synthesis_parameters = [
+    # This pre-dates atmospheric_type!
+    # Really, I should make it able to accept either the spectral or atmospheric type
     WDParameter.spectral_type,
     WDParameter.temperature,
     WDParameter.logg,
     WDParameter.mass,
-    WDParameter.distance
+    WDParameter.distance,
 ]
 
-wd_meta_parameters = [
-    WDParameter.timescale_type,
-    WDParameter.consider_thermohaline
-]
+wd_meta_parameters = [WDParameter.timescale_type, WDParameter.consider_thermohaline]
 
 wd_descriptive_parameters = wd_synthesis_parameters + wd_meta_parameters
 
@@ -101,48 +102,42 @@ model_parameter_strings = {
     ModelParameter.parent_crust_frac: "Parent Crust Fraction",
     ModelParameter.fragment_core_frac: "Fragment Core Fraction",
     ModelParameter.fragment_crust_frac: "Fragment Crust Fraction",
-    #ModelParameter.pollution_frac: "log(Pollution Fraction)",
+    # ModelParameter.pollution_frac: "log(Pollution Fraction)",
     ModelParameter.fragment_mass: "log(Fragment Mass /kg)",
     ModelParameter.accretion_timescale: "log(Accretion Event Time /yr)",
     ModelParameter.pressure: "Pressure /GPa",  # NB: This used to be log!
-    ModelParameter.oxygen_fugacity: "Oxygen Fugacity /ΔIW"
+    ModelParameter.oxygen_fugacity: "Oxygen Fugacity /ΔIW",
 }
 
 # These must begin with 'Hierarchy'
 # Warning: some logic will probably break if you have more than 10 levels
 # manager.py assumes each level is just 1 digit
 hierarchy_definitions_dict = {
-    'Hierarchy_Basic': {
+    "Hierarchy_Basic": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
             ModelParameter.fragment_mass,
-            ModelParameter.accretion_timescale
+            ModelParameter.accretion_timescale,
         ],
-        1: [
-            ModelParameter.formation_distance
-        ]
+        1: [ModelParameter.formation_distance],
     },
-    'Hierarchy_Default': {
+    "Hierarchy_Default": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
             ModelParameter.fragment_mass,
-            ModelParameter.accretion_timescale
+            ModelParameter.accretion_timescale,
         ],
-        1: [
-            ModelParameter.formation_distance
-        ],
-        2: [
-            ModelParameter.feeding_zone_size
-        ],
+        1: [ModelParameter.formation_distance],
+        2: [ModelParameter.feeding_zone_size],
         3: [
             ModelParameter.fragment_core_frac,
             ModelParameter.pressure,
-            ModelParameter.oxygen_fugacity
-        ]
+            ModelParameter.oxygen_fugacity,
+        ],
     },
-    'Hierarchy_Test': {
+    "Hierarchy_Test": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
@@ -150,147 +145,127 @@ hierarchy_definitions_dict = {
             ModelParameter.accretion_timescale,
             ModelParameter.fragment_core_frac,
             ModelParameter.pressure,
-            ModelParameter.oxygen_fugacity
+            ModelParameter.oxygen_fugacity,
         ],
-        1: [
-            ModelParameter.formation_distance  #This is a dummy - it's irrelevent
-        ]
+        1: [ModelParameter.formation_distance],  # This is a dummy - it's irrelevant
     },
-    'Hierarchy_Test2': {
+    "Hierarchy_Test2": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
             ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale,
             ModelParameter.formation_distance,
-            ModelParameter.feeding_zone_size
+            ModelParameter.feeding_zone_size,
         ],
         1: [
             ModelParameter.fragment_core_frac,
             ModelParameter.pressure,
-            ModelParameter.oxygen_fugacity
-        ]
+            ModelParameter.oxygen_fugacity,
+        ],
     },
-    'Hierarchy_Test3': {
+    "Hierarchy_Test3": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
             ModelParameter.fragment_mass,
-            ModelParameter.accretion_timescale
+            ModelParameter.accretion_timescale,
         ],
         1: [
             ModelParameter.formation_distance,
             ModelParameter.feeding_zone_size,
             ModelParameter.fragment_core_frac,
             ModelParameter.pressure,
-            ModelParameter.oxygen_fugacity
-        ]
+            ModelParameter.oxygen_fugacity,
+        ],
     },
-    'Hierarchy_OM': {
+    "Hierarchy_OM": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
             ModelParameter.fragment_mass,
-            ModelParameter.accretion_timescale
+            ModelParameter.accretion_timescale,
         ],
-        1: [
-            ModelParameter.formation_distance
-        ],
+        1: [ModelParameter.formation_distance],
         2: [
             ModelParameter.feeding_zone_size,
         ],
         3: [
             ModelParameter.fragment_core_frac,
-            ModelParameter.fragment_crust_frac  # This isn't as flexible as it should be. fcf should be tried on its own, then fof added if fcf is added...
+            ModelParameter.fragment_crust_frac,
+            # ^ This isn't as flexible as it should be.
+            # fcf should be tried on its own, then fof added if fcf is added...
         ],
-        4: [
-            ModelParameter.parent_core_frac
-        ],
-        5: [
-            ModelParameter.parent_crust_frac
-        ]
+        4: [ModelParameter.parent_core_frac],
+        5: [ModelParameter.parent_crust_frac],
     },
-    'Hierarchy_OM_reduced': {
+    "Hierarchy_OM_reduced": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
             ModelParameter.fragment_mass,
-            ModelParameter.accretion_timescale
+            ModelParameter.accretion_timescale,
         ],
-        1: [
-            ModelParameter.formation_distance
-        ],
+        1: [ModelParameter.formation_distance],
         2: [
             ModelParameter.feeding_zone_size,
         ],
-        3: [
-            ModelParameter.fragment_core_frac,
-            ModelParameter.fragment_crust_frac
-        ]
+        3: [ModelParameter.fragment_core_frac, ModelParameter.fragment_crust_frac],
     },
-    'Hierarchy_Earth': {
+    "Hierarchy_Earth": {
         0: [
-            #ModelParameter.metallicity,  # Not used - invoke SolarCompositions.csv to fix initial composition at solar
-            ModelParameter.t_sinceaccretion, #In principle these timescale ones could also be removed
+            # ModelParameter.metallicity,  # Not used
+            # ^ Invoke SolarCompositions.csv to fix initial composition at solar
+            ModelParameter.t_sinceaccretion,
+            # ^ In principle these timescale ones could also be removed
             ModelParameter.fragment_mass,
             ModelParameter.accretion_timescale,
             ModelParameter.formation_distance,
-            #ModelParameter.fragment_core_frac, # Not used - we already know this in principle, so use correct default values
+            # ModelParameter.fragment_core_frac,  # Not used
+            # ^ We already know this in principle, so use correct default values
             ModelParameter.pressure,
-            ModelParameter.oxygen_fugacity
+            ModelParameter.oxygen_fugacity,
         ],
-        1: [
-            ModelParameter.feeding_zone_size
-        ]
+        1: [ModelParameter.feeding_zone_size],
     },
-    # This one (below) should be used for Solar System objects, when the initial composition can be assumed to be solar and therefore removed as a parameter
-    # Can also be used for other systems where you can fix the stellar composition somehow (eg wide binaries) in which case this becomes a misnomer (sorry)
-    'Hierarchy_Meteorite': {
+    # This one (below) should be used for Solar System objects, when the initial
+    # composition can be assumed to be solar and therefore removed as a parameter
+    # Can also be used for other systems where you can fix the stellar composition
+    # somehow (eg wide binaries) in which case this becomes a misnomer (sorry)
+    "Hierarchy_Meteorite": {
         0: [
-            #ModelParameter.metallicity,  # Not used - invoke SolarCompositions.csv to fix initial composition at solar
-            ModelParameter.t_sinceaccretion, #In principle these timescale ones could also be removed
+            # ModelParameter.metallicity,  # Not used
+            # ^ Invoke SolarCompositions.csv to fix initial composition at solar
+            ModelParameter.t_sinceaccretion,
+            # ^ In principle these timescale ones could also be removed
             ModelParameter.fragment_mass,
-            ModelParameter.accretion_timescale
+            ModelParameter.accretion_timescale,
         ],
-        1: [
-            ModelParameter.formation_distance
-        ],
-        2: [
-            ModelParameter.feeding_zone_size
-        ],
+        1: [ModelParameter.formation_distance],
+        2: [ModelParameter.feeding_zone_size],
         3: [
             ModelParameter.fragment_core_frac,
             ModelParameter.pressure,
-            ModelParameter.oxygen_fugacity
-        ]
+            ModelParameter.oxygen_fugacity,
+        ],
     },
-    'Hierarchy_Revamp': {
+    "Hierarchy_Revamp": {
         0: [
             ModelParameter.metallicity,
             ModelParameter.t_sinceaccretion,
             ModelParameter.fragment_mass,
-            ModelParameter.accretion_timescale
+            ModelParameter.accretion_timescale,
         ],
-        1: [
-            ModelParameter.formation_distance
-        ],
-        2: [
-            ModelParameter.feeding_zone_size
-        ],
-        3: [
-            ModelParameter.fragment_core_frac
-        ],
-        4: [
-            ModelParameter.pressure
-        ],
-        5: [
-            ModelParameter.oxygen_fugacity
-        ]
-    }
+        1: [ModelParameter.formation_distance],
+        2: [ModelParameter.feeding_zone_size],
+        3: [ModelParameter.fragment_core_frac],
+        4: [ModelParameter.pressure],
+        5: [ModelParameter.oxygen_fugacity],
+    },
 }
 
 model_definitions_dict = {
-    'Model_24': {
+    "Model_24": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -302,9 +277,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: False,
-        ModelParameter.oxygen_fugacity: False
+        ModelParameter.oxygen_fugacity: False,
     },
-    'Model_4_equiv': {
+    "Model_4_equiv": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: False,
@@ -316,9 +291,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
-        ModelParameter.oxygen_fugacity: True
+        ModelParameter.oxygen_fugacity: True,
     },
-    'Model_Andy': {
+    "Model_Andy": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -330,9 +305,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
-        ModelParameter.oxygen_fugacity: False
+        ModelParameter.oxygen_fugacity: False,
     },
-    'Model_Andy_No_Crust': {
+    "Model_Andy_No_Crust": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -344,9 +319,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
-        ModelParameter.oxygen_fugacity: False
+        ModelParameter.oxygen_fugacity: False,
     },
-    'Model_Full': {
+    "Model_Full": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -358,9 +333,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
-        ModelParameter.oxygen_fugacity: True
+        ModelParameter.oxygen_fugacity: True,
     },
-    'Model_Full_No_Crust': {
+    "Model_Full_No_Crust": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -372,9 +347,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
-        ModelParameter.oxygen_fugacity: True
+        ModelParameter.oxygen_fugacity: True,
     },
-    'Model_Mantle_Only': {
+    "Model_Mantle_Only": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -386,9 +361,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
-        ModelParameter.oxygen_fugacity: True
+        ModelParameter.oxygen_fugacity: True,
     },
-    'HD012_equiv': {
+    "HD012_equiv": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -400,9 +375,9 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: False,
-        ModelParameter.oxygen_fugacity: False
+        ModelParameter.oxygen_fugacity: False,
     },
-    'HD0123_equiv': {
+    "HD0123_equiv": {
         ModelParameter.metallicity: True,
         ModelParameter.t_sinceaccretion: True,
         ModelParameter.formation_distance: True,
@@ -414,15 +389,18 @@ model_definitions_dict = {
         ModelParameter.fragment_mass: True,
         ModelParameter.accretion_timescale: True,
         ModelParameter.pressure: True,
-        ModelParameter.oxygen_fugacity: True
-    }
+        ModelParameter.oxygen_fugacity: True,
+    },
 }
+
 
 def model_uses_parameter(model, parameter):
     return model_definitions_dict[model].get(parameter, False)
 
+
 def get_model_params_in_order():
     return [m for m in ModelParameter]
+
 
 def parameter_indices(model):
     toret = dict()
@@ -433,9 +411,11 @@ def parameter_indices(model):
             index += 1
     return toret
 
+
 default_values = {
-    'NonEarthlike': {
-        ModelParameter.metallicity: 479, #Assume average Fe/H, i.e. go halfway through the 958 indices
+    "NonEarthlike": {
+        # Assume average Fe/H, i.e. go halfway through the 958 indices
+        ModelParameter.metallicity: 479,
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
         ModelParameter.feeding_zone_size: 0.05,
@@ -446,9 +426,9 @@ default_values = {
         ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
-        ModelParameter.oxygen_fugacity: -2
+        ModelParameter.oxygen_fugacity: -2,
     },
-    'Earthlike': {
+    "Earthlike": {
         ModelParameter.metallicity: 479,
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
@@ -460,9 +440,11 @@ default_values = {
         ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
-        ModelParameter.oxygen_fugacity: -2
+        ModelParameter.oxygen_fugacity: -2,
     },
-    'MantleOnly': {  # The same as NEL, but we assume no core (unless this is overridden by the prior)
+    "MantleOnly": {
+        # The same as NEL, but we assume no core (unless this is overridden by the
+        # prior)
         ModelParameter.metallicity: 479,
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
@@ -474,24 +456,29 @@ default_values = {
         ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
-        ModelParameter.oxygen_fugacity: -2
+        ModelParameter.oxygen_fugacity: -2,
     },
-    'EarthMantle': {
-        ModelParameter.metallicity: 0, #We should use SolarComposition.csv, which has only 1 entry (the Sun) at index 0
+    "EarthMantle": {
+        ModelParameter.metallicity: 0,
+        # ^ We should use SolarComposition.csv, which has only 1 entry (the Sun) at
+        # index 0
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
         ModelParameter.feeding_zone_size: 0.05,
         ModelParameter.parent_core_frac: 0.17,
         ModelParameter.parent_crust_frac: 0.01,
-        ModelParameter.fragment_core_frac: 0, # If we feed it mantle, we can just tell it it's mantle
+        ModelParameter.fragment_core_frac: 0,
+        # ^ If we feed it mantle, we can just tell it it's mantle
         ModelParameter.fragment_crust_frac: 0,
         ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
-        ModelParameter.oxygen_fugacity: -2
+        ModelParameter.oxygen_fugacity: -2,
     },
-    'Meteorite': {
-        ModelParameter.metallicity: 0, #We should use SolarComposition.csv, which has only 1 entry (the Sun) at index 0
+    "Meteorite": {
+        ModelParameter.metallicity: 0,
+        # ^ We should use SolarComposition.csv, which has only 1 entry (the Sun) at
+        # index 0
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
         ModelParameter.feeding_zone_size: 0.05,
@@ -502,10 +489,11 @@ default_values = {
         ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
-        ModelParameter.oxygen_fugacity: -2
+        ModelParameter.oxygen_fugacity: -2,
     },
-    'NELRevamp': {
-        ModelParameter.metallicity: 479, #Assume average Fe/H, i.e. go halfway through the 958 indices
+    "NELRevamp": {
+        # Assume average Fe/H, i.e. go halfway through the 958 indices
+        ModelParameter.metallicity: 479,
         ModelParameter.t_sinceaccretion: 0,
         ModelParameter.formation_distance: 2,
         ModelParameter.feeding_zone_size: 0,
@@ -516,6 +504,6 @@ default_values = {
         ModelParameter.fragment_mass: np.nan,
         ModelParameter.accretion_timescale: 5.6,
         ModelParameter.pressure: 54,
-        ModelParameter.oxygen_fugacity: -2
-    }
+        ModelParameter.oxygen_fugacity: -2,
+    },
 }
