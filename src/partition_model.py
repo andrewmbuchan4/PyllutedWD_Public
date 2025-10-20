@@ -640,10 +640,10 @@ def example():
     import pwd_utils as pu
 
     pamela = PartitionModel(
-        f"{pu.get_path_to_feni()}data/part_param_fischer_blanchard_epsilon_update.dat",
-        f"{pu.get_path_to_feni()}data/int_param_fischer_blanchard_update.dat",
-        f"{pu.get_path_to_feni()}data/composition.dat",
-        f"{pu.get_path_to_feni()}data/e_param_fischer_epsilon_update.dat",
+        f"{pu.get_path_to_feni()}part_param_fischer_blanchard_epsilon_update.dat",
+        f"{pu.get_path_to_feni()}int_param_fischer_blanchard_update.dat",
+        f"{pu.get_path_to_feni()}composition.dat",
+        f"{pu.get_path_to_feni()}e_param_fischer_epsilon_update.dat",
     )
     pressure = 10
     fO2 = -2

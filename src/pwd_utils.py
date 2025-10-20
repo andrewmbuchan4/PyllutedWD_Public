@@ -57,7 +57,7 @@ def get_path_to_data():
 
 
 def get_path_to_feni():
-    return f"{get_path_to_parent()}feni_src/feni/"
+    return f"{get_path_to_data()}feni/"
 
 
 def get_path_to_src():

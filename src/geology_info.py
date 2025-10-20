@@ -47,11 +47,10 @@ class GeologyModel:
 
         # These filenames should probably be arguments to GeologyModel.__init__()
         self.pamela = pam.PartitionModel(
-            pu.get_path_to_feni()
-            + "data/part_param_fischer_blanchard_epsilon_update.dat",
-            pu.get_path_to_feni() + "data/int_param_fischer_blanchard_update.dat",
-            pu.get_path_to_feni() + "data/composition.dat",
-            pu.get_path_to_feni() + "data/e_param_fischer_epsilon_update.dat",
+            pu.get_path_to_feni() + "part_param_fischer_blanchard_epsilon_update.dat",
+            pu.get_path_to_feni() + "int_param_fischer_blanchard_update.dat",
+            pu.get_path_to_feni() + "composition.dat",
+            pu.get_path_to_feni() + "e_param_fischer_epsilon_update.dat",
         )
         self.config_name = "sisi"
         self.G = pc.G  # Gravitational constant (SI units)
