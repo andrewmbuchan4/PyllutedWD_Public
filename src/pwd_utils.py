@@ -72,10 +72,6 @@ def get_path_to_utils():
     return f"{get_path_to_parent()}utils/"
 
 
-def get_path_to_original_src():
-    return f"{get_path_to_parent()}original_codebase/"
-
-
 class ConfigWrapper:
 
     def __init__(self, default_config="configuration.ini"):
@@ -285,7 +281,6 @@ def main():
     print(f"Looking for input data in: {get_path_to_data()}")
     print(f"Looking for partitioning data in: {get_path_to_feni()}")
     print(f"Looking for utility scripts in: {get_path_to_utils()}")
-    print(f"Looking for original code in: {get_path_to_original_src()}")
     print(f"Output directory: {get_path_to_output_base_dir()}")
     print(f"Will put synthetic_pipeline output in: {get_path_to_pipeline_base_dir()}")
     print(f"Old data in: {get_path_to_historical_output_dir()}")

@@ -32,7 +32,7 @@ def get_og_indices(wd_names):
     row_count = 0
     toret = dict()
     with open(
-        "../original_codebase/wd_data_1112.csv", encoding="utf-8"
+        "../data/original_codebase/wd_data_1112.csv", encoding="utf-8"
     ) as timescales_csv:
         for row in csv.reader(timescales_csv):
             if row[0] in wd_names:
@@ -45,7 +45,7 @@ def extract_hollands_timescales(wd_names, wd_indices):
     row_count = 0
     toret = dict()
     with open(
-        "../original_codebase/wd_timescales_1112.csv", encoding="utf-8"
+        "../data/original_codebase/wd_timescales_1112.csv", encoding="utf-8"
     ) as timescales_csv:
         for row in csv.reader(timescales_csv):
             if row_count in wd_indices:

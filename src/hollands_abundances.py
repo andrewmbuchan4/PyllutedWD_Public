@@ -88,9 +88,7 @@ def extract_posteriors(wd_name):
     # Step 4: Read from file <wd index>model<model number>post_equal_weights.dat, with
     #         the n_params set to the model dimensions
     wd_index = None
-    with open(
-        f"{pu.get_path_to_original_src()}wd_data_1112.csv", encoding="utf-8"
-    ) as wdcsv:
+    with open(f"../data/original_codebase/wd_data_1112.csv", encoding="utf-8") as wdcsv:
         row_count = 0
         for row in csv.reader(wdcsv):
             if row[0] == wd_name:
@@ -207,9 +205,9 @@ def get_hollands_pol_fracs(manager=None):
     hollands_ids = get_hollands_ids()
     for wd in manager.white_dwarfs:
         if i in hollands_ids:
-            hollands_pol_frac_dict[
-                wd.system_name
-            ] = wd.estimate_minimum_pollution_fraction()
+            hollands_pol_frac_dict[wd.system_name] = (
+                wd.estimate_minimum_pollution_fraction()
+            )
         i += 1
     return hollands_pol_frac_dict
 

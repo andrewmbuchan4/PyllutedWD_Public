@@ -13,7 +13,7 @@ model_map_dict = {1: 2, 4: 4, 6: 27, 2: 25, 5: 5, 3: 26, 9: 21, 8: 28}
 
 
 def get_wd_names():
-    wdsdcsv = open("../original_codebase/wd_data_1112.csv")
+    wdsdcsv = open("../data/original_codebase/wd_data_1112.csv")
     namelist = [row[0] for row in csv.reader(wdsdcsv)]
     return namelist
 
