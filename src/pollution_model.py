@@ -94,7 +94,6 @@ class PollutionModel:
         return (
             self.timescale_type.short_str()
             + f"_{self.get_identifier1()}"
-            + self.get_identifier1()
             + self.basename
             + self.get_identifier2()
         )
